@@ -25,6 +25,7 @@
   "medical_department",
   "service_unit",
   "sample",
+  "end_datetime",
   "section_break_brtm",
   "start_date",
   "start_time",
@@ -83,7 +84,8 @@
    "in_standard_filter": 1,
    "label": "Patient",
    "options": "Patient",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "patient_age",
@@ -131,7 +133,8 @@
    "in_list_view": 1,
    "label": "Procedure Template",
    "options": "Clinical Procedure Template",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "service_unit",
@@ -324,6 +327,11 @@
    "search_index": 1
   },
   {
+   "fieldname": "end_datetime",
+   "fieldtype": "Datetime",
+   "label": "End Datetime"
+  },
+  {
    "fieldname": "section_break_igrj",
    "fieldtype": "Section Break"
   },
@@ -372,7 +380,7 @@
    "link_fieldname": "reference_name"
   }
  ],
- "modified": "2025-12-25 09:36:38.342353",
+ "modified": "2026-02-15 19:29:19.267220",
  "modified_by": "Administrator",
  "module": "Healthcare",
  "name": "Clinical Procedure",
