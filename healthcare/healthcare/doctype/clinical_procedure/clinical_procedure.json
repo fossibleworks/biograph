@@ -25,7 +25,6 @@
   "medical_department",
   "service_unit",
   "sample",
-  "end_datetime",
   "section_break_brtm",
   "start_date",
   "start_time",
@@ -327,11 +326,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "end_datetime",
-   "fieldtype": "Datetime",
-   "label": "End Datetime"
-  },
-  {
    "fieldname": "section_break_igrj",
    "fieldtype": "Section Break"
   },
@@ -380,7 +374,7 @@
    "link_fieldname": "reference_name"
   }
  ],
- "modified": "2026-02-15 19:29:19.267220",
+ "modified": "2026-02-16 11:15:37.978040",
  "modified_by": "Administrator",
  "module": "Healthcare",
  "name": "Clinical Procedure",
