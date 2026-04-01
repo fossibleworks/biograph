@@ -38,7 +38,7 @@ from healthcare.healthcare.doctype.service_request.service_request import make_c
 
 
 class TestServiceRequest(unittest.TestCase):
-	def test_creation_on_encounter_submission(self):
+	def test_service_request_creation_on_encounter_submission(self):
 		patient, practitioner = create_healthcare_docs()
 		insulin_resistance_template = create_lab_test_template()
 		procedure_template = create_clinical_procedure_template()
