@@ -3,7 +3,6 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import unittest
 
 import frappe
 from frappe.utils import getdate, nowtime
@@ -35,9 +34,10 @@ from healthcare.healthcare.doctype.patient_encounter.patient_encounter import (
 	create_patient_referral,
 )
 from healthcare.healthcare.doctype.service_request.service_request import make_clinical_procedure
+from healthcare.tests.utils import HealthcareTestSuite
 
 
-class TestServiceRequest(unittest.TestCase):
+class TestServiceRequest(HealthcareTestSuite):
 	def test_service_request_creation_on_encounter_submission(self):
 		patient, practitioner = create_healthcare_docs()
 		insulin_resistance_template = create_lab_test_template()

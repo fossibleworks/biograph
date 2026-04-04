@@ -2,10 +2,11 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+
+from healthcare.tests.utils import HealthcareTestSuite
 
 
-class TestObservationTemplate(FrappeTestCase):
+class TestObservationTemplate(HealthcareTestSuite):
 	def test_observation_item(self):
 		obs_template = create_observation_template("Total Cholesterol", sample_required=False)
 		self.assertTrue(frappe.db.exists("Item", obs_template.item_code))
