@@ -16,10 +16,7 @@ from healthcare.healthcare.doctype.healthcare_settings.healthcare_settings impor
 	get_income_account,
 	get_receivable_account,
 )
-from healthcare.healthcare.doctype.lab_test.test_lab_test import (
-	create_lab_test,
-	create_lab_test_template,
-)
+from healthcare.healthcare.doctype.lab_test.test_lab_test import create_lab_test
 from healthcare.healthcare.doctype.patient_encounter.patient_encounter import (
 	create_patient_referral,
 )
@@ -31,7 +28,7 @@ class TestServiceRequest(HealthcareTestSuite):
 	def test_service_request_creation_on_encounter_submission(self):
 		patient = frappe.get_list("Patient", pluck="name")[0]
 		practitioner = frappe.get_list("Healthcare Practitioner", pluck="name")[0]
-		insulin_resistance_template = frappe.get_doc("Lab Test Template", "_Test Lab Test - Sensitivity")
+		lab_test_template = frappe.get_doc("Lab Test Template", "_Test Lab Test - Sensitivity")
 		cpt = frappe.get_list("Clinical Procedure Template", pluck="name")[0]
 		procedure_template = frappe.get_doc("Clinical Procedure Template", cpt)
 		procedure_template.allow_stock_consumption = 1
@@ -39,7 +36,7 @@ class TestServiceRequest(HealthcareTestSuite):
 			patient,
 			practitioner,
 			"lab_test_prescription",
-			insulin_resistance_template,
+			lab_test_template,
 			procedure_template,
 			submit=True,
 		)
@@ -53,7 +50,7 @@ class TestServiceRequest(HealthcareTestSuite):
 				service_request_doc.submit()
 				if serv.get("name"):
 					if serv.get("template_dt") == "Lab Test Template":
-						template = insulin_resistance_template
+						template = lab_test_template
 						type = "lab_test_prescription"
 						doc = "Lab Test"
 						test = create_lab_test(template)
@@ -83,10 +80,8 @@ class TestServiceRequest(HealthcareTestSuite):
 	def test_creation_on_encounter_with_create_order_on_save_checked(self):
 		patient = frappe.get_list("Patient", pluck="name")[0]
 		practitioner = frappe.get_list("Healthcare Practitioner", pluck="name")[0]
-		insulin_resistance_template = create_lab_test_template()
-		encounter = create_encounter(
-			patient, practitioner, "lab_test_prescription", insulin_resistance_template
-		)
+		lab_test_template = frappe.get_doc("Lab Test Template", "_Test Lab Test - with Sample")
+		encounter = create_encounter(patient, practitioner, "lab_test_prescription", lab_test_template)
 		encounter.submit_orders_on_save = True
 		encounter.save()
 		self.assertTrue(frappe.db.exists("Service Request", {"order_group": encounter.name}))
