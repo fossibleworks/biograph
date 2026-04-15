@@ -712,8 +712,8 @@ def create_clinical_procedure_template():
 
 
 def create_service_unit(id=0, service_unit_type=None, service_unit_capacity=0):
-	if frappe.db.exists("Healthcare Service Unit", f"_Test Service Unit {str(id)}"):
-		return f"_Test service_unit {str(id)}"
+	if frappe.db.exists("Healthcare Service Unit", f"_Test Service Unit {id!s}"):
+		return f"_Test Service_unit {id!s}"
 
 	service_unit = frappe.new_doc("Healthcare Service Unit")
 	service_unit.is_group = 0
