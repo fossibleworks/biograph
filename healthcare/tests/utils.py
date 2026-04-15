@@ -639,6 +639,16 @@ class BootStrapTestData:
 				"sex": "Female",
 				"customer_group": "Individual",
 			},
+			{
+				"doctype": "Patient",
+				"first_name": "_Test Patient 2",
+				"sex": "Female",
+			},
+			{
+				"doctype": "Patient",
+				"first_name": "_Test Patient 3",
+				"sex": "Female",
+			},
 		]
 		self.make_records(["first_name"], records)
 
