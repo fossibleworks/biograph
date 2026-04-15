@@ -363,6 +363,7 @@ class TestPatientAppointment(HealthcareTestSuite):
 		patient = frappe.new_doc("Patient")
 		patient.first_name = "_Test Patient 99"
 		patient.sex = "Female"
+		patient.customer_group = "Individual"
 		patient.save(ignore_permissions=True)
 		assert check_is_new_patient(patient.name)
 		payment_required = check_payment_reqd(patient.name)
@@ -604,6 +605,7 @@ def create_patient(id=0, patient_name=None, email=None, mobile=None, customer=No
 	patient.mobile = mobile
 	patient.email = email
 	patient.customer = customer
+	patient.customer_group = "Individual"
 	patient.invite_user = create_user
 	patient.save(ignore_permissions=True)
 
