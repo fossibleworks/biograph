@@ -4,20 +4,23 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - .pre-commit-config.yaml
-  - .github/workflows/ci.yml
 ---
 
-The project has no metrics or tracing stack. Observability relies on Frappe's built-in mechanisms:
+# Observability
 
-- **`frappe.log_error(...)`** writes an **Error Log** document that admins can browse in the desk. This is the main way to surface failures that are swallowed (about 15 sites). Pass a meaningful title, often translated: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`, or `frappe.log_error(title="...")`.
-- **`frappe.logger()`** writes to the bench log files with `.info`, `.debug` and `.error`. It is used in setup and patch code, for example `setup/patient_duplicate_check.py` logs progress such as "Creating {n} patient duplicate check rules".
-- The stdlib `logging` module and `print` are not used in app code. Pre-commit's `debug-statements` hook blocks leftover debuggers.
-- **Audit trail:** Frappe document versioning and timeline comments, plus Patient Medical Record entries that feed the Patient History page.
-- **CI** uploads coverage to Codecov on scheduled runs. Bench logs (`bench_run_logs.txt`) are captured during CI install.
+There is no dedicated metrics or tracing stack. The app relies on Frappe's built-in facilities:
+
+- **Error Log doctype**: `frappe.log_error(frappe.get_traceback(), _("Human title"))` or `frappe.log_error(title=..., message=...)`. This is the main way failures in background or side-effect code get recorded (about 15 call sites). Give each one a clear, searchable title, such as "Appointment Confirmation Message Not Sent" or "Unavailability Calendar Event Error".
+- **`frappe.logger()`**: occasional `.info()` and `.error()` calls, mainly in patches and parsing helpers.
+- **Background jobs**: enqueued jobs show up in Frappe's RQ Job / Scheduled Job Log. Scheduler jobs are declared in `hooks.py`.
+- **Audit trail**: Patient Medical Record entries are created through the wildcard doc_events. Frappe document versioning provides change history.
+- **Coverage and security signals**: Codecov, CodeQL and semgrep in CI.
+
+Do not add `print()` statements. The `debug-statements` pre-commit hook blocks debugger calls.
