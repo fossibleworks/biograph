@@ -11,28 +11,27 @@ evidence:
   - .prettierrc.yaml
   - eslint.config.mjs
   - .pre-commit-config.yaml
-  - healthcare/healthcare/doctype/patient/patient.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - .semgrepignore
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - healthcare/public/js/sales_invoice.js
   - commitlint.config.js
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-**Python** (enforced by ruff through pre-commit; config in `pyproject.toml`)
-- **Tabs for indentation**, double quotes, line length 110 (E501 is ignored, so long lines are tolerated).
-- Lint set `F,E,W,I,UP,B,RUF`. Several rules are ignored (F401 unused imports, B904, E402, ...).
-- **Import order** (isort sections): stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local, with a blank line between groups. See `patient.py` and `test_fee_validity.py`.
-- Use absolute imports from the package root: `from healthcare.healthcare.doctype.<x>.<x> import ...`.
-- Files start with a `# Copyright (c) <year>, ... and contributors` / `# See license.txt` header.
-- Doctype controllers are `class <DocTypeName>(Document)`, with hooks `validate`, `on_submit`, `on_cancel`, etc.
-- Exposed functions use `@frappe.whitelist()` (182 uses).
-- Prefer `frappe.qb` (query builder) or `frappe.db.get_value/get_list` over raw SQL. Raw `frappe.db.sql` still appears in about 90 places, mostly older code and tests.
-- Wrap user-visible strings in `_()` from `frappe`. Use `.format()` placeholders: `_("... {0}").format(...)`. Don't put f-strings inside `_()`.
-- Naming: snake_case modules and functions. DocType names are Title Case with spaces ("Patient Appointment") and map to snake_case folders.
+**Python** (ruff, configured in `pyproject.toml`)
+- **Tabs** for indentation, **double quotes**, line length 110 (E501 is ignored, so this is a soft limit). Docstring code is formatted.
+- Lint rules: F, E, W, I, UP, B, RUF, with Frappe-friendly ignores (F401 unused imports, F403/F405 star imports, B904, E402, W191, and others).
+- **Import order** (isort): future → stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local. Separate each group with a blank line, as `test_patient_appointment.py` does.
+- Type hints use `frappe.types.DF` (`typing-modules`).
+- Naming follows Frappe: snake_case doctype folders and modules (`patient_appointment/patient_appointment.py`), `class PatientAppointment(Document)`, DocType names in Title Case with spaces (`"Patient Appointment"`). Server endpoints are module-level functions marked `@frappe.whitelist()`.
+- Wrap all user-facing strings in `_()` and use `.format()` placeholders: `_("Invalid Code Value: {0}").format(code_value)`.
+- Put business logic and validation **on the server** (PR template rule).
+- `.pre-commit-config.yaml` and `.semgrepignore` exclude a long list of legacy files from linting. Do not add to that list. Upstream-sync notes in the wiki track ruff counts per touched file and require "no new findings".
 
 **JavaScript**
-- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. ESLint flat config extends `eslint:recommended`, with Frappe globals (`frappe`, `erpnext`, `$`, `moment`, ...).
-- Desk scripts use `frappe.ui.form.on("DocType", {...})`, `__()` for translatable strings, `frappe.call`, `frappe.show_alert` and `frappe.msgprint`.
-- `patient_portal/` is excluded from Prettier. It uses Vue SFCs with 2-space indentation and frappe-ui components.
+- Prettier: tabs, `tabWidth: 4`, `printWidth: 88`, `arrowParens: avoid`. Prettier skips `patient_portal/` and a few Jinja-containing doctype JS files.
+- ESLint flat config extends `eslint:recommended` and declares Frappe globals (`frappe`, `__`, `cur_frm`, `erpnext`, `$`, `moment`, …).
+- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})`. Wrap user strings in `__()`.
+- The Vue portal uses `<script setup>` style, frappe-ui components, and the `@` alias to `src/`.
 
-**Legacy exclusions:** `.pre-commit-config.yaml` has a large global `exclude` list (about 640 legacy files) that skips formatting. Code you touch there still has to read like its surroundings. Don't reformat whole excluded files in unrelated PRs.
-
-**Commits:** Conventional Commits (`feat|fix|chore|docs|refactor|perf|test|ci|build|style|revert`, lower-case type), enforced by commitlint. The fork often adds a scope or suffix, e.g. `fix: ... (upstream sync B2)`.
+**Commits:** Conventional Commits, enforced by commitlint (`fix:`, `feat:`, `chore:`, …, lowercase type). In this fork, upstream cherry-picks use `git cherry-pick -x`, and follow-up fixes carry an `(upstream sync Bn)` suffix.
