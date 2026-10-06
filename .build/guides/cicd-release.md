@@ -1,5 +1,5 @@
 ---
-title: CI/CD and release
+title: CI/CD & release
 category: cicd-release
 layer: project
 applies_to: []
@@ -14,21 +14,23 @@ evidence:
   - .github/workflows/initiate_release.yml
   - .github/workflows/release_notes.yml
   - .releaserc
-  - .github/workflows/codeql.yml
 ---
 
-**Runs on PRs**
-- `ci.yml` (Server Tests): compileall plus a merge-conflict-marker check. It then sets up a bench with MariaDB 11.8 through `.github/helper/install.sh` and runs `bench run-parallel-tests --app healthcare`. It skips PRs that only touch css/js/md/html/csv, and also runs nightly. Nightly runs collect coverage and upload it to Codecov.
-- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus Semgrep with the Frappe rules and `r/python.lang.correctness`.
-- `semantic-commits.yml`: commitlint over the PR's commits.
-- `docs_checker.yml`: `feat` PRs need a wiki docs link.
-- `labeller.yml`: labels such as `needs-tests`.
-- `codeql.yml`: Python and JS analysis on `develop`, plus weekly.
+**On every PR:**
+- **CI / Server Tests** (`ci.yml`) runs on Ubuntu with MariaDB 11.8, Python 3.14 and Node 24. It skips PRs that only touch css/js/md/html/csv.
+  1. `compileall` and a conflict-marker check.
+  2. `.github/helper/install.sh` bootstraps a bench (fork branches test against frappe/erpnext `version-16`).
+  3. `bench run-parallel-tests --app healthcare`.
+  4. A nightly cron runs coverage and uploads it to Codecov.
+- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, eslint, prettier, pip-audit, detect-secrets) plus Semgrep with the frappe rules and `r/python.lang.correctness`.
+- **Semantic Commits:** commitlint over the PR's commit range.
+- **Documentation Required:** `feat` PRs need a wiki link or `no-docs`.
+- **Labeler** applies labels. **CodeQL** (python and javascript) runs on develop pushes and PRs, plus weekly.
 
-**Release (inherited from upstream earthians config)**
-- `initiate_release.yml` opens weekly `version-NN-hotfix` → `version-NN` release PRs for v14/15/16.
-- `on_release.yml` runs `npx semantic-release` on pushes to `version-14/15/16`. Per `.releaserc`, it uses the angular preset, never bumps majors automatically (breaking → no release), rewrites the version in `healthcare/__init__.py`, and commits `chore(release): Bumped to Version x.y.z`.
-- `release_notes.yml` regenerates GitHub release notes without chore/ci/test/docs/style entries. `.github/release.yml` excludes the `skip-release-notes` label.
-- `generate-pot-file.yml` regenerates translations weekly.
+**Release (inherited from upstream earthians):**
+- `initiate_release.yml` opens weekly `version-NN-hotfix → version-NN` release PRs (14, 15, 16) every Tuesday.
+- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`, using the angular preset with breaking-change major bumps disabled. It bumps `healthcare/__init__.py` with the commit `chore(release): Bumped to Version x.y.z` and creates a GitHub release.
+- `release_notes.yml` regenerates release notes and strips chore, ci, test, docs and style entries.
+- `generate-pot-file.yml` refreshes translations every Sunday. Crowdin opens `fix: sync translations from crowdin` PRs.
 
-Note: according to the sync ledger, `ci.yml` has never run on `fossibleworks/biograph`, so the first goal-PR run becomes the baseline. The release workflows target upstream `earthians/biograph` with upstream secrets.
+Several of these workflows hard-code `earthians/biograph` and bot tokens, so they only work upstream. Per the sync ledger, the fork (`fossibleworks/biograph`, branch `biograph-fh`) has no `ci.yml` run history. Editing workflow files needs a credential with the `workflow` scope.
