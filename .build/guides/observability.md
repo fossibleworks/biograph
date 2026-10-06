@@ -10,15 +10,14 @@ evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - patient_portal/src/socket.js
+  - healthcare/hooks.py
+  - .pre-commit-config.yaml
 ---
 
-The app has no metrics or tracing. Observability relies on Frappe's built-in tools:
+The app relies on Frappe's built-in observability. There is no external metrics or tracing SDK.
 
-- **Error Log DocType** through `frappe.log_error(...)`, about 15 call sites. Use it for caught failures in notifications, calendar sync, patches and background jobs. Pass a short, human-readable title: either `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(title="…")`.
-- **`frappe.logger()`** is used for info and error lines in setup and patch code (`patient_duplicate_check.py`, `setup_patient_duplicate_check_rules.py`) and for parse failures in `patient_appointment.py`.
-- **Realtime:** `frappe.publish_realtime` is used once. The portal has a `socket.js` client.
-- **JS:** a few `console.log` / `console.error` calls exist in desk and portal code. Do not add more in shipped code.
-- **CI-side:** Codecov coverage, CodeQL and semgrep.
-
-For new code, use `frappe.log_error` for anything an admin must notice, and `frappe.logger()` for informational traces. Do not use `print`.
+- **Error Log doctype:** use `frappe.log_error(message_or_traceback, title)` for failures that should be visible to admins. This is the dominant pattern, with about 15 call sites. Use a short, human-readable, translatable title (`_("Appointment Confirmation Message Not Sent")`, `"Unavailability Calendar Event Error"`) and include `frappe.get_traceback()` when inside an `except`.
+- **Logger:** `frappe.logger().info/error(...)` for setup, patch and diagnostic lines (patient duplicate check setup, appointment time parsing). Use it sparingly.
+- **Background jobs:** `frappe.enqueue` jobs surface in RQ Job and Scheduled Job Log in Desk.
+- **Domain audit trail:** Patient Medical Record entries are created and updated through the wildcard `doc_events` hooks. Patient-facing history is an audit artifact, not a log.
+- Don't use `print()`. The `debug-statements` pre-commit hook blocks debugger imports.
