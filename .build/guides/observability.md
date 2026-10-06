@@ -10,15 +10,15 @@ evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
+  - patient_portal/src/socket.js
   - .pre-commit-config.yaml
+  - .github/workflows/codeql.yml
 ---
 
-There is no metrics or tracing stack. Observability uses Frappe's built-in facilities:
+The app has no metrics or tracing. It relies on Frappe's built-in mechanisms:
 
-- **Error Log doctype:** `frappe.log_error(frappe.get_traceback(), _("Short Title"))` or `frappe.log_error(title=...)` for caught failures in background jobs, notifications, calendar sync and patches (about 15 call sites). This is the main operational signal.
-- **File logger:** `frappe.logger().info/error(...)` is used sparingly (about 9 sites, mostly setup and patches) for progress messages.
-- **User feedback:** `frappe.msgprint`, plus `frappe.show_alert` on the client. Realtime events (`frappe.publish_realtime`) are used once.
-- No `print()` debugging. pre-commit `debug-statements` blocks `pdb`/`breakpoint`.
-- Background jobs run through `frappe.enqueue`, so their failures appear in RQ Job and Error Log.
-
-New code should put a descriptive, translated title on `frappe.log_error` and keep the traceback.
+- **`frappe.log_error`** is the main channel (about 15 calls). It writes to the **Error Log** doctype. Convention: pass the traceback or message plus a translated, human-readable title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(error_msg, "Unavailability Calendar Event Error")`. Use it for failures that should not block the user's transaction.
+- **`frappe.logger()`** is used sparingly (about 9 calls) for info and error lines in setup and patches, e.g. `frappe.logger().info("Starting patient duplicate check rules setup")`.
+- There are no `print()` statements in app code. The `debug-statements` pre-commit hook blocks leftover debuggers.
+- Realtime updates to the UI go through `frappe.publish_realtime` (1 call). The portal subscribes through `patient_portal/src/socket.js`.
+- Security and quality signals come from CI: CodeQL (python, javascript), Semgrep, detect-secrets, pip-audit, and Codecov.
