@@ -9,13 +9,20 @@ source: inferred
 evidence:
   - README.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
-  - .github/helper/documentation.py
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/workflows/docs_checker.yml
+  - .github/helper/documentation.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - patient_portal/README.md
 ---
 
-- Published end-user documentation is external: the README links to DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **In-repo design and usage docs** live in `wiki/` as upper-case kebab-case Markdown files: `DESIGN-*.md` for designs, `*-USAGE*.md` for how-tos, and parity reports and plans. Screenshots sit alongside them.
-- **`wiki/upstream-sync-version-16.md`** is the ledger for upstream cherry-picks. Each batch gets a table with columns #, upstream sha, subject, outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped, deferred) and notes. Record every sync decision there in a `docs(wiki): ...` commit.
-- **The PR docs gate** (`docs_checker.yml`): a PR whose title starts with `feat` must link a `/wiki` URL on biograph.frappe.cloud or biograph.io in its body, or include `no-docs` (or `backport`).
-- Code comments are sparse. Docstrings appear on whitelisted APIs.
+- **Public docs** are hosted externally. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream docs checker looks for links to `biograph.frappe.cloud` or `biograph.io` `/wiki` pages.
+- **The in-repo `wiki/` directory** holds fork design docs and records. Files use descriptive names, mostly UPPER-KEBAB-CASE `.md`:
+  - design docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`)
+  - usage docs (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`)
+  - parity reports (`insurance-parity-report.md`)
+  - the **upstream sync ledger** (`upstream-sync-version-16.md`), which is updated in `docs(wiki): ...` commits for each sync batch. It records each upstream commit's outcome: picked-clean, picked-with-conflict-resolution, already-present, skipped or deferred.
+- **`docs_checker.yml`** requires every PR whose title starts with `feat` to include a docs link in the body, unless the body contains `no-docs` or `backport`.
+- The PR template asks for a details section, screenshots or GIFs, an updated docs section, and `closes #XXXX`.
+- `patient_portal/README.md` covers the portal sub-project.
+- Commits that touch only docs use the `docs:` or `docs(wiki):` type.
