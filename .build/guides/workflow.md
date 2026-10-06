@@ -9,22 +9,27 @@ source: inferred
 evidence:
   - CLAUDE.md
   - .build/RULES.md
+  - .github/instructions/build-rules.instructions.md
+  - commitlint.config.js
+  - .github/workflows/semantic-commits.yml
   - .mergify.yml
   - .github/CODEOWNERS
-  - commitlint.config.js
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-This repo is driven by **Interactor Build's engine** (see `CLAUDE.md`):
+**Interactor Build engine (this fork, from CLAUDE.md):**
+- Every code change belongs to a tracked **Goal**. A GitHub issue maps to a Goal only after it is explicitly imported. The engine generates **EngineTasks** under the Goal, and each task goes through investigation → execution → review.
+- **The gate:** with no Goal, no edits. Create a Goal (web UI at build.interactor.com, or `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`). Then work on branch **`goal/<goalId>`** in an isolated worktree. Never commit directly to the default branch **`biograph-fh`**.
+- The engine opens a single PR per Goal, and that PR must pass review and CI. Use `ibuild engine work <task>` / `ibuild engine report --yes` to work and report phases, and `ibuild engine goal accept <goalId>` to deliver.
+- An interactive session may run `ibuild off` for a small change. That change still goes on its own branch through a hand-opened PR that runs CI.
+- Standing AI rules come from `.build/RULES.md`, which is mirrored into `.claude/rules/build-rules.md`, `.github/instructions/build-rules.instructions.md` and `AGENTS.md`. Edit the source file, not the mirrors.
 
-1. **No edits without a tracked Goal.** Create one in the Build web UI or with `ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after an explicit import.
-2. **Work on `goal/<goalId>` in an isolated worktree. Never commit to the default branch `biograph-fh`.**
-3. **One PR per Goal.** The engine opens it, and it must pass review and CI. Each EngineTask under a Goal goes through investigation → execution → review.
-4. A small change can use `ibuild off` only if the project allows it. It still needs its own branch and a hand-opened PR.
+**Commits and PRs:**
+- Conventional Commits, checked by commitlint on every PR.
+- Upstream cherry-picks use `git cherry-pick -x` and are recorded in `wiki/upstream-sync-version-16.md`. The conflict policy there is "fork intent wins" (union of DocType `fields` / `field_order` and of `patches.txt`; keep the fork's `.releaserc`).
+- PR template: pick the target branch, follow commit conventions, run tests locally, keep validations server-side, update docs, and add `closes #XXXX`.
 
-**Branches:** `biograph-fh` is the fork's integration/default branch. `version-14/15/16` are stable release branches, and Mergify auto-closes PRs from non-maintainers to them. Upstream `earthians/marley` `version-16` arrives through `git cherry-pick -x`, and fork intent wins conflicts. Record every pick in `wiki/upstream-sync-version-16.md`.
-
-**Commits:** Conventional Commits (commitlint). Upstream-sync commits add the suffix `(upstream sync B<n>)`.
-
-**Merging:** Mergify merges once CI passes and there is ≥1 approving review (or squashes with the `squash` label). `dont-merge` blocks merging. CODEOWNERS: @akurungadam @Sajinsr.
-
-Project rules live in `.build/RULES.md`. Mirrors such as `AGENTS.md` and `.claude/rules/` are generated from it.
+**Inherited upstream rules (Mergify, CODEOWNERS):**
+- PRs to stable `version-14/15/16` branches are auto-closed unless the author is on the allow-list. Target a hotfix or develop branch instead.
+- Auto-merge needs ≥1 approval and no `dont-merge` label. The `squash` label selects squash merge.
+- The default code owners are @akurungadam and @Sajinsr.
