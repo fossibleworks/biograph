@@ -1,5 +1,5 @@
 ---
-title: Content & copy
+title: Content and copy
 category: content-copy
 layer: project
 applies_to: []
@@ -7,31 +7,28 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/insurance_payor/insurance_payor.py
-  - patient_portal/src/components/AppointmentModel.vue
-  - healthcare/locale/main.pot
+  - healthcare/public/js/sales_invoice.js
+  - healthcare/public/js/utils.js
+  - healthcare/healthcare/utils.py
+  - healthcare/permissions.py
   - crowdin.yml
+  - healthcare/patches.txt
 ---
 
-## Tone
-Short, direct and administrative, written in sentence case. Messages usually end with a period, or with `!` for warnings that block an action.
+**Translation:** every user-facing string is wrapped in `_()` in Python or `__()` in JS (about 880 JS uses). Strings are extracted into `healthcare/locale/main.pot` and translated via Crowdin. Put variables in positional placeholders, e.g. `__("Error checking row {0}: {1}", [row.idx, e.message])`. Don't concatenate strings.
 
-Examples:
-- "Appointment Date and Time are required."
-- "Patient already has an appointment booked for the same day!"
-- "Appointment Cancelled. Please review and cancel the invoice {0}"
-- "Not allowed, cannot overlap appointment {}"
+**Tone:** short, direct, imperative, often starting with "Please". Examples:
+- "Please select Healthcare Service"
+- "Please Configure Clinical Procedure Consumable Item in {0}" (the {0} links to the settings form)
+- "You do not have permission to delete records."
+- "No unavailability records found for the selected date."
 
-## Patterns
-- Refuse an action with `Not allowed, ...`.
-- Ask for missing input with `Please enter {}` or `Please set ...`.
-- Name missing setup with `<Thing> Not Found` titles ("Practitioner Schedule Not Found", "Customer Not Found").
-- Confirm success with `<Doc> {0} created`.
-- Prefer `{0}` placeholders with `.format()` inside `_()`.
+**Titles and labels:**
+- Dialog titles and labels use Title Case ("Missing Configuration", "Mark Unavailable", "Link Customer to Patient", "Show Payment Popup").
+- Field descriptions are sentence case ("Checking this will popup to invoice appointment").
 
-## Terminology
-Use the DocType names exactly as written, in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Sales Invoice, Fee Validity, Inpatient Record, Service Request. The portal uses simple verbs such as "Book".
+**Terminology:** follow the DocType names exactly:
+- Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Healthcare Settings, Lab Test, Observation, Service Request, Insurance Payor.
+- The product name is **Biograph**. Marley references were rebranded in patch `v16_0.rebrand_marley_to_biograph`.
 
-## Translation
-All strings must be translatable (`_()` in Python, `__()` in JS) because a weekly POT regeneration feeds Crowdin. Avoid building sentences from concatenated fragments.
+Test data names are prefixed `_Test `.
