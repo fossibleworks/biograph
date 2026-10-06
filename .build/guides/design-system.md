@@ -9,13 +9,15 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/package.json
-  - patient_portal/vite.config.js
-  - patient_portal/src/components/Payment.vue
-  - patient_portal/src/index.css
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/public/js/healthcare_note.js
+  - healthcare/public/images/biograph-app-icon.svg
 ---
 
-- **Desk UI** (practitioners and staff): standard Frappe desk components. Use form scripts, `frappe.ui.Dialog`, list and calendar views, workspaces, number cards and dashboard charts. Don't write custom CSS frameworks.
-- **Patient Portal:** **frappe-ui** components (`Card` and others) with **Tailwind CSS** through `frappeUIPreset` (`patient_portal/tailwind.config.js`). The theme extension only aliases legacy Tailwind colour names (lightBlue, warmGray and so on). There are no custom design tokens.
-- Icons: feather-icons and lucide (frappe-ui vite `lucideIcons: true`).
-- Styling uses Tailwind utility classes in Vue templates: `text-gray-900` headings, `text-gray-500` secondary text, `rounded-xl shadow-sm` cards, green or blue for amounts.
-- Components live in `patient_portal/src/components/` as PascalCase SFCs (e.g. `BookAppointmentModel.vue`, `Calendar.vue`, `Payment.vue`).
+**Desk UI** (staff): use the standard Frappe desk components. Use `frappe.ui.form` for forms, `frappe.ui.Dialog` with `fields` and `primary_action_label` for dialogs (for example `healthcare_note.js`), and `frappe.msgprint` and `frappe.show_alert` for messages. Shared HTML templates live in `healthcare/public/js/*.html`. Do not bring in a separate CSS framework for desk screens.
+
+**Patient Portal** (patients): **frappe-ui** is the component library. It provides `Button`, `Dialog`, `FormControl`, `Select`, `Progress`, `ErrorMessage`, `toast`, and `createResource` for data fetching.
+- Design tokens come from the frappe-ui Tailwind preset (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only extension is legacy Tailwind colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`).
+- Styling uses Tailwind utility classes in Vue SFCs. Global CSS is in `patient_portal/src/index.css`.
+- Icons are `feather-icons`, which frappe-ui uses.
+- Brand assets are in `healthcare/public/images/`: `biograph-app-icon.svg` and `healthcare.svg`.
