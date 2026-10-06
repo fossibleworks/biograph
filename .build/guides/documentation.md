@@ -8,19 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
+  - patient_portal/README.md
 ---
 
-- **Public docs** are linked from the README and hosted outside the repo on **DeepWiki** (`deepwiki.com/Tacten/biograph`).
-- **In-repo docs** live in **`wiki/`** as flat Markdown files:
-  - Design docs: `DESIGN-*.md`
-  - Usage guides: `*-USAGE*.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
-  - Parity and implementation plans: `insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`
-  - Upstream-sync ledger: `upstream-sync-version-16.md`
-  - Usage guides start with a table of contents and numbered sections. Images sit alongside the Markdown.
-- **Upstream sync work** is recorded in the ledger, with per-commit outcomes (picked-clean, picked-with-conflict-resolution, already-present, skipped, deferred). These changes use `docs(wiki): ...` commits.
-- **PR docs requirement:** the inherited `docs_checker.yml` fails a `feat` PR unless its body links a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`.
-- The PR template asks contributors to update the relevant documentation and to add `closes #XXXX`.
+- **User docs** are external: the README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream docs checker (`docs_checker.yml` + `.github/helper/documentation.py`) **fails `feat` PRs** unless the PR body links a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`.
+- **In-repo docs** live in `wiki/` as Markdown. Fork features get design docs and usage docs, named in upper kebab case (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`), plus parity reports and plans (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`).
+- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` records the method, conflict policy and per-commit outcomes. Batches append to it with `docs(wiki): …` commits.
+- `patient_portal/README.md` documents the SPA.
+- AI/agent guidance is in `CLAUDE.md`, `AGENTS.md` (Build guides block) and `.build/RULES.md` (still a template).
