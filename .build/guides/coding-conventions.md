@@ -10,38 +10,27 @@ evidence:
   - pyproject.toml
   - .prettierrc.yaml
   - eslint.config.mjs
-  - commitlint.config.js
-  - healthcare/healthcare/doctype/fee_validity/fee_validity.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
   - .pre-commit-config.yaml
+  - commitlint.config.js
+  - healthcare/healthcare/api/patient_portal.py
+  - .git-blame-ignore-revs
 ---
 
-**Python** (ruff config is in `pyproject.toml`)
-- Indent with **tabs** and use double quotes. Line length is 110; E501 is ignored.
-- Lint rule sets: F, E, W, I, UP, B, RUF. Many are ignored for legacy reasons, including F401, B904 and E402.
-- isort section order: stdlib, third-party, **frappe**, **erpnext**, **healthcare**, then first-party and local, with blank lines between groups. Examples: `import frappe` / `from frappe.utils import ...`, then `from erpnext...`, then `from healthcare...`.
-- DocType controllers:
-  - Class name in PascalCase, matching the DocType name (`class FeeValidity(Document)`).
-  - Files and folders in snake_case, matching the doctype.
-  - Use lifecycle hooks: `validate`, `on_submit`, `on_cancel`, and so on.
-  - Module-level helper functions use snake_case.
-- Server methods called from JS take `@frappe.whitelist()`. The codebase has about 180.
-- Prefer `frappe.get_cached_value`, `frappe.db.get_value` and `frappe.qb` over raw SQL. `frappe.db.sql` still appears in about 90 places; when you use it, always use parameterized queries.
-- Wrap every user-facing string in `_()`.
-- Files start with a copyright/license header (`# Copyright (c) <year>, ... and contributors`).
-- Many legacy files are listed in the giant `exclude` block of `.pre-commit-config.yaml`, so ruff does not run on them in pre-commit. Do not add new files to that list, and do not reformat whole excluded files in unrelated PRs.
+**Python (ruff, configured in `pyproject.toml`)**
+- Indent with **tabs** and use **double quotes**. Line length is 110, but E501 is ignored. Target is py310.
+- Lint rule sets are F, E, W, I, UP, B and RUF, with a documented ignore list (F401, E402, B904, and others).
+- isort section order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate each group with a blank line (see `api/patient_portal.py`).
+- `frappe.types.DF` is a typing module (doctype type hints).
+- Many legacy files are listed in the `.pre-commit-config.yaml` `exclude` list, so pre-commit does not run ruff on them. Don't reformat them wholesale. Keep diffs minimal, and for upstream-synced changes check ruff counts before and after.
+- Naming: doctype folders and modules use snake_case of the DocType name. Controller classes use PascalCase (`class LabTest(Document)`). Test records use the `_Test …` prefix.
+- User-facing strings are wrapped in `_()` for translation.
+- Whitelisted API methods use `@frappe.whitelist()`. Prefer `frappe.qb` for joins.
 
-**JavaScript (desk)**
-- Prettier: tabs, width 4, printWidth 88, `arrowParens: avoid`.
-- ESLint uses the recommended rules, with Frappe globals (`frappe`, `erpnext`, `__`, `$`).
-- Form scripts use `frappe.ui.form.on('<DocType>', { setup, onload, refresh, <fieldname>(frm) {...} })`.
-- Server calls go through `frappe.call` / `frm.call`. Wrap UI strings in `__()`.
+**JavaScript**
+- Prettier: tabs (`useTabs: true`, `tabWidth: 4`), `printWidth: 88`, `arrowParens: avoid`. `patient_portal/` and a few large doctype JS files are excluded.
+- ESLint flat config (`eslint:recommended`) with Frappe globals (`frappe`, `erpnext`, `$`, `moment`, …).
+- Desk form scripts follow the `frappe.ui.form.on('<DocType>', {...})` pattern.
 
-**Vue (portal)**
-- Uses SFCs in `patient_portal/src/components` with PascalCase names (`BookAppointmentModel.vue`).
-- Imports use the `@/` alias.
-- Use frappe-ui components and Tailwind classes. Prettier skips this folder.
+**Vue portal:** Vue 3 SFCs in `patient_portal/src/components` with PascalCase filenames (`BookAppointmentModel.vue`). The `@` alias points to `src`.
 
-**Commits**
-- Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Types are lower-case.
-- Fork work often adds a scope or a suffix, for example `fix: ... (upstream sync B2)`.
+**Commits:** Conventional Commits, enforced by commitlint. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, all lower-case.
