@@ -8,37 +8,28 @@ binding: required
 source: inferred
 evidence:
   - healthcare/tests/utils.py
-  - healthcare/healthcare/doctype/patient_encounter/test_patient_encounter.py
-  - healthcare/healthcare/doctype/practitioner_availability/test_practitioner_availability.py
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
   - codecov.yml
   - .github/labeler.yml
   - .github/workflows/ci.yml
 ---
 
-## Framework
-The Frappe/ERPNext integration test runner executes tests against a real MariaDB site. CI runs `bench --site test_site run-parallel-tests --app healthcare`.
+**Framework:** Frappe's unittest-based runner (`bench run-tests` / `run-parallel-tests`), running against a real MariaDB site.
 
-## Layout
-- Tests sit next to the code as `test_<module>.py`, inside each DocType or report folder. Examples:
-  - `healthcare/healthcare/doctype/patient_encounter/test_patient_encounter.py`
-  - `healthcare/healthcare/report/diagnosis_trends/test_diagnosis_trends.py`
-- Shared fixtures live in `healthcare/tests/utils.py`.
-- There are about 85 test files.
+**Where tests go:**
+- Put the test next to the code it covers: `healthcare/healthcare/doctype/<name>/test_<name>.py`. About 82 test classes exist.
+- Shared fixtures live in `healthcare/tests/utils.py`:
+  - `HealthcareTestSuite` extends `erpnext.tests.utils.ERPNextTestSuite`.
+  - `BootStrapTestData` creates master data: company, items, patients, practitioners, service units, templates, and insurance payors with `_Test ...` names.
+- Recent work migrated all fork tests to `HealthcareTestSuite`. New tests should subclass it and call `super().setUp()`.
 
-## Base class
-- **All test classes extend `HealthcareTestSuite`**, defined in `healthcare/tests/utils.py`, which itself extends `erpnext.tests.utils.ERPNextTestSuite`. There are 82 such classes; recent work migrated the remaining fork tests to it.
-- Always call `super().setUp()`.
-- `BootStrapTestData` builds the master data: company, service items, practitioners, patients, templates, insurance payors and so on. Its record names follow the `_Test ...` naming convention.
+**Style:**
+- Use module-level factory helpers, e.g. `create_appointment(...)` and `create_encounter(...)`.
+- Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+- Assert with `self.assertEqual` against `frappe.db.get_value`.
+- Test record names are prefixed `_Test`.
 
-## Test data
-- Create records with `frappe.get_doc({...}).insert()`.
-- Set fields like `customer_group` explicitly so tests are deterministic. Recent fixes target flaky patient initialisation.
-- Assert validation failures with `self.assertRaises(frappe.ValidationError)`.
-
-## Coverage expectations
-- Codecov is configured with a **patch target of 85%** on PRs to develop. The project threshold is auto with 0.5% tolerance.
-- Coverage is only captured on non-PR CI runs.
-- The PR labeler adds `needs-tests` when `healthcare/**/*.py` changes without any `test*.py` change.
-
-## Fork baseline
-The fork has no CI history, so the first CI run on a goal PR becomes the baseline. See `wiki/upstream-sync-version-16.md`.
+**Coverage expectations:**
+- Codecov is configured: project threshold 0.5% and **patch target 85%** on PRs to `develop`.
+- Coverage is collected only on scheduled (non-PR) CI runs.
+- The labeler adds a **`needs-tests`** label when a PR touches `healthcare/**/*.py` without touching any `test*.py`.
