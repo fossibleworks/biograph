@@ -8,17 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
   - .pre-commit-config.yaml
 ---
 
-There is no dedicated metrics or tracing stack. Observability relies on Frappe's built-in facilities:
+There is no metrics or tracing stack. Observability relies on Frappe's built-in facilities:
 
-- **`frappe.log_error(message_or_traceback, title)`** writes to the Error Log DocType. This is the main convention for failures that must not abort the user's flow, such as calendar-event sync and patch steps. Give it a short, descriptive title, for example "Unavailability Calendar Event Error".
-- **`frappe.logger().info/.error(...)`** is used sparingly, mainly in patches.
-- **`frappe.get_traceback()`** is attached when logging exceptions.
-- Background jobs (`frappe.enqueue`) and scheduler runs are visible through the RQ Job and Scheduled Job Log views in Frappe.
-- CI coverage goes to Codecov, and code scanning uses CodeQL and semgrep.
+- **Error Log DocType:** `frappe.log_error(...)` (15 uses) is the main way to record failures. Use a short, human-readable title, either as the second argument or as `title=`, and pass `frappe.get_traceback()` as the message when you are inside `except`. Examples: "Unavailability Calendar Event Error", "Appointment Confirmation Message Not Sent".
+- **Logger:** `frappe.logger().info/error(...)` (9 uses) appears mainly in setup and patch code, e.g. `healthcare/setup/patient_duplicate_check.py`, and in parse warnings.
+- **Request logs** (`ABDM Request` DocType) store external API calls for the India ABDM integration.
+- **CI-side:** Codecov coverage and CodeQL scans.
 
-There are only about 24 logging calls in total. Do not add print statements: the pre-commit `debug-statements` hook blocks debugger imports.
+Do not use `print()` for diagnostics; the `debug-statements` pre-commit hook blocks leftover debuggers.
