@@ -12,17 +12,14 @@ evidence:
   - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - patient_portal/README.md
 ---
 
-- **Public docs** are hosted externally. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream docs checker looks for links to `biograph.frappe.cloud` or `biograph.io` `/wiki` pages.
-- **The in-repo `wiki/` directory** holds fork design docs and records. Files use descriptive names, mostly UPPER-KEBAB-CASE `.md`:
-  - design docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`)
-  - usage docs (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`)
-  - parity reports (`insurance-parity-report.md`)
-  - the **upstream sync ledger** (`upstream-sync-version-16.md`), which is updated in `docs(wiki): ...` commits for each sync batch. It records each upstream commit's outcome: picked-clean, picked-with-conflict-resolution, already-present, skipped or deferred.
-- **`docs_checker.yml`** requires every PR whose title starts with `feat` to include a docs link in the body, unless the body contains `no-docs` or `backport`.
-- The PR template asks for a details section, screenshots or GIFs, an updated docs section, and `closes #XXXX`.
-- `patient_portal/README.md` covers the portal sub-project.
-- Commits that touch only docs use the `docs:` or `docs(wiki):` type.
+# Documentation
+
+- **User docs** are external. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`), and the upstream docs checker looks for links on `biograph.frappe.cloud` / `biograph.io` under `/wiki`.
+- **In-repo `wiki/`** holds design docs and usage guides as flat markdown files with SCREAMING-KEBAB names: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, plus parity reports and implementation plans. Screenshots sit alongside them (`patient-duplicatecheck-thumbnail.png`).
+- **Sync ledger**: `wiki/upstream-sync-version-16.md` records every upstream cherry-pick with its outcome (`picked-clean`, `picked-with-conflict-resolution`, `already-present`, `skipped`) and lint before/after counts. Upstream-sync work must update it, using `docs(wiki): ...` commits.
+- **Docs-required gate**: `docs_checker.yml` fails `feat` PRs unless the PR body links docs or contains `no-docs` (or `backport`).
+- `patient_portal/README.md` covers the portal.
+- Agent and contributor guidance: `CLAUDE.md` (engine workflow), `.build/RULES.md` (rules source), `AGENTS.md` (Build-managed mirror).
