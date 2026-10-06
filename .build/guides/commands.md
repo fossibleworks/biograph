@@ -8,46 +8,45 @@ binding: required
 source: inferred
 evidence:
   - README.md
-  - .github/workflows/ci.yml
-  - .github/workflows/linters.v2.yml
   - package.json
   - patient_portal/package.json
-  - .github/workflows/semantic-commits.yml
+  - .pre-commit-config.yaml
+  - .github/workflows/ci.yml
+  - .github/workflows/linters.v2.yml
 ---
 
-**Install (in a Frappe bench with ERPNext):**
+**Setup (bench):**
 ```sh
 bench get-app https://github.com/Tacten/biograph
 bench --site <site> install-app healthcare
-bench --site <site> migrate          # runs patches.txt
 ```
 
-**Tests (as CI runs them):**
-```sh
-bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1
-# single module/doctype locally:
-bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"
-```
-
-**Lint and format (pre-commit runs everything):**
+**Lint/format (pre-commit runs ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets and basic hygiene hooks):**
 ```sh
 pip install pre-commit && pre-commit install
-npm install        # eslint deps
-pre-commit run --all-files     # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
+npm install
+pre-commit run --all-files
 ```
 
-**Semgrep (Frappe rules, as in CI):**
+**Semgrep (Frappe rules, as CI runs them):**
 ```sh
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
-pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-**Patient portal:**
+**Tests (inside a bench):**
 ```sh
-yarn install             # root postinstall installs patient_portal deps
-yarn build               # → cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
-cd patient_portal && yarn dev   # vite dev server proxied to Frappe
+bench --site test_site run-parallel-tests --app healthcare
+# or a single module/doctype
+bench --site test_site run-tests --app healthcare --doctype "Patient Appointment"
 ```
 
-**Commit-message check:** `npx commitlint --from <base> --to <head>`.
+**Patient portal frontend:**
+```sh
+yarn build              # root: cd patient_portal && yarn build
+cd patient_portal && yarn dev   # vite dev server
+```
+
+**Commit message check:** `npx commitlint --from <base> --to <head>`.
+
+Many legacy files appear in `.pre-commit-config.yaml`'s `exclude` list. To check whether a change adds lint findings, run `ruff check <file>` on those files directly, as the upstream-sync ledger does.
