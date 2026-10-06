@@ -11,31 +11,25 @@ evidence:
   - .prettierrc.yaml
   - eslint.config.mjs
   - .pre-commit-config.yaml
-  - commitlint.config.js
   - healthcare/healthcare/api/patient_portal.py
-  - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
+  - commitlint.config.js
 ---
 
-**Python** (ruff, configured in `pyproject.toml`)
-- **Tabs** for indentation, **double quotes**, line length 110, target py310. Format with `ruff format`.
-- Lint rule families: F, E, W, I, UP, B, RUF. Many are ignored for Frappe idioms (E501, F401, F403/F405, W191, B904…).
-- **Import order** uses custom isort sections: future → stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local. Put a blank line between groups.
-- Translatable strings use `from frappe import _` and `_("Text {0}").format(x)`.
-- Docs and types: `typing-modules = ["frappe.types.DF"]`, so DocType controllers may carry auto-generated type-hint blocks.
-- Naming follows Frappe conventions:
-  - DocType folders and modules are snake_case of the DocType name (`patient_appointment/patient_appointment.py`).
-  - Controller classes are PascalCase (`class PatientAppointment(Document)`).
-  - Module-level helpers are snake_case.
-  - Whitelisted endpoints are marked `@frappe.whitelist()`.
-- Queries: prefer `frappe.qb` (about 80 uses) or `frappe.get_all/get_list`. Raw `frappe.db.sql` still appears (about 91 uses), mostly in older code and tests.
-- Large legacy areas are listed in the `.pre-commit-config.yaml` `exclude` block (most of `healthcare/healthcare/doctype/**`), so pre-commit skips them. When you touch those files, run ruff on them directly and do not add *new* findings. The upstream-sync ledger records before/after ruff counts.
+**Python** (ruff, configured in `pyproject.toml`):
+- **Indent with tabs**, use double quotes, and keep lines to 110 characters (E501 is ignored, so long lines are tolerated). The target version is py310.
+- Lint rules `F,E,W,I,UP,B,RUF` are enabled, with several Frappe-friendly ignores (F401, F403/F405, E402, B904…).
+- **Import order:** stdlib, then third-party, then `frappe`, then `erpnext`, then `healthcare`, with a blank line between groups. The sections are enforced by isort config.
+- Use absolute dotted imports, e.g. `from healthcare.healthcare.doctype.patient_appointment.patient_appointment import ...`.
+- **Naming:** doctype directories and modules use snake_case of the DocType name (`patient_appointment/patient_appointment.py`). Controller classes use CamelCase of the DocType (`class PatientAppointment(Document)`). Exception classes end in `Error`.
+- Translate every user-facing string with `_()` (from `frappe import _`) and use `.format()` placeholders: `_("Invalid Code Value: {0}").format(code_value)`. Never put `.format()` inside `_()`.
+- Prefer `frappe.qb` or `frappe.db.get_value/get_all` over raw SQL in production code.
+- Expose server methods with `@frappe.whitelist()`. Recent upstream work adds type hints to whitelisted method arguments.
+- **Legacy:** a large set of older files is listed in the `.pre-commit-config.yaml` `exclude` block, so pre-commit skips them. Don't add new ruff findings to them. Measure before and after with `ruff check`, as the sync ledger does.
 
-**JavaScript**
-- Prettier: `useTabs: true`, `tabWidth: 4`, `printWidth: 88`, `arrowParens: "avoid"`.
-- ESLint 10 flat config with `eslint:recommended`, and Frappe globals declared (`frappe`, `erpnext`, `$`, `moment`, `__`…).
-- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})`. User-visible strings are wrapped in `__()`.
-- The Vue portal (`patient_portal/`) is excluded from Prettier. It uses `<script setup>`-style SFCs with frappe-ui components and Tailwind classes.
+**JavaScript** (desk form scripts):
+- Prettier uses tabs, tabWidth 4, printWidth 88 and `arrowParens: avoid`. ESLint runs `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `$`, `moment`…).
+- Form scripts follow `frappe.ui.form.on("<DocType>", { refresh(frm) {...} })`. Translate strings with `__()`.
+- `patient_portal/` (Vue) is excluded from prettier. Follow the existing 2-space style in that directory.
 
-**Commits**: Conventional Commits, lower-case type, enforced by commitlint (e.g. `fix(appointment): …`, `feat: …`). Upstream picks keep the `(cherry picked from commit …)` trailer from `git cherry-pick -x`.
-
-File header convention in older files: `# Copyright (c) <year>, ESS LLP and Contributors` / `# See license.txt`.
+**Commits:** use conventional commits with a lower-case type from `build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test` and a non-empty subject (commitlint).
