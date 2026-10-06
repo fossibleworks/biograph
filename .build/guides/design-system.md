@@ -8,10 +8,9 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/vite.config.js
   - patient_portal/package.json
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
 ---
 
-- **Patient Portal:** the component library is **frappe-ui**, and its Tailwind preset is the source of design tokens (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only theme extensions are colour aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). Icons come from Lucide (`lucideIcons: true` in the Vite plugin) and feather-icons. Build new UI from frappe-ui components and Tailwind utility classes, and do not add custom CSS tokens. Components live in `patient_portal/src/components/`.
-- **Desk UI:** uses the standard Frappe desk widgets: form custom buttons (`frm.add_custom_button`), indicators (`frm.page.set_indicator`), `frappe.ui.Dialog`, and list and calendar views. HTML templates (`healthcare_note.html`, `observation.html`) are in `healthcare/public/js`. Indicator colours follow Frappe names (`orange`, `green`, `red`).
+- **Desk (staff UI):** the stock Frappe Desk UI. Build forms from DocType JSON and extend them with form scripts, `frappe.ui.Dialog`, and the HTML templates in `healthcare/public/js/*.html` (e.g. `observation.html`, `healthcare_orders.html`). Don't add custom CSS frameworks to Desk.
+- **Patient Portal:** **frappe-ui** components plus **Tailwind CSS 3** with the `frappe-ui/tailwind` preset as the token source. The only theme extension is legacy color aliases (lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate). Use **feather-icons** for icons. Styles start from `patient_portal/src/index.css`.
+- Reuse the existing portal components (`Calendar.vue`, `DepartmentSelector.vue`, `PractitionerSelector.vue`, `Payment.vue`) before writing new ones.
