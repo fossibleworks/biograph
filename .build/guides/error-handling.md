@@ -7,16 +7,19 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
   - healthcare/setup.py
   - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
 ---
 
-- **Validation errors:** raise them with `frappe.throw(_("Message"), [ExcClass], title=_("Title"))`. This is by far the most common pattern (about 180 call sites). Frappe turns it into a user-facing dialog and rolls back the transaction.
-- **Domain exception types:** declare them at module top as subclasses of `frappe.ValidationError`, for example `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError` and `NoActiveContractError`. Pass them as the second argument to `frappe.throw` so callers and tests can `assertRaises` them. Use Frappe's built-ins where they fit: `frappe.PermissionError`, `frappe.DoesNotExistError`, `frappe.DuplicateEntryError`.
-- **Non-fatal problems:** for side effects like SMS or notifications, catch the exception and record it with `frappe.log_error(frappe.get_traceback(), _("Title"))` so it shows up in the Error Log doctype. Use `frappe.msgprint(_("..."))` for informational notices.
-- **Idempotent setup:** setup and patches catch specific exceptions, for example `except frappe.DuplicateEntryError:` in `setup.py`.
-- **Translations:** put messages through `_()` and use `{0}` placeholders with `.format()`. Avoid f-strings inside `_()`, because they break translation extraction.
-- `# nosemgrep` is used only for deliberate exceptions, such as throws in version-compatibility patches.
+- **User and validation errors:** raise them with **`frappe.throw(_("message"), [ExcClass], title=_(...))`**. This is about 181 call sites in Python. Messages are translatable and use `.format()` placeholders, e.g. `frappe.throw(_("Invalid Code Value: {0}").format(code_value))`, or `frappe.throw(msg, title=_("Missing Configuration"))`.
+- **Typed errors:** domain-specific subclasses of **`frappe.ValidationError`** are declared at the top of the controller module and passed to `frappe.throw`. Examples are `OverlapError`, `MaximumCapacityError` (patient_appointment), `CoverageOverlapError`, `CoverageNotFoundError` and `NoActiveContractError`. Tests can assert on these types.
+- **Non-fatal failures** (notifications, calendar events, background jobs) are caught and recorded with **`frappe.log_error(...)`**, usually `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(message=e, title="...")`. The main transaction is not aborted.
+- **Idempotent setup:** catch specific Frappe exceptions such as `except frappe.DuplicateEntryError:` in `setup.py`. Broad `except Exception` mostly appears in patches and uninstall.
+- **Patches:** compatibility guards use `frappe.throw(message)  # nosemgrep`.
+- **Desk JS:** use `frappe.throw(__("..."))` for blocking client checks and `frappe.msgprint({...})` for informational dialogs. Some legacy JS strings are unwrapped or contain inline `<b>` HTML. Prefer `__()` in new code.
+- The PR template requires the authoritative validation to live server-side.
