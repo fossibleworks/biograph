@@ -21,8 +21,7 @@ Outcomes:
 - **picked-clean**: applied without conflict.
 - **picked-with-conflict-resolution**: applied, with conflicts resolved under the policy above.
 - **already-present**: the fork already had the change. The pick was empty, or empty once fork code was kept, so nothing was committed.
-- **skipped**: deliberately not applied because it would remove fork behaviour. The reason is given in the notes.
-- **deferred**: not applied in this batch because the push credential cannot write the file it touches (a workflow file needs the `workflow` token scope). It is not a fork-intent decision; the notes give the exact command to apply it by hand.
+- **skipped**: not applied. The notes give the reason. Usually the reason is that the pick would remove fork behaviour. B2 #86 is the one exception: it was skipped only because the push credential cannot write workflow files. The notes give the command to apply it by hand.
 
 ## Baseline: healthcare test failures on untouched `biograph-fh`
 
@@ -83,7 +82,7 @@ B1 totals:
 Upstream's test-suite refactor: `HealthcareTestSuite` (on top of `ERPNextTestSuite`), deterministic
 masters via `BootStrapTestData` / `make_*` in `healthcare/tests/utils.py`, removal of
 `IntegrationTestCase` / `EXTRA_TEST_RECORD_DEPENDENCIES`, and `before_tests` disabled. Upstream also switches CI
-to `run-parallel-tests --lightmode` (#86); that one-line workflow change is deferred, see below.
+to `run-parallel-tests --lightmode` (#86); that one-line workflow change is skipped for now (credential), see below.
 
 Additional rules for this batch:
 
@@ -165,7 +164,7 @@ Additional rules for this batch:
 | 83 | fbad72bc | fix: linter report | picked-clean |  |
 | 84 | 6cfd9724 | fix: remove unnecessary customer group insert | **skipped** | Upstream deletes `create_customer_groups` from `healthcare/setup.py`, but patch `v16_0/setup_service_request_and_insurance.py` (in both the fork and upstream) imports it. Removing it would make `bench migrate` fail with an ImportError on any site that has not run that patch yet. The fork also relies on the Insurance Payor customer group being created at install. |
 | 85 | 20b1a29a | fix: remove company creation in before tests | picked-clean |  |
-| 86 | 4d89574c | fix: update ci comfig to run tests in lightmode | **deferred** | Only touches `.github/workflows/ci.yml`. The engine's push token has no `workflow` scope, and GitHub rejected the push with "refusing to allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope". The pick is left out of this batch. Someone with workflow permission needs to apply it by hand: `git cherry-pick -x 4d89574c`, which adds `--lightmode` to the Run Tests step. |
+| 86 | 4d89574c | fix: update ci comfig to run tests in lightmode | skipped | Not a fork-intent decision; skipped only because of the push credential. Only touches `.github/workflows/ci.yml`. The engine's push token has no `workflow` scope, and GitHub rejected the push with "refusing to allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope". The pick is left out of this batch. Someone with workflow permission needs to apply it by hand: `git cherry-pick -x 4d89574c`, which adds `--lightmode` to the Run Tests step. |
 | 87 | ad9ef730 | fix: set customer group for test recrds explicitely | already-present | Only touches `healthcare/tests/utils.py`. The fork already has upstream's final version of that file (from 5c82db85), so the pick was empty. |
 | 88 | ff168bf0 | fix: add type hints | picked-clean |  |
 | 89 | a3701b4b | fix: explicitly set customer group for test records | picked-clean |  |
@@ -184,8 +183,7 @@ B2 totals (73 commits):
 - picked-clean: 35
 - picked-with-conflict-resolution: 24
 - already-present: 12
-- skipped: 1
-- deferred: 1 (#86, CI workflow file)
+- skipped: 2 (one for fork intent; #86 only because the CI workflow file cannot be pushed)
 
 ### B2 follow-up commit: migrate the remaining fork tests
 
@@ -213,7 +211,7 @@ There is still no local bench, so the server suite cannot run here. The first CI
 remains the baseline. What was checked statically on the final tree:
 
 - All 73 commits are accounted for: 59 `-x` commits match the picked rows exactly, and the rest are
-  12 already-present, 1 skipped and 1 deferred. Each commit's message names its upstream sha.
+  12 already-present and 2 skipped (one of them #86, the workflow file). Each commit's message names its upstream sha.
 - **Import resolution:** an AST check finds that every `from healthcare… import name` in the app
   resolves to a top-level definition. 0 problems.
 - **Call signatures:** an AST check finds that every call to a helper imported from a `test_*` or
@@ -281,3 +279,12 @@ whether it is fork behaviour or a gap, rather than changing app code inside a sy
 - Upstream #86 (`4d89574c`, `--lightmode` in `.github/workflows/ci.yml`) is still deferred. This run's GitHub
   token has no `workflow` scope, and GitHub rejects any push that changes a workflow file. Someone with that
   scope needs to run `git cherry-pick -x 4d89574c` on this goal branch.
+
+### B2 rework, round 3
+
+- Retried #86 in this run with `git cherry-pick -x 4d89574c`. The pick applies cleanly on top of the
+  `BIOGRAPH_BRANCH` rename and changes one line in `ci.yml`. The push was rejected again: "refusing to
+  allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope".
+  The local pick was dropped so the branch can still be pushed.
+- The ledger now records #86 as `skipped`, not `deferred`, so it uses only the AC-4 outcome words. The
+  reason is still in the row's notes. Once someone applies the pick by hand, the row becomes picked-clean.
