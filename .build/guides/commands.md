@@ -7,33 +7,47 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
+  - README.md
   - package.json
   - patient_portal/package.json
   - .github/workflows/ci.yml
   - .pre-commit-config.yaml
   - .github/workflows/linters.v2.yml
-  - README.md
   - .github/helper/install.sh
 ---
 
-The app runs inside a Frappe bench (`frappe-bench`). Run all commands from the bench or the app directory as shown.
-
-**Install**
-- `bench get-app <repo-url>` then `bench --site <site> install-app healthcare`
-- CI bootstraps the bench with `bash .github/helper/install.sh`.
-
-**Frontend (patient portal)**
-- `yarn install` at the root. Its `postinstall` runs `cd patient_portal && yarn install --check-files`.
-- `yarn build`, which runs `cd patient_portal && vite build --base=/assets/healthcare/patient_portal/`.
-- `cd patient_portal && yarn dev` starts the Vite dev server with the Frappe proxy.
+**Setup (inside a bench)**
+```sh
+bench get-app https://github.com/Tacten/biograph
+bench --site <site> install-app healthcare
+```
+CI builds the bench with `.github/helper/install.sh`.
 
 **Tests**
-- `bench --site test_site run-parallel-tests --app healthcare` (this is what CI runs)
-- `bench --site <site> run-tests --app healthcare [--doctype "Patient Appointment"]` runs a subset locally.
+```sh
+bench --site test_site run-parallel-tests --app healthcare   # what CI runs
+bench --site <site> run-tests --app healthcare [--doctype "Patient Appointment"]
+```
 
-**Lint and format**
-- `pre-commit install` then `pre-commit run --all-files`. This runs ruff (`--fix`), ruff-format, prettier, eslint, pip-audit, detect-secrets and the basic hygiene hooks.
-- Semgrep: `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules && semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
-- Commit titles: `npx commitlint --from <base> --to <head>`
+**Lint / format** (the same hooks CI runs)
+```sh
+pip install pre-commit && pre-commit install
+npm install
+pre-commit run --all-files    # ruff --fix, ruff-format, eslint, prettier, pip-audit, detect-secrets, yaml/json/toml checks
+```
 
-**Migrations:** `bench --site <site> migrate` runs the entries in `healthcare/patches.txt`.
+**Semgrep** (Frappe rules, run in CI)
+```sh
+git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
+pip install semgrep
+semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
+```
+
+**Patient portal**
+```sh
+yarn install          # root postinstall also installs patient_portal
+yarn build            # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
+cd patient_portal && yarn dev
+```
+
+**Commit messages** are checked with `npx commitlint` against the conventional types in `commitlint.config.js`.
