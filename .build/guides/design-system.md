@@ -9,13 +9,9 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/vite.config.js
-  - patient_portal/components.d.ts
-  - patient_portal/src/components/Payment.vue
-  - healthcare/public/js/observation.html
-  - healthcare/public/images/healthcare.svg
+  - patient_portal/package.json
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
 ---
 
-- **Desk UI** (most screens) uses the standard Frappe Desk form, list, calendar and tree views, driven by DocType JSON. Custom widgets reuse Frappe UI primitives (`frappe.ui.Dialog`, `frappe.ui.form.on`, indicators) and small HTML templates in `healthcare/public/js/*.html` (`healthcare_note.html`, `observation.html`, `healthcare_orders.html`). Do not introduce a separate CSS framework for Desk.
-- **Patient Portal** uses **frappe-ui** components (Card, Button, Dialog, etc., auto-imported, see `components.d.ts`) on **Tailwind CSS**. The token source is the `frappe-ui/tailwind` preset in `patient_portal/tailwind.config.js`, which adds only legacy colour aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). Icons come from lucide/feather via the frappe-ui vite plugin.
-- Existing visual idiom (e.g. `Payment.vue`): centred flex layouts, `text-gray-900/800/500` text hierarchy, `rounded-xl shadow-sm` cards, `text-green-600` / `text-blue-600` for amounts, `max-w-md` content width.
-- App icons live in `healthcare/public/images/` (`healthcare.svg`, `biograph-app-icon.svg`).
+- **Patient Portal:** the component library is **frappe-ui**, and its Tailwind preset is the source of design tokens (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only theme extensions are colour aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). Icons come from Lucide (`lucideIcons: true` in the Vite plugin) and feather-icons. Build new UI from frappe-ui components and Tailwind utility classes, and do not add custom CSS tokens. Components live in `patient_portal/src/components/`.
+- **Desk UI:** uses the standard Frappe desk widgets: form custom buttons (`frm.add_custom_button`), indicators (`frm.page.set_indicator`), `frappe.ui.Dialog`, and list and calendar views. HTML templates (`healthcare_note.html`, `observation.html`) are in `healthcare/public/js`. Indicator colours follow Frappe names (`orange`, `green`, `red`).
