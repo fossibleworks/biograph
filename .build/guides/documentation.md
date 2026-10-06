@@ -8,18 +8,20 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
-  - .github/workflows/docs_checker.yml
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
-  - patient_portal/README.md
+  - .github/workflows/docs_checker.yml
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-# Documentation
-
-- **User docs** are external. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`), and the upstream docs checker looks for links on `biograph.frappe.cloud` / `biograph.io` under `/wiki`.
-- **In-repo `wiki/`** holds design docs and usage guides as flat markdown files with SCREAMING-KEBAB names: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, plus parity reports and implementation plans. Screenshots sit alongside them (`patient-duplicatecheck-thumbnail.png`).
-- **Sync ledger**: `wiki/upstream-sync-version-16.md` records every upstream cherry-pick with its outcome (`picked-clean`, `picked-with-conflict-resolution`, `already-present`, `skipped`) and lint before/after counts. Upstream-sync work must update it, using `docs(wiki): ...` commits.
-- **Docs-required gate**: `docs_checker.yml` fails `feat` PRs unless the PR body links docs or contains `no-docs` (or `backport`).
-- `patient_portal/README.md` covers the portal.
-- Agent and contributor guidance: `CLAUDE.md` (engine workflow), `.build/RULES.md` (rules source), `AGENTS.md` (Build-managed mirror).
+- **The user-facing docs live outside the repo.** The README links to DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **The in-repo `wiki/` directory** holds markdown for fork features:
+  - design docs (`DESIGN-*.md`)
+  - usage guides (`*-USAGE*.md`)
+  - parity reports and implementation plans
+  - the **upstream sync ledger** (`upstream-sync-version-16.md`)
+- Screenshots go next to the markdown (for example `patient-duplicatecheck-thumbnail.png`).
+- Docs commits use the `docs(wiki): ...` conventional-commit scope.
+- **`feat` PRs are checked for docs.** The `docs_checker` workflow fails a `feat` PR unless its body links to a `/wiki` page on the configured docs hosts, or says `no-docs` or `backport`.
+- The PR template asks contributors to update the relevant documentation.
+- `patient_portal/README.md` covers the portal frontend.
