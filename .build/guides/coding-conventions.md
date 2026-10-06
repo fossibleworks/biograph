@@ -8,34 +8,31 @@ binding: required
 source: inferred
 evidence:
   - pyproject.toml
-  - .prettierrc.yaml
   - eslint.config.mjs
+  - .prettierrc.yaml
   - .pre-commit-config.yaml
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
   - commitlint.config.js
-  - healthcare/healthcare/api/patient_portal.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
 ---
 
-# Coding conventions
+**Python** (ruff, `pyproject.toml`)
+- Indent with **tabs**, use **double quotes**, and keep lines to 110 characters (E501 is ignored, so long lines are tolerated). Target py310.
+- Lint rule sets F, E, W, I, UP, B, RUF, with a Frappe-friendly ignore list (F401, E402, B904, and others).
+- Imports are sorted into sections in this order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, local. Use full dotted absolute imports such as `from healthcare.healthcare.doctype.x.x import ...`.
+- Use Frappe idioms:
+  - Wrap user-facing strings in `_()`.
+  - Expose client-callable functions with `@frappe.whitelist()` (about 180 uses).
+  - Query with `frappe.get_all`/`get_list` (`pluck=`), `frappe.db.get_value`/`set_value`, `frappe.qb`.
+  - Use `frappe.utils` helpers (`getdate`, `flt`, `nowdate`, `add_days`).
+- Doctype controllers are classes named after the DocType in PascalCase (`PatientAppointment(Document)`). Files and folders use snake_case versions of the DocType name. Use `frappe.types.DF` typing for auto-generated type hints.
+- Patches go in `healthcare/patches/vNN_0/<verb_description>.py` and define `execute()`.
 
-## Python
-- Lint and format with **Ruff** (`pyproject.toml`): line-length 110, **tabs** for indentation, double quotes, and docstring code formatting.
-- Lint rules: `F, E, W, I, UP, B, RUF`, with Frappe-friendly ignores (E501, F401, F403/F405, W191, B904, etc.).
-- isort section order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate each group with a blank line, as in `import frappe` / `import erpnext` / `from healthcare...`.
-- Use the `frappe.types.DF` typing module for DocType type hints.
-- Naming: DocType folders and modules are `snake_case` versions of the DocType name (`patient_appointment/patient_appointment.py`). Controller classes are PascalCase (`class PatientAppointment(Document)`). Custom exceptions end in `Error`.
-- Wrap every user-facing string in `_()`, using `.format()` placeholders like `{0}`.
-- Prefer `frappe.qb` or `frappe.get_all` over raw SQL. Semgrep with Frappe's rules runs in CI.
-- Expose server methods to the client only through `@frappe.whitelist()`.
-- Many legacy files are listed in the `.pre-commit-config.yaml` global `exclude`, so they are not reformatted. Do not mass-reformat them; keep diffs minimal.
+**JavaScript** (ESLint flat config `eslint.config.mjs` with eslint:recommended, plus Prettier for js/ts/vue/css)
+- Desk scripts use `frappe.ui.form.on("DocType", {...})`. The globals `frappe`, `erpnext`, `$` and `moment` are allowed.
+- Wrap user-facing strings in `__()`.
+- Prettier excludes `patient_portal/` and a few large legacy form scripts.
 
-## JavaScript (Desk)
-- **Prettier**: tabs (`useTabs: true`, tabWidth 4), printWidth 88, `arrowParens: avoid`.
-- **ESLint** flat config (`eslint:recommended`) with the globals `frappe`, `erpnext`, `$`, `jQuery`, `__`, and so on.
-- Form scripts use `frappe.ui.form.on('<DocType>', {...})`. Wrap all labels in `__()`.
+**Vue (patient_portal)**
+- SFCs use PascalCase filenames (`BookAppointmentModel.vue`), frappe-ui components, and Tailwind utility classes. Use the `@/` alias for `src/`.
 
-## Vue (Patient Portal)
-- Use `<script setup>`-style components in `patient_portal/src/components/PascalCase.vue`, with frappe-ui components and `createResource` for data, and Tailwind utility classes. `patient_portal/` is excluded from prettier.
-
-## Commits
-- Use Conventional Commits, enforced by commitlint. Allowed types are `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, in lower case, and the subject must not be empty.
+**Commits:** Conventional Commits (`feat:`, `fix(tests):`, `docs(wiki):`, `chore:`, `refactor:`), enforced by commitlint.
