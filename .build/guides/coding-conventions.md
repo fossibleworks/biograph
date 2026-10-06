@@ -12,30 +12,27 @@ evidence:
   - eslint.config.mjs
   - .pre-commit-config.yaml
   - commitlint.config.js
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/fee_validity/fee_validity.js
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
 ---
 
-# Coding conventions
+**Python** (ruff, configured in `pyproject.toml`)
+- **Indent with tabs** (`indent-style = "tab"`), use double quotes, and target py310. The line-length setting is 110, but E501 is ignored.
+- Enabled lint rules: `F, E, W, I, UP, B, RUF`. Several are ignored, including F401 unused imports, E402, B904, and E741.
+- **isort section order:** future, stdlib, third-party, `frappe`, `erpnext`, `healthcare`, first-party, local. Put a blank line between the frappe, erpnext, and healthcare groups.
+- `typing-modules = ["frappe.types.DF"]`. Controllers carry auto-generated type hints.
+- Use absolute imports from the package root (`from healthcare.healthcare.doctype.x.x import ...`).
+- Wrap every user-facing string in `_()` (`from frappe import _`), e.g. `frappe.throw(_("..."))`.
+- Prefer Frappe APIs (`frappe.get_doc`, `frappe.db.get_value`, `frappe.get_list(..., pluck="name")`, `frappe.qb`) over raw SQL, though `frappe.db.sql` still appears in older code.
+- Names: snake_case for modules, folders, and functions; PascalCase for DocType controller classes (`class PatientAppointment(Document)`). Custom exceptions are `<Thing>Error(frappe.ValidationError)`.
+- A large legacy exclude list in `.pre-commit-config.yaml` keeps many files out of pre-commit. New files are not excluded, so they must pass.
 
-## Python (ruff)
-- Indent with **tabs** and use **double quotes**. Line length is 110, though E501 is ignored. Run `ruff format` with `docstring-code-format`.
-- Enabled lint sets: `F, E, W, I, UP, B, RUF`. Ignored rules include F401 (unused imports), E402 and B904. Even so, recent commits clean up unused imports.
-- Import sections, in order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Put a blank line between groups, for example `import frappe` … `from erpnext...` … `from healthcare...`.
-- Type hints for doctype fields use `frappe.types.DF`.
-- Naming:
-  - DocType folders and modules are snake_case (`patient_appointment/patient_appointment.py`).
-  - Controller classes are PascalCase and subclass `Document` (`class PatientAppointment(Document)`).
-  - Custom exceptions end in `Error` and subclass `frappe.ValidationError`.
-- Every user-facing string is wrapped in `_()` (`from frappe import _`).
-- Queries use `frappe.qb` or `frappe.db.get_all/get_value/exists`. Raw `frappe.db.sql` appears mainly in tests and legacy code.
-- Frappe Semgrep rules run in CI. Suppress one only with a justified `# nosemgrep`.
-- New files carry the standard header: `# Copyright (c) <year>, ... and contributors` / `# See license.txt`.
+**JavaScript** (desk)
+- Prettier: `useTabs: true`, `tabWidth: 4`, `printWidth: 88`, `arrowParens: avoid`.
+- ESLint flat config extends `eslint:recommended`, with Frappe globals (`frappe`, `erpnext`, `__`, `$`, `moment`, ...).
+- Form scripts use `frappe.ui.form.on("<DocType>", {...})`. Wrap user-visible strings in `__()`.
+- `patient_portal/` is excluded from Prettier.
 
-## JavaScript
-- Prettier settings: tabs, `tabWidth: 4`, `printWidth: 88`, `arrowParens: "avoid"`. ESLint uses `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `$`, `moment`, …).
-- Form scripts use `frappe.ui.form.on("<DocType Label>", {...})`. User strings are wrapped in `__()`.
-- `patient_portal/` is excluded from Prettier. Match the style of the surrounding file there: Vue SFCs, 2-space indent and single quotes in the config files.
+**Vue portal:** SFCs in `patient_portal/src/components` are PascalCase (`BookAppointmentModel.vue`). They use frappe-ui components and resources (`Card`, `ErrorMessage`, `getCachedResource`), the `@` alias for `src`, and Tailwind classes.
 
-## Commits
-- Commits follow conventional commits, checked by commitlint. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, in lower case. Scopes are used, for example `fix(tests):` and `docs(wiki):`.
+**Commits:** conventional commits. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style, and test, all lower-case. Scopes are common, e.g. `fix(tests):` and `docs(wiki):`.
