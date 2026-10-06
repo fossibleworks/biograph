@@ -8,33 +8,32 @@ binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
+  - .github/helper/install.sh
   - .github/workflows/linters.v2.yml
-  - .github/workflows/semantic-commits.yml
-  - .github/workflows/docs_checker.yml
-  - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
   - .releaserc
-  - .mergify.yml
+  - .github/workflows/initiate_release.yml
+  - .github/workflows/release_notes.yml
   - codecov.yml
 ---
 
-# CI/CD and release
+**PR checks (GitHub Actions)**
+- `ci.yml` (**Server Tests**) runs on PRs that touch more than css/js/md/html/csv, and nightly.
+  - It sets up Python 3.14, Node 24 and MariaDB 11.8, compiles all Python, and greps for merge-conflict markers.
+  - Then `.github/helper/install.sh` builds a bench with frappe, payments and erpnext. It uses the PR base branch, or `version-16` for fork branches such as `biograph-fh` and `goal/*`.
+  - Finally it runs `bench run-parallel-tests --app healthcare`. Non-PR runs upload coverage to Codecov.
+- `linters.yml` and `linters.v2.yml` run pre-commit (ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit) and Frappe semgrep rules.
+- `semantic-commits.yml` runs commitlint on PR commit titles.
+- `docs_checker.yml` requires a wiki link on `feat` PRs.
+- `labeller.yml` adds the `needs-tests` label.
+- `codeql.yml` runs Python and JS analysis on `develop`, plus a weekly run.
+- Dependabot handles action updates.
 
-## On pull requests
-| Workflow | What it does |
-|---|---|
-| `ci.yml` (**Server Tests**) | Python 3.14 + Node 24 + MariaDB 11.8. Runs `compileall`, checks for merge-conflict markers, sets up a bench via `.github/helper/install.sh`, then runs `bench run-parallel-tests --app healthcare`. It skips PRs that only touch css/js/md/html/csv, also runs nightly at 00:00 UTC, and uploads coverage to Codecov on non-PR runs. |
-| `linters.yml` / `linters.v2.yml` | pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, file checks) + Semgrep with `frappe/semgrep-rules` and `r/python.lang.correctness` |
-| `semantic-commits.yml` | commitlint on every commit in the PR range |
-| `docs_checker.yml` | `feat` PRs need a `/wiki` docs link (or `no-docs` / `backport`) |
-| `codeql.yml` | CodeQL for python + javascript (PRs to develop + weekly) |
-| `labeller.yml` | Auto-labels PRs via `.github/labeler.yml` |
-
-## Merge and release
-- **Mergify** auto-merges after 1 approval and handles backports through labels.
-- `initiate_release.yml` (weekly on Tuesday) opens `version-N-hotfix → version-N` release PRs for versions 14, 15, and 16. Note that it targets the upstream `earthians/biograph` repo.
-- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`, using the angular preset with breaking changes not auto-releasing. It rewrites `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version X`, and creates the GitHub release. `release_notes.yml` and `.github/release.yml` shape the release notes.
-- `generate-pot-file.yml` regenerates translations weekly. Dependabot updates GitHub Actions weekly.
-- Deployment is outside this repo, by `bench get-app` / Frappe Cloud.
-
-**Fork caveat:** per the sync ledger, `fossibleworks/biograph` has no `ci.yml` run history on `biograph-fh`. Treat CI results as new signal, not as a regression baseline. Pushing changes to `.github/workflows/*` requires a credential with workflow scope.
+**Release (inherited from upstream earthians)**
+- semantic-release (`.releaserc`, angular preset) runs on pushes to `version-14/15/16`. It bumps `healthcare/__init__.py` with the commit `chore(release): Bumped to Version x.y.z`. Breaking changes do not trigger major releases.
+- `initiate_release.yml` opens weekly `version-N-hotfix → version-N` PRs.
+- `release_notes.yml` regenerates notes and strips chore/ci/test/docs/style entries.
+- `generate-pot-file.yml` refreshes translations weekly.
+- Several of these workflows target the `earthians/biograph` repo and need secrets this fork may not have.
+- The fork bumps its version by hand on `biograph-fh`, for example `chore: bump version to 16.0.8`.
+- Pushes cannot change workflow files without the `workflow` token scope. Such changes are deferred and applied by hand.
