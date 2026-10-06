@@ -8,16 +8,21 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
-  - AGENTS.md
   - .build/RULES.md
   - .mergify.yml
   - .github/CODEOWNERS
-  - commitlint.config.js
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **Tracked through Interactor Build.** Every code change needs a **Goal**, created in the Build web UI or with `ibuild engine goal-create`. Do the work on the goal branch **`goal/<goalId>`** in an isolated worktree and ship it through that goal's single PR. Never commit or push to the default branch **`biograph-fh`**. EngineTasks under a Goal go through investigation → execution → review. A GitHub issue becomes a Goal only after an explicit import.
-- For small interactive changes, the gate can be switched off with `ibuild off`, if the project allows it. The change still goes on its own branch through a hand-opened PR that runs CI.
-- **Commits** follow Conventional Commits (commitlint runs on PRs). Releases strip `chore|ci|test|docs|style` entries from release notes.
-- **Upstream sync:** pull from `upstream` (`earthians/marley` `version-16`) with `git cherry-pick -x`. Fork intent wins conflicts. Record every commit's outcome in `wiki/upstream-sync-version-16.md`.
-- **Upstream branch model** (inherited config): `develop` for features, `version-NN-hotfix` → `version-NN` for stable. Mergify auto-closes outside PRs to stable branches and merges after 1 approval. CODEOWNERS: @akurungadam @Sajinsr.
-- Project rules: `.build/RULES.md` (currently placeholders).
+**Work tracking (Interactor Build engine, from CLAUDE.md):**
+- Every code change needs a tracked **Goal**. A GitHub issue maps to a Goal only after an explicit import. The engine creates **EngineTasks** under each Goal, and each task cycles investigation → execution → review.
+- Work on the branch `goal/<goalId>` in an isolated worktree. Never commit to the main branch (`biograph-fh` in this fork). Changes ship through the Goal's single PR, which must pass review and CI.
+- Use the CLI: `ibuild engine goal-create "<title>"`, `ibuild engine goal queue <id>`, `ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <id>`. You can also use the Build web UI.
+- `ibuild off` lets an interactive session skip the Goal for a small change. That change still goes through a branch and a hand-opened PR.
+- Standing rules live in `.build/RULES.md` (currently unfilled).
+
+**Branching and merging:**
+- The upstream model (earthians) uses `develop`, `version-NN-hotfix` and stable `version-NN` branches. Mergify auto-closes PRs against stable `version-14/15/16` from non-maintainers. It merges after at least 1 approval (the `squash` label switches to squash merge) and backports through `backport <branch>` labels.
+- CODEOWNERS: `@akurungadam @Sajinsr`.
+- The PR template asks for the target branch, a conventional title, passing tests, server-side validation, docs updates, and `closes #XXXX`.
+- **Upstream sync:** cherry-pick with `git cherry-pick -x` from `earthians/marley` `version-16`. Fork behaviour wins on conflicts. Record every commit's outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped) in `wiki/upstream-sync-version-16.md`, and tag those commits with `(upstream sync Bn)`.
