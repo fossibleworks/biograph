@@ -9,18 +9,13 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
-  - healthcare/public/js/mark_unavailable.js
-  - patient_portal/src/components/Payment.vue
-  - healthcare/healthcare/doctype/patient/patient.py
-  - healthcare/locale/main.pot
+  - healthcare/healthcare/utils.py
   - crowdin.yml
 ---
 
-- **Tone:** plain, concise, clinical-administrative. Write short imperative or declarative sentences.
-  - Errors: "Appointment Date and Time are required.", "Appointment end must be after start.", "Patient not found", "Not allowed to print this document."
-  - Confirmations: "Are you sure you want to cancel this unavailability record?"
-  - Progress: "Checking for conflicts...", "Creating unavailability record..."
-- **Capitalisation:** buttons and labels use Title Case ("Check In", "Add Observation", "Cancel Unavailability", "Check Conflicts"). Dialog titles are Title Case ("Appointment Conflicts Detected", "Duplicate Patient"). Messages are sentence case with a final period. A few legacy messages end in `!`.
-- **Terminology:** use domain DocType names exactly: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Fee Validity, Clinical Procedure, Lab Test, Observation, Service Request, Insurance Payor. Interpolate record names with `{0}` and `frappe.bold`.
-- **Patient-facing portal copy** is friendlier and simpler: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients", "Book".
-- **Translation:** all strings go through `_()` / `__()`. They are extracted weekly into `healthcare/locale/main.pot`, with Crowdin configured in `crowdin.yml`. Don't concatenate translated fragments. Use placeholders instead.
+- **Always translatable:** use `_()` in Python and `__()` in JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin. Put variables in positional placeholders (`{0}`) applied with `.format()` *after* `_()`. Do not build the string with format first: `_("{0} is a holiday".format(date))` is a known anti-pattern.
+- **Tone:** short and direct, in sentence or title case. It usually names the field or DocType: `Appointment Date and Time are required.`, `Registration Fee cannot be negative or zero`, `Configure a service Item for {0}`, `Patient already has an appointment booked for the same day!`.
+- **Buttons and actions:** short Title Case verbs, such as `Reschedule`, `Check In`, `Make Payment`, `Mark Unavailable`, `Repeat Appointments`. Button groups get a group label like `Status`.
+- **Dialog titles:** short nouns, such as `Missing Configuration` and `Not Available`.
+- **Progress messages:** use an ellipsis, e.g. `Checking for conflicts...`.
+- **Terminology:** use the DocType names exactly as written, capitalised: Patient Appointment, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Patient Encounter, Fee Validity, Inpatient Record.
