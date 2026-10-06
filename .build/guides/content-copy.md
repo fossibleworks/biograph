@@ -1,5 +1,5 @@
 ---
-title: Content & copy
+title: Content and copy
 category: content-copy
 layer: project
 applies_to: []
@@ -8,39 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
   - healthcare/healthcare/utils.py
   - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
+  - patient_portal/src/PatientPortal.vue
   - healthcare/locale/main.pot
 ---
 
-**Tone**
-- Short, plain and clinical-administrative.
-- DocType and field names appear in Title Case inside messages, exactly as they appear in the UI: "Healthcare Practitioner", "Fee Validity", "Receivable Account", "Nursing Task".
-
-**Error messages**
-- State the rule or what is missing, usually as a sentence without a trailing period. Examples:
-  - "Appointment end must be after start."
-  - "Start Date should be before End Date"
-  - "Patient already has an appointment booked for the same day!"
-  - "Configure a service Item for {0}"
-  - "Not Allowed to cancel Nursing Task with status 'Completed'"
-- Use `{0}` placeholders for record names. Quote status values in single quotes.
-
-**Buttons and actions**
-- One or two words in Title Case: "Book", "Check In", "Add Note", "Add Observation", "Cancel Unavailability", "Check Conflicts".
-- Progress text ends with an ellipsis: "Checking for conflicts...", "Creating unavailability record...".
-- Confirmations are questions: "Are you sure you want to mark this time as unavailable?"
-
-**Portal (patient-facing)**
-- Friendlier wording, with Title Case headings: "Book an Appointment", "Select a Department", "Available Slots", "Pay Your Bill", "Payment Successful".
-- Empty states: "Looks like you don't have any appointments yet." and "No Records Found".
-
-**Terminology**
-- Use Patient, Healthcare Practitioner (Practitioner in short form), Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Inpatient Record, Lab Test, Observation, Diagnostic Report and Insurance Payor.
-- Product name: "Biograph". Patch `rebrand_marley_to_biograph` renamed it from Marley.
-- Spelling mixes British forms (authorise, organisations) with American ones.
-
-**Translation**
-- All strings go through `_()` / `__()` so they reach `main.pot` and Crowdin.
+- **Terminology:** use the domain DocType names exactly and in Title Case: Patient, Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Lab Test, Sample Collection, Clinical Procedure, Inpatient Record, Insurance Payor, Healthcare Settings. Call the person "Practitioner", not "Doctor".
+- **Error messages:** short, declarative sentences ending with a period, sometimes with an exclamation mark for conflicts (`"Appointment end must be after start."`, `"Appointment Date and Time are required."`, `"Patient already has an appointment booked for the same day!"`). Record names go in `{0}` placeholders, often wrapped in `frappe.bold`. Dialog titles are Title Case noun phrases (`Missing Configuration`, `Customer Not Found`).
+- **Toasts:** past-tense confirmations (`"Sales Invoice {0} created"`).
+- **Portal copy:** friendly and plain. Headings are Title Case (`Book an Appointment`, `Available Slots`, `Appointment Details`, `Pay Your Bill`, `Payment Successful`). Selectors use the "Select a …" form (`Select a Department`, `Select a Practitioner`). Empty states use "Looks like you don't have any appointments yet." or `No Records Found`. Button labels are short verbs (`Book`).
+- All server strings use `_()` and all desk JS strings use `__()`, so they reach `healthcare/locale/main.pot` and Crowdin.
