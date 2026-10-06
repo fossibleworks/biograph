@@ -8,32 +8,25 @@ binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
-  - .github/workflows/linters.yml
+  - .github/helper/install.sh
   - .github/workflows/linters.v2.yml
   - .github/workflows/semantic-commits.yml
-  - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
+  - .github/workflows/initiate_release.yml
   - .releaserc
-  - .github/workflows/generate-pot-file.yml
-  - codecov.yml
+  - .mergify.yml
+  - .github/workflows/codeql.yml
 ---
 
-**Pull request checks** (GitHub Actions)
-- `ci.yml` **Server Tests**: runs on PRs (skipped when only css/js/md/html/csv changed, and on `version-*-beta` branches) and nightly at 00:00 UTC. The job:
-  1. Sets up Python 3.14 and Node 24 with a MariaDB 11.8 service.
-  2. Runs `compileall` and the merge-conflict marker grep.
-  3. Runs `.github/helper/install.sh` (bench, payments, erpnext; fork branches resolve to `version-16`).
-  4. Runs `bench run-parallel-tests`.
-  5. On non-PR runs, uploads coverage to Codecov (`fail_ci_if_error`).
-- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets), plus Frappe semgrep rules and `r/python.lang.correctness`. v2 also runs on push.
-- `semantic-commits.yml`: commitlint across the PR's commits.
-- `docs_checker.yml`: requires a docs link on `feat` PRs.
-- `codeql.yml`: CodeQL security scan. `labeller.yml` with `labeler.yml`: path labels. `dependabot.yml`.
+**On pull requests**
+- `ci.yml` (**Server Tests**): skipped for PRs that only change css, js, md, html or csv. Steps: Python 3.14 and Node 24, `compileall`, a merge-conflict marker check, then `.github/helper/install.sh`, which sets up a bench with frappe, payments and erpnext. Fork branches (`biograph-fh`, `goal/*`) fall back to `version-16` for those apps. Then `bench run-parallel-tests --app healthcare` runs on MariaDB 11.8, with a 30-minute timeout. The workflow also runs daily at 00:00 UTC, and only non-PR runs upload coverage to Codecov.
+- `linters.yml` / `linters.v2.yml`: the pre-commit action (ruff, prettier, eslint, pip-audit, detect-secrets and hygiene hooks), plus Semgrep with `frappe/semgrep-rules` and `r/python.lang.correctness`.
+- `semantic-commits.yml`: commitlint over the PR's commit range.
+- `docs_checker.yml`: a `feat` PR needs a docs link or `no-docs`. Note that `.github/helper/documentation.py` queries the `earthians/biograph` repo API.
+- `labeller.yml`: labels PRs automatically. `codeql.yml`: CodeQL security scanning.
 
-**Release** (inherited from upstream earthians and wired to the earthians bot and repo)
-- `initiate_release.yml`: every Tuesday at 09:30 UTC it opens `chore: release v1x` PRs from `version-1x-hotfix` into `version-1x` (14, 15, 16).
-- `on_release.yml`: on push to `version-14/15/16`, `npx semantic-release` (`.releaserc`, angular preset, breaking changes do not trigger a major release) bumps `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
-- `release_notes.yml` and `.github/release.yml`: release-notes generation.
-- `generate-pot-file.yml`: regenerates `main.pot` weekly on `develop`. Crowdin opens translation PRs.
+**Merging (Mergify):** auto-merge after CI success with at least 1 approval (squash if labelled `squash`, blocked by `dont-merge`). PRs to the stable `version-14/15/16` branches from non-maintainers are auto-closed. The `backport develop` label triggers a backport.
 
-**Fork caveats:** the fork's `biograph-fh` had no CI run history before the upstream sync. Workflow-file edits need the `workflow` token scope (one upstream CI change was deferred for that reason). Deployment is through Frappe Cloud / bench (`bench get-app`, `install-app`, `migrate`). There is no deploy job in the repo.
+**Release:** `initiate_release.yml` opens weekly release PRs (Tuesday 09:30 UTC). `on_release.yml` runs `npx semantic-release` on pushes to `version-14`, `version-15` and `version-16`. Releases use the angular preset, and breaking changes do not trigger a major bump. The release bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z` and publishes a GitHub release. `release_notes.yml` regenerates the notes. `generate-pot-file.yml` refreshes translations every Sunday.
+
+**Caveats:** workflow files need the `workflow` token scope to change, which is why upstream #86 was deferred. The fork has no historical CI baseline on `biograph-fh`.
