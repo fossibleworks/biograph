@@ -8,15 +8,17 @@ binding: required
 source: inferred
 evidence:
   - healthcare/tests/utils.py
-  - healthcare/healthcare/doctype/allergy/test_allergy.py
+  - healthcare/healthcare/doctype/lab_test/test_lab_test.py
   - codecov.yml
-  - .github/labeler.yml
   - .github/workflows/ci.yml
 ---
 
-- **Framework:** Frappe's test runner (unittest based), run through bench: `bench --site test_site run-parallel-tests --app healthcare`. CI runs the tests against a fresh `test_site` on MariaDB.
-- **Base class:** every test class extends `HealthcareTestSuite` from `healthcare/tests/utils.py` (82 classes). That class extends ERPNext's `ERPNextTestSuite`. Shared master data (`_Test Company`, patients, practitioners, service units, templates, insurance payors…) is built by `BootStrapTestData`. Reuse or extend it instead of creating ad-hoc fixtures. Recent commits migrated all fork tests to this base.
-- **Layout:** `test_<doctype>.py` lives next to its controller in `doctype/<name>/` (85 test files). Cross-cutting helpers go in `healthcare/tests/`.
-- **Determinism:** many recent `fix(tests)` commits make tests deterministic (fixed dates, explicit customer groups, a `super().setUp()` call). Follow the same rules.
-- **Coverage:** Codecov expects **85% patch coverage** on PRs to `develop` and allows a 0.5% project drop. Coverage is collected on non-PR runs.
-- The PR labeler adds `needs-tests` when Python under `healthcare/` changes without any `test*.py` change.
+# Testing
+
+- **Framework:** Frappe's unittest-based runner (`bench run-tests` / `run-parallel-tests`), which runs against a real MariaDB site (`test_site`).
+- **Layout:** tests sit next to their DocType as `healthcare/healthcare/doctype/<name>/test_<name>.py`. There are about 85 test files. Shared helpers live in `healthcare/tests/`.
+- **Base class:** test classes extend `HealthcareTestSuite` from `healthcare.tests.utils`, which builds on ERPNext's `ERPNextTestSuite`. `BootStrapTestData` creates master data (company, service items, practitioners, patients, service units, lab/observation templates, therapy types, etc.). Fixtures use the `_Test ...` naming, e.g. `"_Test Lab Test - with Sample"`.
+- **Style:** methods are named `test_<behaviour>` and use `self.assertEqual` / `assertTrue` / `assertRaises(<SpecificError>)`. They use module-level factory helpers such as `create_lab_test(...)`. Assertions check DB state with `frappe.db.get_value` / `frappe.db.exists`.
+- **Coverage:** Codecov enforces a **patch target of 85%** on PRs and allows the project to drop by at most 0.5%. Coverage is captured only on non-PR (scheduled/nightly) runs.
+- **CI:** the `Server Tests` job in `ci.yml` runs on PRs that touch more than css/js/md/html/csv, and nightly.
+- There are no JS or portal unit tests in the repo, so test UI changes manually. The PR template asks for UI and unit tests to pass locally.
