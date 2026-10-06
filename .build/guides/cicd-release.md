@@ -8,25 +8,32 @@ binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
-  - .github/helper/install.sh
   - .github/workflows/linters.v2.yml
   - .github/workflows/semantic-commits.yml
-  - .github/workflows/on_release.yml
+  - .github/workflows/docs_checker.yml
   - .github/workflows/initiate_release.yml
+  - .github/workflows/on_release.yml
+  - .github/workflows/release_notes.yml
   - .releaserc
-  - .mergify.yml
-  - .github/workflows/codeql.yml
+  - .github/release.yml
 ---
 
-**On pull requests**
-- `ci.yml` (**Server Tests**): skipped for PRs that only change css, js, md, html or csv. Steps: Python 3.14 and Node 24, `compileall`, a merge-conflict marker check, then `.github/helper/install.sh`, which sets up a bench with frappe, payments and erpnext. Fork branches (`biograph-fh`, `goal/*`) fall back to `version-16` for those apps. Then `bench run-parallel-tests --app healthcare` runs on MariaDB 11.8, with a 30-minute timeout. The workflow also runs daily at 00:00 UTC, and only non-PR runs upload coverage to Codecov.
-- `linters.yml` / `linters.v2.yml`: the pre-commit action (ruff, prettier, eslint, pip-audit, detect-secrets and hygiene hooks), plus Semgrep with `frappe/semgrep-rules` and `r/python.lang.correctness`.
-- `semantic-commits.yml`: commitlint over the PR's commit range.
-- `docs_checker.yml`: a `feat` PR needs a docs link or `no-docs`. Note that `.github/helper/documentation.py` queries the `earthians/biograph` repo API.
-- `labeller.yml`: labels PRs automatically. `codeql.yml`: CodeQL security scanning.
+## On pull requests
+- **CI / Server Tests** (`ci.yml`) runs on PRs, except changes that touch only css/js/md/html/csv, and nightly at 00:00 UTC. Steps:
+  1. Run `compileall` and a merge-marker check.
+  2. `install.sh` sets up a bench with frappe, erpnext and payments. They use the base branch, or `version-16` for fork branches.
+  3. Install the app.
+  4. Run `bench run-parallel-tests --app healthcare` against MariaDB 11.8, with a 30-minute timeout.
+  5. On non-PR runs, upload coverage to Codecov.
+- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus Frappe semgrep rules and `r/python.lang.correctness`.
+- **Semantic Commits**: commitlint over the PR's commits.
+- **Documentation Required**: `feat` PRs must link wiki docs.
+- **Labeler**: adds `needs-tests`. **CodeQL**: python and JS, on develop and weekly.
 
-**Merging (Mergify):** auto-merge after CI success with at least 1 approval (squash if labelled `squash`, blocked by `dont-merge`). PRs to the stable `version-14/15/16` branches from non-maintainers are auto-closed. The `backport develop` label triggers a backport.
+## Release (inherited from upstream earthians/biograph)
+- `initiate_release.yml` opens a release PR from `version-1x-hotfix` into `version-1x` (14, 15, 16) every Tuesday.
+- `on_release.yml`: pushes to `version-14/15/16` run **semantic-release** (angular preset; breaking changes do not trigger a major release). It rewrites the version in `healthcare/__init__.py` and commits `chore(release): Bumped to Version x.y.z`.
+- `release_notes.yml` regenerates the notes and strips chore/ci/test/docs/style lines. The `skip-release-notes` label excludes a PR.
+- `generate-pot-file.yml` refreshes translations weekly.
 
-**Release:** `initiate_release.yml` opens weekly release PRs (Tuesday 09:30 UTC). `on_release.yml` runs `npx semantic-release` on pushes to `version-14`, `version-15` and `version-16`. Releases use the angular preset, and breaking changes do not trigger a major bump. The release bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z` and publishes a GitHub release. `release_notes.yml` regenerates the notes. `generate-pot-file.yml` refreshes translations every Sunday.
-
-**Caveats:** workflow files need the `workflow` token scope to change, which is why upstream #86 was deferred. The fork has no historical CI baseline on `biograph-fh`.
+Fork note: the release workflows target the `earthians/biograph` repo and use earthians bot tokens. On `biograph-fh`, versions are bumped by hand with `chore: bump version to x.y.z` commits that follow upstream. Workflow-file changes need the `workflow` token scope, so they may be deferred (see the sync ledger).
