@@ -10,15 +10,17 @@ evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
+  - patient_portal/vite.config.js
+  - patient_portal/tailwind.config.js
   - .github/workflows/ci.yml
-  - .github/helper/install.sh
   - healthcare/hooks.py
+  - yarn.lock
 ---
 
-- **Backend:** Python ≥3.10 (CI uses 3.14) as a **Frappe** app (`healthcare`) that requires **ERPNext** and `payments`. Packaging uses `flit_core` through `pyproject.toml`. Runtime deps are `responses` and `python-barcode`.
-- **Database:** MariaDB (CI uses `mariadb:11.8`, utf8mb4). Redis comes from the Frappe bench.
-- **Desk UI:** Frappe desk JavaScript (form scripts per doctype, `healthcare/public/js/*.js`, bundled through `healthcare.bundle.js`) and jQuery/Frappe globals.
-- **Patient Portal SPA:** **Vue 3** + **vue-router**, **frappe-ui**, **Tailwind CSS 3.4** (frappe-ui preset), built with **Vite 4**. Realtime updates use socket.io.
-- **Node:** Node 24 in CI. Yarn workspaces (`patient_portal`, `frappe-ui`) with `yarn.lock`.
-- **Tooling:** ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Frappe semgrep rules, detect-secrets, pip-audit, CodeQL, commitlint, semantic-release.
-- **Supported Frappe/ERPNext lines:** `version-14`, `version-15` and `version-16`. Fork branches test against `version-16`.
+- **Backend:** Python ≥3.10 (ruff target `py310`; CI runs Python 3.14). It is a **Frappe Framework app** that depends on **ERPNext** (`required_apps = ["frappe/erpnext"]`). Packaging uses `flit_core`. Runtime dependencies are `responses` and `python-barcode`.
+- **Database:** MariaDB (CI uses `mariadb:11.8`). Queries go through the Frappe ORM, `frappe.qb` (PyPika query builder) and `frappe.db.sql`.
+- **Desk UI:** plain JavaScript form scripts per doctype (`<doctype>.js`), bundled via `healthcare/public/js/healthcare.bundle.js`. They use Frappe/jQuery globals.
+- **Patient Portal SPA:** **Vue 3** + **vue-router** + **frappe-ui**. It is built with **Vite 4** and styled with **Tailwind CSS 3** (frappe-ui preset) and PostCSS/autoprefixer. Icons come from feather-icons and lucide (via the frappe-ui vite plugin).
+- **Package managers:** Yarn workspaces (`yarn.lock` at the root; workspaces `patient_portal`, `frappe-ui`) and pip.
+- **Tooling:** ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), CodeQL, detect-secrets, pip-audit, commitlint, semantic-release, Crowdin for translations.
+- **Deployment target:** a Frappe bench (`bench get-app`, `bench --site <site> install-app healthcare`) or Frappe Cloud.
