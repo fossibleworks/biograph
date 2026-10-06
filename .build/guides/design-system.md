@@ -8,11 +8,12 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/vite.config.js
   - patient_portal/package.json
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
-  - healthcare/public/js/healthcare.bundle.js
+  - patient_portal/vite.config.js
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/public/js/observation.html
 ---
 
-- **Desk UI:** use Frappe's standard form, list and calendar views. Customise through form scripts (`frm.add_custom_button(__("..."), fn, __("Group"))`, `frm.page.set_indicator(__("Not Saved"), "orange")`), Jinja HTML templates in `public/js/*.html` (observation, healthcare_note, healthcare_orders), and Frappe indicator colours. Do not add custom CSS frameworks to desk.
-- **Patient portal:** the component library is **frappe-ui** (`frappe-ui/vite` plugin with lucideIcons, plus feather-icons). Design tokens come from the **`frappe-ui/tailwind` preset** in `patient_portal/tailwind.config.js`, which only extends colour aliases (lightBlue→sky, warmGray→stone, and so on). Style with Tailwind utility classes (`text-lg font-semibold text-gray-700`). Use frappe-ui components and dialogs before writing bespoke ones.
+- **Patient Portal:** the component library is **frappe-ui**, which provides `Button` (with `variant="solid"|"subtle"`, `size="md"` and `:loading`), `Dialog`, form controls and resources. Styling is **Tailwind CSS 3.4** using the **`frappe-ui/tailwind` preset**, which is the design-token source for colours, spacing and typography. `patient_portal/tailwind.config.js` only adds legacy colour aliases (`lightBlue`, `warmGray`, `coolGray`, ...). Icons come from feather-icons and lucide (enabled in the frappe-ui Vite plugin). Global CSS is in `patient_portal/src/index.css`.
+- Build new portal UI from frappe-ui components and Tailwind utilities. Don't add custom CSS frameworks or hard-coded hex colours.
+- **Desk UI:** use standard Frappe Desk form, list and dialog widgets (`frappe.ui.Dialog`, form `add_custom_button`, field groups) and Frappe's CSS. Custom HTML snippets (`healthcare_note.html`, `observation.html`, `healthcare_orders.html`) are Jinja/Frappe templates in `healthcare/public/js/`.
