@@ -4,21 +4,21 @@ category: tech-stack
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: reference
 source: inferred
 evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
+  - patient_portal/vite.config.js
   - .github/workflows/ci.yml
   - .github/helper/install.sh
-  - healthcare/hooks.py
+  - yarn.lock
 ---
 
-- **Backend:** Python ≥3.10 (ruff targets py310; CI runs Python 3.14). Packaged as a **Frappe app** (`flit_core` build backend) that requires **ERPNext** and the `payments` app. The database is **MariaDB** (CI uses `mariadb:11.8`), with Redis through the Frappe bench.
-- **Python dependencies:** `responses`, `python-barcode` (pyproject).
-- **Desk UI:** plain JavaScript Frappe form scripts (`<doctype>.js` next to each doctype), bundled through `healthcare/public/js/healthcare.bundle.js`, using the jQuery/Frappe globals.
-- **Patient portal SPA:** `patient_portal/` uses **Vue 3**, vue-router 4, **frappe-ui** (^0.1.176), **Vite 4.4.9**, **Tailwind CSS 3.4.15** with the frappe-ui preset, and feather/lucide icons.
-- **Package management:** Yarn workspaces at the root (`yarn.lock`, workspaces `patient_portal`, `frappe-ui`). Node 24 in CI.
-- **Tooling:** ruff (lint and format), prettier, eslint 10, pre-commit, semgrep (Frappe rules), pip-audit, detect-secrets, commitlint, semantic-release, CodeQL.
-- **Deployment target:** Frappe bench (`bench get-app`, `bench --site … install-app healthcare`), also offered on Frappe Cloud.
+- **Backend:** Python ≥3.10 (CI uses 3.14). The app is a **Frappe** app depending on **ERPNext** and **payments**. Packaging uses `flit_core`. Runtime Python dependencies are in `pyproject.toml` (`responses`, `python-barcode`).
+- **Database:** MariaDB (CI uses `mariadb:11.8`, utf8mb4) and Redis, both through Frappe bench.
+- **Desk UI:** plain Frappe desk JavaScript: doctype `.js` form scripts, `healthcare/public/js/*`, and a bundle at `healthcare.bundle.js`. Uses jQuery and the `frappe`/`erpnext` globals.
+- **Patient Portal SPA:** Vue 3, vue-router and **frappe-ui**, styled with Tailwind 3.4 (frappe-ui preset) and built with Vite 4. It lives in `patient_portal/` (yarn workspace) and builds into `healthcare/public/patient_portal/assets`, served from `healthcare/www/patient_portal.html`.
+- **Node:** Node 24 in CI. The root uses yarn workspaces (`yarn.lock`).
+- **Tooling:** ruff (lint + format), prettier, ESLint 10 flat config, pre-commit, Frappe semgrep rules, pip-audit, detect-secrets, commitlint, semantic-release, CodeQL.
