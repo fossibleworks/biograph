@@ -11,26 +11,26 @@ evidence:
   - .prettierrc.yaml
   - eslint.config.mjs
   - .pre-commit-config.yaml
-  - commitlint.config.js
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/api/patient_portal.py
-  - .git-blame-ignore-revs
 ---
 
-**Python (ruff, configured in `pyproject.toml`)**
-- Indent with **tabs** and use **double quotes**. Line length is 110, but E501 is ignored. Target is py310.
-- Lint rule sets are F, E, W, I, UP, B and RUF, with a documented ignore list (F401, E402, B904, and others).
-- isort section order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate each group with a blank line (see `api/patient_portal.py`).
-- `frappe.types.DF` is a typing module (doctype type hints).
-- Many legacy files are listed in the `.pre-commit-config.yaml` `exclude` list, so pre-commit does not run ruff on them. Don't reformat them wholesale. Keep diffs minimal, and for upstream-synced changes check ruff counts before and after.
-- Naming: doctype folders and modules use snake_case of the DocType name. Controller classes use PascalCase (`class LabTest(Document)`). Test records use the `_Test …` prefix.
-- User-facing strings are wrapped in `_()` for translation.
-- Whitelisted API methods use `@frappe.whitelist()`. Prefer `frappe.qb` for joins.
+**Python (Ruff, configured in `pyproject.toml`):**
+- Indent with **tabs**, use **double quotes**, line length 110 (E501 itself is ignored). Target py310, and pyupgrade (`UP`) is on.
+- Lint sets enabled: `F, E, W, I, UP, B, RUF`. Several are ignored, including F401 unused imports, E402 and B904.
+- Imports are ordered by isort in custom sections: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Leave a blank line between each group, as in `patient_appointment.py`.
+- Use absolute dotted imports (`from healthcare.healthcare.doctype.fee_validity.fee_validity import ...`).
+- Names are snake_case for functions and modules, and CamelCase for DocType controller classes (`class PatientAppointment(Document)`). DocType folders and files are the snake_case DocType name.
+- Whitelisted functions use `@frappe.whitelist()`, and there are about 180 of them. Prefer `frappe.qb` for new queries; about 90 legacy `frappe.db.sql` calls still exist.
+- Wrap every user-facing string in `_()`, and use `.format()` for placeholders: `_("Invalid Code Value: {0}").format(code_value)`.
+- Typing modules: `frappe.types.DF` (DocType type hints).
+- A large legacy file list is excluded from pre-commit (about 620 paths in `.pre-commit-config.yaml`). New files are not excluded and must pass.
 
-**JavaScript**
-- Prettier: tabs (`useTabs: true`, `tabWidth: 4`), `printWidth: 88`, `arrowParens: avoid`. `patient_portal/` and a few large doctype JS files are excluded.
-- ESLint flat config (`eslint:recommended`) with Frappe globals (`frappe`, `erpnext`, `$`, `moment`, …).
-- Desk form scripts follow the `frappe.ui.form.on('<DocType>', {...})` pattern.
+**JavaScript (Desk):**
+- ESLint `eslint:recommended` (flat config) declares Frappe globals (`frappe`, `erpnext`, `$`, `moment`, …).
+- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. `patient_portal/` and a few large doctype JS files are excluded from prettier.
+- Form scripts use `frappe.ui.form.on('<DocType>', {...})` and `frappe.call`. Wrap strings in `__()`.
 
-**Vue portal:** Vue 3 SFCs in `patient_portal/src/components` with PascalCase filenames (`BookAppointmentModel.vue`). The `@` alias points to `src`.
+**Vue (portal):** use `<script setup>`-style components in `patient_portal/src/components/*.vue` (PascalCase file names), frappe-ui components and `createResource`, and Tailwind utility classes.
 
-**Commits:** Conventional Commits, enforced by commitlint. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, all lower-case.
+**Commits:** follow Conventional Commits with lowercase types (see the workflow guide).
