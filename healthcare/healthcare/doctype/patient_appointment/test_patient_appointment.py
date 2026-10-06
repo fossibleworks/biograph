@@ -479,7 +479,7 @@ class TestPatientAppointment(HealthcareTestSuite):
 		)
 		self.assertRaises(MaximumCapacityError, appointment.save)
 
-	def test_tele_consultation(self):
+	def test_teleconsultation(self):
 		appointment = create_appointment(self.patient, self.practitioner, nowdate())
 		self.assertTrue(appointment.event)
 		test_appointment_reschedule(self, appointment)

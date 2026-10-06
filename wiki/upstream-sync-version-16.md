@@ -22,6 +22,7 @@ Outcomes:
 - **picked-with-conflict-resolution**: applied, with conflicts resolved under the policy above.
 - **already-present**: the fork already had the change. The pick was empty, or empty once fork code was kept, so nothing was committed.
 - **skipped**: deliberately not applied because it would remove fork behaviour. The reason is given in the notes.
+- **deferred**: not applied in this batch because the push credential cannot write the file it touches (a workflow file needs the `workflow` token scope). It is not a fork-intent decision; the notes give the exact command to apply it by hand.
 
 ## Baseline: healthcare test failures on untouched `biograph-fh`
 
@@ -149,7 +150,7 @@ Additional rules for this batch:
 | 68 | 081fce7f | fix(tests): typo | picked-clean |  |
 | 69 | 9231efe4 | fix(tests): patient history | picked-with-conflict-resolution | Conflicts only in `healthcare/tests/utils.py`. The fork already has upstream's final version, so the fork's copy was kept. The other files applied cleanly. |
 | 70 | 4d3a8b09 | fix(tests): patient appointment | picked-with-conflict-resolution | Upstream's bootstrapped `self.patient` / `self.practitioner` are taken in the conflicting hunks. Those hunks differed only in formatting. |
-| 71 | 7afa847c | fix(tests): make patient appointment test deterministic | picked-with-conflict-resolution | Taken from upstream: the bootstrapped patient, practitioner, service-unit type and appointment type, and the `test_tele_consultation` rename. Kept from the fork: its test set, so upstream's Practitioner Availability scope tests, `test_appointment_against_an_order` and the department-cancel test are not re-added. The fork validates unavailability through its own `validate_practitioner_unavailability` and has no slot path for Practitioner Availability. Also kept: the fork's `create_appointment` signature, which has a fixed 15-minute duration and no `duration` argument. utils.py: the fork already has it. |
+| 71 | 7afa847c | fix(tests): make patient appointment test deterministic | picked-with-conflict-resolution | Taken from upstream: the bootstrapped patient, practitioner, service-unit type and appointment type. Kept from the fork: its test set and the name `test_teleconsultation` (upstream's `test_tele_consultation` is one of the merge-base tests the fork removed, so it is not re-added under that name), so upstream's Practitioner Availability scope tests, `test_appointment_against_an_order` and the department-cancel test are not re-added. The fork validates unavailability through its own `validate_practitioner_unavailability` and has no slot path for Practitioner Availability. Also kept: the fork's `create_appointment` signature, which has a fixed 15-minute duration and no `duration` argument. utils.py: the fork already has it. |
 | 72 | 3cb414df | fix(tests): service unit type name | picked-clean |  |
 | 73 | a65819c7 | fix(tests): inpatient record | picked-clean |  |
 | 74 | 6a10266e | fix(tests): lab test | picked-clean |  |
@@ -160,7 +161,7 @@ Additional rules for this batch:
 | 79 | 84924854 | fix(tests): lab test, observation | picked-clean |  |
 | 80 | 4d952981 | fix(tests): patient patient appointment patient encounter patient history settings practitioner availability | picked-with-conflict-resolution | The unused `create_service_unit_type` helper is dropped, and nothing imports it. The department-cancel test is not re-added, which keeps the fork's test set. |
 | 81 | 0d9883de | fix(tests): insurance related doctype tests | already-present | Only touches `test_insurance_claim.py`, `test_patient_insurance_coverage.py`. The fork already has upstream's final version of those files (from 5c82db85), so the pick was empty. |
-| 82 | 4f8cfadd | refactor: tests - remove unused functions, imports etc. | picked-with-conflict-resolution | Helpers that no test imports any more are removed, as upstream does: `create_healthcare_docs`, `create_healthcare_service_items`, `create_appointment_type`, `create_user`. `create_clinical_procedure_template` is kept because the fork's `create_appointment` still uses it to set `procedure_template` (the fork's Patient Appointment field). The fork's `create_appointment` body is kept. |
+| 82 | 4f8cfadd | refactor: tests - remove unused functions, imports etc. | picked-with-conflict-resolution | Helpers that no test imports any more are removed, as upstream does: `create_healthcare_docs`, `create_healthcare_service_items`, `create_appointment_type`, `create_user`. `create_clinical_procedure_template` is kept because the fork's `create_appointment` still uses it to set `procedure_template` (the fork's Patient Appointment field). The fork's `create_appointment` body is kept. utils.py: the pick auto-merged a second, `customer_group`-less copy of `_Test Patient 2` / `_Test Patient 3` into `make_patients`; that duplicate was removed in a B2 rework commit so `healthcare/tests/utils.py` is byte-identical to upstream `version-16` again. |
 | 83 | fbad72bc | fix: linter report | picked-clean |  |
 | 84 | 6cfd9724 | fix: remove unnecessary customer group insert | **skipped** | Upstream deletes `create_customer_groups` from `healthcare/setup.py`, but patch `v16_0/setup_service_request_and_insurance.py` (in both the fork and upstream) imports it. Removing it would make `bench migrate` fail with an ImportError on any site that has not run that patch yet. The fork also relies on the Insurance Payor customer group being created at install. |
 | 85 | 20b1a29a | fix: remove company creation in before tests | picked-clean |  |
@@ -237,6 +238,24 @@ Effect of deferring #86: until `--lightmode` lands in `ci.yml`, CI runs the suit
 so the tests should not depend on the flag. Normal mode still builds each doctype's legacy test records,
 which makes runs slower. If CI shows failures that only happen in normal mode, apply #86 first, before
 treating them as regressions.
+
+### B2 rework (review round)
+
+`fix: restore fork test name, dedupe utils.py, let CI install on fork branches (upstream sync B2)`. No upstream sha.
+
+- `test_patient_appointment`: `test_tele_consultation` is renamed back to the fork's `test_teleconsultation`.
+  Upstream already used `test_tele_consultation` at the merge-base `df9bf5b9`, so this was never an
+  upstream rename inside B2. A sweep of every `def test_*` / `class Test*` in `healthcare/**/test_*.py`
+  at `b229aad8` against the final tree finds only the six allowed upstream renames missing, each with its
+  successor present. None of the 13 merge-base `test_patient_appointment` tests the fork removed is back.
+- `healthcare/tests/utils.py`: the duplicate `_Test Patient 2` / `_Test Patient 3` records from #82 are
+  dropped. `git diff upstream/version-16 -- healthcare/tests/utils.py` is empty.
+- `.github/helper/install.sh` (not a workflow file, so it is pushable): a base ref that is not `develop` or
+  `version-*` (for example `biograph-fh`, or a `goal/*` push) maps to `version-16` before it clones frappe
+  and fetches erpnext and payments. Before this, CI ran `git clone frappe --branch biograph-fh` and could not
+  install. `payments` now also gets `--branch`, as upstream's `install.sh` does.
+- Still pending, needs a person with the `workflow` scope: #86 (`git cherry-pick -x 4d89574c`) on top of
+  the fork's `BIOGRAPH_BRANCH` rename in `ci.yml`.
 
 Known gaps carried forward (not introduced by B2):
 

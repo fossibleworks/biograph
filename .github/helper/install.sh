@@ -11,6 +11,11 @@ sudo apt install libcups2-dev redis-server mariadb-client
 pip install frappe-bench
 
 branchtoclone=${GITHUB_BASE_REF:-${GITHUB_REF##*/}}
+# Fork branches (biograph-fh, goal/*) do not exist in frappe/erpnext/payments; test against version-16.
+case "${branchtoclone}" in
+	develop | version-*) ;;
+	*) branchtoclone=version-16 ;;
+esac
 
 git clone https://github.com/frappe/frappe --branch "${branchtoclone}" --depth 1
 bench init --skip-assets --frappe-path ~/frappe --python "$(which python)" frappe-bench
@@ -42,7 +47,7 @@ sed -i 's/schedule:/# schedule:/g' Procfile
 sed -i 's/socketio:/# socketio:/g' Procfile
 sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
 
-bench get-app payments
+bench get-app payments --branch "${branchtoclone}"
 bench get-app https://github.com/frappe/erpnext --branch "${branchtoclone}"
 bench get-app healthcare "${GITHUB_WORKSPACE}"
 
