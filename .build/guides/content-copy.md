@@ -8,16 +8,17 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/utils.py
-  - patient_portal/src/components/AppointmentModel.vue
+  - healthcare/public/js/healthcare_orders.html
+  - healthcare/public/js/healthcare_note.html
   - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/locale/main.pot
+  - healthcare/public/js/sales_invoice.js
   - healthcare/patches.txt
+  - crowdin.yml
 ---
 
-- **Tone:** short, plain and direct. Messages often start with "Please ..." for required actions ("Please set a Customer linked to the Patient", "Please enter {}"). Use "Not allowed, ..." for blocked actions. Exclamation marks appear only rarely ("Patient already has an appointment booked for the same day!").
-- **Terminology:** use domain DocType names in Title Case inside copy: Patient, Healthcare Practitioner, Patient Appointment, Healthcare Service Unit, Inpatient Record, Fee Validity, Healthcare Settings. In UI text, "practitioner" is the word for a clinician. When pointing users to an administrator, say "System Manager".
-- **Formatting:** interpolate with `{0}`/`{1}` placeholders inside `_()` and wrap entity names in `frappe.bold()`. Error titles are short Title Case nouns ("Missing Configuration", "Invalid Healthcare Service Unit").
-- **Translation:** every string must be translatable (`_()` in Python, `__()` in JS) because strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin.
-- **Portal empty states:** "No Records Found" and "No slots available". Errors appear as toasts.
-- **Branding:** the product is "Biograph". Patch `rebrand_marley_to_biograph` replaced "Marley" in user-facing strings, so do not reintroduce "Marley" in UI copy.
+- **Always translatable**: Python `_()`, JS `__()`, Jinja `{{ __("...") }}`. Strings feed `healthcare/locale/main.pot` and Crowdin. Use positional placeholders `{0}`, `{1}` inside the string. Do not concatenate translated fragments.
+- **Terminology** uses the DocType names in Title Case: *Patient*, *Healthcare Practitioner*, *Patient Appointment*, *Patient Encounter*, *Healthcare Service Unit*, *Medical Department*, *Fee Validity*, *Lab Test*, *Clinical Procedure*, *Inpatient Record*, *Service Request*, *Insurance Payor*. Use "Practitioner", not "Doctor", in UI.
+- **Error/validation tone**: short, direct, sentence case, often ending with a period or `!`. Examples: "Patient already has an appointment booked for the same day!", "Appointment end must be after start.", "Not allowed, cannot overlap appointment {}", "Invalid Healthcare Service Unit", "Please enter {}". Bold field names with `<b>…</b>` where helpful.
+- **Empty states** follow the pattern "No <Things>" or "No Records Found" ("No Service Requests", "No Clinical Notes").
+- **Buttons and headings** are Title Case and imperative: "Book an Appointment", "Pay Your Bill", "Select a Department", "Select a Practitioner", "Get Items from Prescriptions", "Add".
+- Brand: the product is **Biograph**. Patch `rebrand_marley_to_biograph` replaced the earlier "Marley" branding, so do not reintroduce "Marley" in user-facing copy.
