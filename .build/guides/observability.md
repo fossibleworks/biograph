@@ -9,15 +9,13 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - .pre-commit-config.yaml
+  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
 ---
 
-The app relies on built-in Frappe facilities. There is no metrics or tracing library.
+Observability uses Frappe's built-in facilities. No external metrics or tracing is in place.
 
-- **Error Log doctype through `frappe.log_error`** is the main mechanism, with about 15 call sites. Pass a traceback or message plus a short, human-readable title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(message=e, title="Failed to mark Collected!")`. Use it for non-fatal failures in notifications, calendar sync, payments and patches.
-- **`frappe.logger()`** is used sparingly (about 9 calls), mainly in setup and patches, e.g. `frappe.logger().info("Starting patient duplicate check rules setup")`, and `.error(...)` for parse failures.
-- **Realtime user feedback:** `frappe.publish_realtime` (sample collection) and `frappe.msgprint` / `frappe.show_alert` in desk JS.
-- **Audit trail:** standard Frappe document versioning and timeline, plus `Patient Medical Record` entries created for clinical events.
-- Do not use `print()`. The pre-commit `debug-statements` hook blocks leftover debuggers.
+- **`frappe.log_error(...)`** (about 15 uses) writes to the Error Log doctype. Use it for failures that must not block the user: messaging, calendar events, patches. Pass a short, translated title and the traceback, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
+- **`frappe.logger().info/error(...)`** (about 9 uses) is used in setup and patch code for progress messages.
+- Avoid `print()` in app code. Existing prints are mostly in patches and setup.
+- On the client, `frappe.show_alert` and `msgprint` give user feedback.
+- In CI, bench output goes to `bench_run_logs.txt`.
