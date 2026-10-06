@@ -10,26 +10,33 @@ evidence:
   - CLAUDE.md
   - .build/RULES.md
   - AGENTS.md
-  - .github/instructions/build-rules.instructions.md
   - .mergify.yml
-  - .github/helper/install.sh
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - .github/CODEOWNERS
   - commitlint.config.js
+  - .github/helper/documentation.py
 ---
 
-**Work tracking: the Interactor Build engine** (from `CLAUDE.md`)
-- Every code change belongs to a tracked **Goal**. A GitHub issue maps to a Goal after it is explicitly imported. The engine generates **EngineTasks** under the Goal, and each one cycles through investigation, execution and review.
-- **Gate:** reading code is always fine, but before writing any file there must be a Goal. Work happens on branch **`goal/<goalId>`** in an isolated worktree, **never on the main branch**. Changes ship through the goal's single PR, which the engine opens. That PR must pass review and CI before it merges.
-- CLI: `ibuild engine goal-create "<title>"`, `ibuild engine goal queue <id>`, `ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <id>`. The web UI is at build.interactor.com.
-- An interactive session may run `ibuild off` for a small change (if the project allows it). The change must still go on its own branch with a hand-opened PR that runs CI.
-- Standing rules come from `.build/RULES.md`, which is mirrored in `.claude/rules/build-rules.md` and `.github/instructions/build-rules.instructions.md`. Guides are listed in `AGENTS.md`, inside a managed block that must not be edited by hand.
+# Workflow
 
-**Branches**
-- The fork's integration branch is **`biograph-fh`**. Goal branches are `goal/*`.
-- Upstream convention (inherited from earthians): `develop`, the stable branches `version-14/15/16`, and the `version-XX-hotfix` branches. Mergify **auto-closes PRs against stable branches** from non-maintainers and supports `backport <branch>` labels.
-- **Upstream sync:** cherry-pick from `earthians/marley` `version-16` with `git cherry-pick -x`, work in numbered batches (B1, B2, ...), and resolve conflicts in favour of the fork's intent. Record each batch in `wiki/upstream-sync-version-16.md`.
+## Engine gate (Interactor Build)
+Every code change ships through a tracked **Goal**:
+1. A Goal must exist before any file is written. Create one in the Build web UI or with `ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after it is explicitly imported.
+2. Work on branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch.
+3. All changes ship through the goal's single PR, which the engine opens. It must pass review and CI before it merges.
+4. EngineTasks under a Goal cycle through investigation → execution → review. Report with `ibuild engine report --yes`.
 
-**Commits and PRs**
-- Conventional Commits (commitlint), with optional scopes and a trailing context in parentheses, for example `fix: ... (upstream sync B2)`.
-- Follow the PR template: explain the change, add screenshots, and put `closes #NNN` in the body. `feat` PRs need a docs link or `no-docs`.
-- Mergify merges after at least one approval and green CI. It uses a merge commit by default, or a squash when the PR has the `squash` label. The `dont-merge` label blocks merging.
+Interactive sessions may use `ibuild off` for small changes if the project allows it. The change still goes through its own branch and a hand-opened PR.
+
+## Branches
+- Fork default/integration branch: **`biograph-fh`**.
+- Upstream (earthians) model: `develop` for features. `version-14/15/16` are stable branches that **auto-close PRs** from non-maintainers (Mergify). `version-N-hotfix` is the hotfix branch. The label `backport develop` triggers a backport.
+- Upstream sync: cherry-pick with `git cherry-pick -x` (preserving the upstream sha), apply the "fork intent wins" conflict policy, and record each pick in `wiki/upstream-sync-version-16.md`.
+
+## Commits and PRs
+- Conventional commit titles, enforced by commitlint. Release notes drop `chore|ci|test|docs|style` entries.
+- `feat` PRs need a docs link or `no-docs` in the body.
+- Mergify merges after at least 1 approving review and green CI. Add the `squash` label to squash-merge and `dont-merge` to block merging.
+- Code owners: `@akurungadam @Sajinsr`.
+
+## Rules
+The source of project rules is `.build/RULES.md`, which is currently an unfilled template. `AGENTS.md`, `.claude/rules/`, `.cursor/rules/` and `.github/instructions/` are generated mirrors.
