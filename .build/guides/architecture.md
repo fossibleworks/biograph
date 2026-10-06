@@ -8,40 +8,35 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/hooks.py
-  - healthcare/healthcare/custom_doctype/sales_invoice.py
   - healthcare/healthcare/api/patient_portal.py
-  - healthcare/controllers/service_request_controller.py
+  - patient_portal/vite.config.js
   - healthcare/patches.txt
+  - healthcare/tests/utils.py
 ---
 
-Biograph is a single Frappe app (`healthcare/`) plus a separate Vue SPA source tree (`patient_portal/`).
+This is a single Frappe app (`healthcare`) installed into a bench next to `frappe`, `erpnext`, and `payments`.
 
-## Layout
-- `healthcare/hooks.py`: the app wiring.
-  - `doctype_js` overrides for ERPNext doctypes (Sales Invoice, Healthcare Practitioner).
-  - `on_login` role-based home page (`healthcare.healthcare.auth`).
-  - `scheduler_events`: appointment reminders (all), plus daily status, fee validity, IP billables and medication request expiry.
-  - Jinja methods.
-- `healthcare/healthcare/`: the main module.
-  - `doctype/`: about 139 DocTypes. Each has `<name>.json`, `<name>.py` (controller class), `<name>.js` (form script), an optional `<name>_list.js`, and `test_<name>.py`.
-  - `custom_doctype/`: overrides of ERPNext doctypes such as `sales_invoice.py` and `payment_entry.py`.
-  - `api/patient_portal.py`: the `@frappe.whitelist()` endpoints that the portal calls.
-  - `report/`, `page/`, `dashboard_chart_source/`, `workspace/`, `print_format/`, `web_form/`.
-  - `utils.py`: shared helpers, for example billing items and rates.
-- `healthcare/controllers/`: cross-doctype controllers such as `service_request_controller.py` and `queries.py`.
-- `healthcare/regional/india/abdm`: the ABDM integration.
-- `healthcare/patches/` (`v0_0`, `v15_0`, `v16_0`) together with `patches.txt`: data migrations.
-- `healthcare/setup.py`, `install.py`, `uninstall.py`, `after_migrate.py`: install and migrate hooks.
-- `healthcare/public/js/`: desk JS bundled into `healthcare.bundle.js`.
-- `healthcare/www/`: website routes for the patient portal.
-- `patient_portal/src`: Vue components (appointments, booking, diagnostics, payment, calendar). They call the whitelisted APIs through the frappe-ui resource proxy.
+**Layout:**
+- `healthcare/hooks.py`: the app's wiring point.
+  - `doc_events`: wildcard on_submit/on_cancel creates Patient Medical Records; Sales Invoice validate/submit/cancel hooks call into `healthcare.healthcare.utils`.
+  - `override_doctype_class`: Sales Invoice → `HealthcareSalesInvoice`.
+  - `scheduler_events`: appointment reminders, daily status and fee-validity updates.
+  - Also `standard_queries`, `app_include_js`.
+- `healthcare/healthcare/` is the Frappe module:
+  - `doctype/<snake_name>/`: `<name>.json` (schema), `<name>.py` (controller), `<name>.js` (Desk form script), optional `_list.js`/`_dashboard.py`, and `test_<name>.py`.
+  - `api/patient_portal.py`: `@frappe.whitelist()` endpoints the portal calls.
+  - `custom_doctype/`: extensions of ERPNext doctypes (Sales Invoice, Payment Entry).
+  - `report/`, `page/` (patient_history, patient_progress), `dashboard_chart*`, `number_card`, `workspace`, `print_format`, `web_form`, `setup/`.
+  - `utils.py`: shared billing and invoice helpers.
+- `healthcare/controllers/`: shared controllers, e.g. `service_request_controller.py` and `queries.py`.
+- `healthcare/regional/india/`: regional (ABDM) code.
+- `healthcare/patches/{v0_0,v15_0,v16_0}` are registered in `healthcare/patches.txt`. `install.py`, `after_migrate.py`, and `uninstall.py` are lifecycle hooks.
+- `healthcare/public/js`: Desk bundle (`healthcare.bundle.js`) and shared form utilities.
+- `healthcare/www/patient_portal.{html,py}`: the web route that serves the portal SPA.
+- `patient_portal/`: Vue/Vite SPA.
+  - Calls whitelisted Python methods through frappe-ui `createResource`.
+  - Its build output goes into `healthcare/public/...` and `healthcare/www/patient_portal.html`.
+- `healthcare/tests/`: shared test bootstrap (`HealthcareTestSuite`, master-data factories).
+- `wiki/`: design and usage docs plus the upstream-sync ledger.
 
-## How the parts depend on each other
-- DocType controllers import each other and shared helpers using absolute `healthcare.healthcare...` paths.
-- They lean heavily on ERPNext documents, especially Sales Invoice for billing.
-- The portal talks only to `healthcare.healthcare.api.patient_portal.*`.
-
-## Upstream relationship
-- The fork tracks upstream `earthians/marley` `version-16` by cherry-picking commits (`git cherry-pick -x`).
-- Conflict policy is **fork intent wins**.
-- Doctype JSON conflicts are resolved by a 3-way union of `fields` and `field_order`. `patches.txt` conflicts are resolved by union.
+**Dependency direction:** `healthcare` → `erpnext` → `frappe`. Imports follow that order (see the isort sections). Patient Portal → whitelisted APIs → doctype controllers.
