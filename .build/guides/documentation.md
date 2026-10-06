@@ -8,13 +8,20 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
+  - .github/workflows/docs_checker.yml
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - AGENTS.md
 ---
 
-- **README.md** covers the overview, installation (bench), and development setup (pre-commit, semgrep). It links the full docs on DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **`wiki/`** holds in-repo markdown for feature design and usage. Design docs use the `DESIGN-*.md` prefix, usage docs use `*-USAGE*.md`, and there are parity/implementation plans and the upstream sync ledger (`upstream-sync-version-16.md`, which records the per-commit outcomes picked-clean, picked-with-conflict-resolution, already-present, and skipped). Images sit next to their docs.
-- **PR rule:** the `Documentation Required` workflow fails any `feat` PR whose body lacks a docs link to `biograph.frappe.cloud`/`biograph.io` `/wiki`, unless the body says `no-docs` or `backport`.
-- The PR template asks contributors to update the relevant docs and to put `closes #XXXX` in the description.
+- **Public docs:** the README points to DeepWiki (`deepwiki.com/Tacten/biograph`) for full documentation, and to a Telegram group for community support.
+- **In-repo docs live in `wiki/`** as upper-case kebab-case Markdown files grouped by feature, with images stored alongside:
+  - feature design docs, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` and `FHIR Terminology Service Parity — Implementation Plan.md`
+  - usage guides, e.g. `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (with a table of contents and numbered sections)
+  - reports and ledgers, e.g. `insurance-parity-report.md` and `upstream-sync-version-16.md` (a running record of how each upstream commit was handled)
+- When a feature or sync batch changes, update its wiki page in a `docs(wiki): …` commit. Recent history shows the upstream-sync ledger is updated alongside each batch.
+- **Docs gate (upstream workflow):** for a `feat` PR, `.github/helper/documentation.py` requires a docs link in the PR body, unless the body contains `no-docs` or `backport`. It still targets `earthians/biograph` and `biograph.frappe.cloud` / `biograph.io` `/wiki` URLs.
+- The PR template asks contributors to "Update necessary Documentation".
+- `.build/RULES.md` and `AGENTS.md` hold AI-session rules managed by Interactor Build. `RULES.md` is still an unfilled template.
