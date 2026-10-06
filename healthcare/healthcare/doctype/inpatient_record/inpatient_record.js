@@ -22,7 +22,6 @@ frappe.ui.form.on("Inpatient Record", {
 			return {
 				filters: {
 					inpatient_occupancy: 1,
-					allow_appointments: 0,
 				},
 			};
 		});
@@ -306,7 +305,6 @@ let admit_patient_dialog = function (frm) {
 		return {
 			filters: {
 				inpatient_occupancy: 1,
-				allow_appointments: 0,
 			},
 		};
 	};
@@ -420,7 +418,6 @@ let transfer_patient_dialog = function (frm) {
 		return {
 			filters: {
 				inpatient_occupancy: 1,
-				allow_appointments: 0,
 			},
 		};
 	};
@@ -571,7 +568,6 @@ let transfer_for_procedure_dialog = function (frm) {
 		return {
 			filters: {
 				inpatient_occupancy: 1,
-				allow_appointments: 0,
 				is_ot: 1,
 			},
 		};

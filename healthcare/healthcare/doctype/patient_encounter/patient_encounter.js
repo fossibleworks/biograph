@@ -601,7 +601,6 @@ var schedule_inpatient = function (frm) {
 		return {
 			filters: {
 				inpatient_occupancy: 1,
-				allow_appointments: 0,
 			},
 		};
 	};

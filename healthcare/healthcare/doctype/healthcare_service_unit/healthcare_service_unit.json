@@ -77,7 +77,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.is_group != 1 && doc.inpatient_occupancy != 1",
+   "depends_on": "eval:doc.is_group != 1",
    "fetch_from": "service_unit_type.allow_appointments",
    "fieldname": "allow_appointments",
    "fieldtype": "Check",
@@ -90,7 +90,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.is_group != 1 && doc.allow_appointments == 1 && doc.inpatient_occupany != 1",
+   "depends_on": "eval:doc.is_group != 1 && doc.allow_appointments == 1",
    "fetch_from": "service_unit_type.overlap_appointments",
    "fieldname": "overlap_appointments",
    "fieldtype": "Check",
@@ -103,7 +103,7 @@
   {
    "bold": 1,
    "default": "0",
-   "depends_on": "eval:doc.allow_appointments != 1 && doc.is_group != 1",
+   "depends_on": "eval:doc.is_group != 1",
    "fetch_from": "service_unit_type.inpatient_occupancy",
    "fieldname": "inpatient_occupancy",
    "fieldtype": "Check",
@@ -258,7 +258,7 @@
    "table_fieldname": "practitioner_schedules"
   }
  ],
- "modified": "2025-09-25 15:03:07.339676",
+ "modified": "2026-10-06 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Healthcare",
  "name": "Healthcare Service Unit",

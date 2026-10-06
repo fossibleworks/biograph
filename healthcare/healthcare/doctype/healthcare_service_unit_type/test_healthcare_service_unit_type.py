@@ -16,6 +16,32 @@ class TestHealthcareServiceUnitType(IntegrationTestCase):
 		unit_type.save()
 		self.assertEqual(frappe.db.get_value("Item", unit_type.item, "disabled"), 1)
 
+	def test_both_flags_allowed(self):
+		frappe.delete_doc_if_exists("Healthcare Service Unit Type", "_Test Dual Use Unit Type")
+		unit_type = frappe.get_doc(
+			{
+				"doctype": "Healthcare Service Unit Type",
+				"service_unit_type": "_Test Dual Use Unit Type",
+				"allow_appointments": 1,
+				"inpatient_occupancy": 1,
+			}
+		).insert()
+		unit_type.reload()
+		self.assertEqual(unit_type.allow_appointments, 1)
+		self.assertEqual(unit_type.inpatient_occupancy, 1)
+
+	def test_no_flags_allowed(self):
+		frappe.delete_doc_if_exists("Healthcare Service Unit Type", "_Test No Flag Unit Type")
+		unit_type = frappe.get_doc(
+			{
+				"doctype": "Healthcare Service Unit Type",
+				"service_unit_type": "_Test No Flag Unit Type",
+				"allow_appointments": 0,
+				"inpatient_occupancy": 0,
+			}
+		).insert()
+		self.assertTrue(frappe.db.exists("Healthcare Service Unit Type", unit_type.name))
+
 
 def get_unit_type():
 	if frappe.db.exists("Healthcare Service Unit Type", "Inpatient Rooms"):
