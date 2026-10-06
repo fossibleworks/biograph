@@ -7,25 +7,16 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - healthcare/public/js/observation_widget.js
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
-  - healthcare/healthcare/doctype/nursing_task/nursing_task.py
-  - patient_portal/src/components/AppointmentModel.vue
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/healthcare/utils.py
   - healthcare/locale/main.pot
 ---
 
-# Content and copy
-
-- **Translatable everywhere:** Python uses `_("...")` and JS uses `__("...")`. Strings are collected into `healthcare/locale/main.pot` and translated in Crowdin, so don't concatenate translated fragments. Use positional `{0}` placeholders with `.format()`.
-- **Tone:** short, direct, and imperative or declarative. Messages are often a single sentence, with or without a trailing period. Examples:
-  - "Appointment Date and Time are required."
-  - "Appointment end must be after start."
-  - "Patient already has an appointment booked for the same day!"
-  - "Registration Fee cannot be negative or zero"
-  - "Configure a service Item for {0}"
-  - "Not permitted"
-  - "Customer {0} is created." (alert)
-- **Terminology:** use the DocType names in Title Case exactly as defined: Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Lab Test, Clinical Procedure, Therapy Session, Inpatient Record, Nursing Task, Service Request, Medication Request, Insurance Payor. Quote status values in single quotes, e.g. `'Completed'`.
-- **Buttons:** short verbs or nouns, grouped under `View` or `Create` (Reschedule, Cancel, Patient History, Clinical Procedure).
-- **Portal empty states:** plain title-case phrases such as "No Records Found" and "No slots available".
+- **Tone:** short, direct, clinical and administrative. Use Title Case for labels, headings and dialog titles: "Book an Appointment", "Available Slots", "Add Observation", "Mark Time as Unavailable", "Select a Practitioner".
+- **Errors:** write a plain sentence that states the rule, usually ending with a period: "Appointment end must be after start.", "Registration Fee cannot be negative or zero", "Not Allowed to cancel Nursing Task with status 'Completed'". Quote document names and statuses in single quotes or with `frappe.bold`.
+  - Error titles group the category: "Missing Configuration", "Not Available".
+  - When something is missing, say what to configure: "Configure a service Item for {0}".
+- **Empty states:** "No Records Found".
+- **Terminology:** use the DocType names exactly as defined: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Observation, Diagnostic Report, Service Request, Fee Validity, Insurance Payor. Brand the app as **Biograph** (a patch renames Marley to Biograph).
+- **i18n:** every string goes through `_()` or `__()` with `{0}` placeholders. Strings are extracted to `healthcare/locale/main.pot` and translated in Crowdin.
