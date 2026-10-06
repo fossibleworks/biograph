@@ -11,12 +11,12 @@ evidence:
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - patient_portal/README.md
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
+  - AGENTS.md
 ---
 
-- **User docs** live outside the repo. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`), and the Telegram group is the community channel.
-- **The docs gate:** `.github/workflows/docs_checker.yml` runs `.github/helper/documentation.py` on PRs. A PR whose title starts with `feat` must link to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or say `no-docs`, or be a `backport`.
-- **In-repo design docs** go in `wiki/` as UPPER-KEBAB markdown. The pattern is `DESIGN-*.md` for designs and `*-USAGE*.md` for usage guides (e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`). Plans and reports use free-form names, e.g. `insurance-parity-report.md` and `FHIR Terminology Service Parity — Implementation Plan.md`.
-- **Upstream sync work** is tracked in the `wiki/upstream-sync-version-16.md` ledger: method, outcome vocabulary (picked-clean / picked-with-conflict-resolution / already-present / skipped) and per-batch notes. Commits update it with `docs(wiki): ...`.
-- `patient_portal/README.md` covers the SPA.
-- Agent and project rules live in `CLAUDE.md`, `AGENTS.md` and `.build/RULES.md`.
+- **User and product docs** live outside the repo. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream `docs_checker` workflow requires every `feat:` PR body to link a wiki page on `biograph.frappe.cloud` or `biograph.io` (`/wiki` in the path), unless the body contains `no-docs` or `backport`.
+- **In-repo engineering docs** live in `wiki/` as flat Markdown files. File names are UPPER-KEBAB for feature docs: `DESIGN-<feature>.md` for designs, `<FEATURE>-USAGE[-DOC].md` for usage guides, and descriptive names for plans and reports (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`). Images sit next to them.
+- **Upstream-sync ledger:** `wiki/upstream-sync-version-16.md` records every cherry-picked upstream commit with an outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped). Update it in `docs(wiki): ...` commits whenever sync work happens.
+- Agent and contributor rules: `CLAUDE.md` (Build engine workflow), `AGENTS.md` (managed guides index), `.build/RULES.md`, `.github/instructions/`.
+- Code comments are sparse. Use the copyright header plus short inline comments that explain *why*. `hooks.py` keeps Frappe's boilerplate section headers.
