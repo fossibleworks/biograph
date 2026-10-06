@@ -4,25 +4,19 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/item_insurance_eligibility/item_insurance_eligibility.py
-  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
-  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
+  - healthcare/healthcare/utils.py
+  - healthcare/public/js/healthcare_practitioner.js
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
 ---
 
-Follow the Frappe idioms already used in the codebase.
-
-- **Validation errors:** call `frappe.throw(_("Message"))`, which appears about 180 times. When callers or tests need to tell an error apart, pass a typed exception class, e.g. `frappe.throw(_("Patient already has an appointment booked for the same day!"), OverlapError)`.
-- **Custom exception types:** subclass `frappe.ValidationError` and declare them at the top of the controller module: `MaximumCapacityError`, `OverlapError`, `CoverageOverlapError`.
-- **Non-fatal side effects** (SMS, notifications, calendar events) are wrapped in `try/except Exception`. They log the error and then warn the user without failing the transaction:
-  ```python
-  except Exception:
-      frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
-      frappe.msgprint(_("Appointment Confirmation Message Not Sent"), indicator="orange")
-  ```
-- **Patches** wrap risky migrations and call `frappe.log_error(title=...)`, so the migration continues instead of aborting.
-- **Client side:** use `frappe.throw(__("..."))` or `frappe.msgprint` in form scripts. The portal uses frappe-ui `ErrorMessage`.
-- **Avoid:** some existing code uses `print(f"ERROR - ...")` or swallows exceptions with `continue`. Don't copy that in new code; use `frappe.log_error`.
+- **Validation errors:** call `frappe.throw(_("Message"))`. This raises `frappe.ValidationError` and shows a dialog. There are about 180 call sites. Add `title=_("...")` where it helps, for example `title=_("Missing Configuration")` in `utils.py`.
+- **Typed errors:** define domain exceptions in the controller module as subclasses of `frappe.ValidationError` (`OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`). Pass the class as the second argument, `frappe.throw(msg, OverlapError)`, so tests can `assertRaises` it.
+- **Message formatting:** `_("... {0} ... {1}").format(frappe.bold(x), frappe.bold(y))` highlights record names.
+- **Background or best-effort work** (notifications, calendar events, patches): catch the exception and record it with `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)` instead of failing the transaction.
+- **Client side:** `frappe.throw(__('...'))` / `frappe.msgprint` in form scripts for input validation.
+- Avoid bare `except Exception` unless you log the error. About 31 exist, mostly in logging paths.
