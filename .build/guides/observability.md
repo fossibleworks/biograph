@@ -4,20 +4,20 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
   - .pre-commit-config.yaml
 ---
 
-Observability is Frappe-native only. There is no metrics or tracing library.
+The app relies on built-in Frappe facilities. There is no metrics or tracing library.
 
-- `frappe.log_error(message_or_traceback, title)` records a persistent **Error Log** entry. Use it for failed side effects such as notifications, calendar events and patch failures, and give it a short human-readable title (translated with `_()` in some places).
-- `frappe.logger().info/error(...)` writes to the site logs. It is used sparingly, in patches and parse failures.
-- `frappe.msgprint` gives user-visible feedback. It is not logging.
-- Scheduler and background jobs (`frappe.enqueue`) are visible in Frappe's RQ Job and Scheduled Job Log doctypes.
-
-Do not add `print` statements. The `debug-statements` pre-commit hook rejects leftover debugger calls.
+- **Error Log doctype through `frappe.log_error`** is the main mechanism, with about 15 call sites. Pass a traceback or message plus a short, human-readable title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(message=e, title="Failed to mark Collected!")`. Use it for non-fatal failures in notifications, calendar sync, payments and patches.
+- **`frappe.logger()`** is used sparingly (about 9 calls), mainly in setup and patches, e.g. `frappe.logger().info("Starting patient duplicate check rules setup")`, and `.error(...)` for parse failures.
+- **Realtime user feedback:** `frappe.publish_realtime` (sample collection) and `frappe.msgprint` / `frappe.show_alert` in desk JS.
+- **Audit trail:** standard Frappe document versioning and timeline, plus `Patient Medical Record` entries created for clinical events.
+- Do not use `print()`. The pre-commit `debug-statements` hook blocks leftover debuggers.
