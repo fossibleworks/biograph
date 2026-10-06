@@ -1,47 +1,35 @@
 ---
-title: CI/CD & release
+title: CI/CD and release
 category: cicd-release
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: required
 source: inferred
 evidence:
   - .github/workflows/ci.yml
-  - .github/helper/install.sh
   - .github/workflows/linters.v2.yml
-  - .github/workflows/on_release.yml
+  - .github/workflows/linters.yml
+  - .github/workflows/semantic-commits.yml
+  - .github/workflows/docs_checker.yml
   - .github/workflows/initiate_release.yml
-  - .github/workflows/release_notes.yml
+  - .github/workflows/on_release.yml
   - .releaserc
+  - .github/release.yml
+  - codecov.yml
 ---
 
-**On pull requests**
-- `ci.yml` (Server Tests):
-  - Runs on Ubuntu with Python 3.14, Node 24 and MariaDB 11.8.
-  - Checks with `compileall` and rejects merge conflict markers.
-  - `install.sh` sets up a bench with frappe, payments and erpnext at the matching branch. Fork branches (`biograph-fh`, `goal/*`) fall back to `version-16`.
-  - Installs healthcare on `test_site` and runs `run-parallel-tests`.
-  - Skips PRs that change only `.js`, `.css`, `.md`, `.html` or `.csv` files. It also runs nightly at 00:00 UTC.
-  - Coverage goes to Codecov only on non-PR runs.
-- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) and Semgrep with Frappe rules plus `python.lang.correctness`.
-- `semantic-commits.yml`: commitlint over the PR's commits.
+**On every pull request**
+- `ci.yml` (Server Tests): Python 3.14, Node 24 and MariaDB 11.8. It runs `compileall` and a merge-marker check, bootstraps a bench with `.github/helper/install.sh`, then runs `bench run-parallel-tests --app healthcare`. It skips PRs that only touch css/js/md/html/csv files and `version-*-beta` branches, and also runs nightly at 00:00 UTC. Coverage is uploaded to Codecov only on non-PR runs.
+- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks) and Semgrep with the Frappe rules plus `r/python.lang.correctness`.
+- `semantic-commits.yml`: commitlint over the PR commit range.
 - `docs_checker.yml`: `feat` PRs need a docs link or `no-docs`.
-- `labeller.yml`: auto-labels PRs.
-- `codeql.yml`: Python and JS analysis on develop and weekly.
+- `codeql.yml` and `labeller.yml` (path labels from `.github/labeler.yml`). `dependabot.yml` handles dependency updates.
 
 **Release (inherited from upstream earthians)**
-- `initiate_release.yml` opens a weekly (Tuesday) `chore: release v1x` PR for each version, from `version-1x-hotfix` into `version-1x`.
-- `on_release.yml` runs semantic-release on pushes to `version-14/15/16`.
-  - The angular preset applies, with breaking changes not bumping the major version.
-  - It rewrites `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
-- `release_notes.yml` regenerates notes and strips chore, ci, test, docs and style lines.
-- `generate-pot-file.yml` regenerates translations weekly.
+- `initiate_release.yml` opens weekly (Tuesday) PRs from `version-N-hotfix` to `version-N` for N = 14, 15 and 16.
+- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`, using the angular preset. Breaking changes don't trigger a major release. It rewrites the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release. Release notes come from `release_notes.yml` and `.github/release.yml`, which exclude the `skip-release-notes` label.
+- Translations: `generate-pot-file.yml` regenerates `main.pot` weekly, and Crowdin opens `fix: sync translations from crowdin` PRs.
+- Deployment is via `bench get-app` / `install-app` and Frappe Cloud. There is no in-repo deploy script.
 
-**Fork caveats**
-- Several workflows hard-code `earthians/biograph` and `EARTHIANS_BOT_TOKEN`.
-- `ci.yml` has no run history on `fossibleworks/biograph` `biograph-fh`, so the first goal-PR run is the baseline.
-- The push credential cannot modify `.github/workflows/*`. Workflow changes must be applied by hand (see B2 #86 in the sync ledger).
-
-**Deployment**
-- Users install with `bench get-app` and `install-app` (Frappe Cloud signup is linked in the README). There is no deploy pipeline in the repo.
+**Fork caveats:** several workflows hardcode `earthians/biograph` and `EARTHIANS_BOT_TOKEN`. `ci.yml` has never run on `biograph-fh`. Credentials used for automation can't push changes under `.github/workflows/`, so workflow edits must be applied by hand.
