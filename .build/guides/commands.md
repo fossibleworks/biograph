@@ -7,47 +7,49 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
+  - README.md
   - package.json
   - patient_portal/package.json
-  - .pre-commit-config.yaml
-  - .github/workflows/linters.v2.yml
   - .github/workflows/ci.yml
-  - README.md
-  - commitlint.config.js
+  - .github/workflows/linters.v2.yml
+  - .pre-commit-config.yaml
+  - .github/helper/install.sh
+  - .github/helper/update_pot_file.sh
 ---
 
-**Setup (bench):**
+**Install (requires a Frappe bench with ERPNext)**
 ```sh
-bench get-app <repo-url>            # add app to a bench that already has ERPNext
+bench get-app https://github.com/Tacten/biograph
 bench --site <site> install-app healthcare
-bench --site <site> migrate         # runs patches.txt + doctype JSON sync
 ```
 
-**Lint and format** (the same checks CI runs):
+**Run tests** (matches CI)
+```sh
+cd ~/frappe-bench
+bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1
+# single module/doctype:
+bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"
+```
+CI sets up the bench with `.github/helper/install.sh`.
+
+**Lint and format**
 ```sh
 pip install pre-commit && pre-commit install
-npm install            # eslint deps for the eslint hook
-pre-commit run --all-files   # trailing-whitespace, yaml/json/toml/ast checks, prettier, eslint, pip-audit, ruff --fix, ruff-format, detect-secrets
-```
-Semgrep (Frappe rules):
-```sh
+npm install            # root; postinstall also installs patient_portal deps
+pre-commit run --all-files   # ruff --fix, ruff-format, eslint, prettier, pip-audit, detect-secrets, yaml/json/toml/ast checks
+
+# Frappe semgrep rules (same as CI)
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
+pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
-Many legacy files are in the pre-commit `exclude` list. To lint those, run ruff on them directly: `ruff check <file>`.
 
-**Tests** (inside a bench):
+**Patient Portal frontend**
 ```sh
-bench --site test_site run-tests --app healthcare [--doctype "Patient Appointment"]
-bench --site test_site run-parallel-tests --app healthcare   # what CI runs
+yarn build                 # root → cd patient_portal && yarn build
+cd patient_portal && yarn dev   # vite dev server (frappeProxy)
 ```
 
-**Patient Portal frontend:**
-```sh
-yarn install          # postinstall installs patient_portal deps
-yarn build            # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
-cd patient_portal && yarn dev   # vite dev server
-```
+**Commit-message check:** `npx commitlint --from <base> --to <head>`.
 
-**Commit messages** must pass commitlint (conventional commits):
-`npx commitlint --from <base> --to <head>`
+**Translations:** `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`.
