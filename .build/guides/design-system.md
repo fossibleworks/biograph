@@ -8,14 +8,11 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/package.json
   - patient_portal/vite.config.js
-  - patient_portal/src/index.css
-  - healthcare/public/js/observation_widget.js
+  - patient_portal/package.json
+  - patient_portal/src/components/BookAppointmentModel.vue
 ---
 
-- **Desk UI** (most screens) uses Frappe's built-in Desk components: form, list and tree views, dialogs, and `frappe.ui.form` controls. Custom widgets are plain JS and HTML templates in `healthcare/public/js` (`observation_widget.js`, `healthcare_orders.html`, `healthcare_note.html`). Reuse Frappe controls rather than adding new UI libraries.
-- **Patient portal** uses **frappe-ui** (`^0.1.176`) as its component library, and the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`) as the design-token source. The config only adds legacy colour aliases (`lightBlue`→sky, `warmGray`→stone, and others).
-- Icons: feather-icons and Lucide (frappe-ui vite plugin `lucideIcons: true`).
-- Global styles are in `patient_portal/src/index.css`. Components are in `patient_portal/src/components/*.vue`, and shared formatting helpers in `src/utils/formatters.js`.
-- Use Tailwind utility classes and frappe-ui components (Button, Dialog, and so on) before writing custom CSS.
+- **Patient portal:** uses **frappe-ui** as both component library and token source. `tailwind.config.js` uses `presets: [frappeUIPreset]` and scans frappe-ui components. The only extension is legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Use frappe-ui components (Button, Dialog, Tabs, etc.) and `createResource` for data, with Tailwind utilities for layout. Icons come from feather-icons and lucide through the frappe-ui Vite plugin. Global styles live in `patient_portal/src/index.css`.
+- **Desk UI:** uses Frappe Desk's native form, list, calendar and dialog widgets (`frappe.ui.form.on`, `frappe.ui.Dialog`, list view inner buttons) and the standard indicator colours. Custom HTML templates live in `healthcare/public/js/*.html`, for example `observation.html` and `healthcare_orders.html`. Print formats are under `healthcare/healthcare/print_format`.
+- Do not introduce another component library or CSS framework.
