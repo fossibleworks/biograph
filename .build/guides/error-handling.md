@@ -8,17 +8,21 @@ binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/utils.py
-  - healthcare/healthcare/doctype/item_insurance_eligibility/item_insurance_eligibility.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
+  - healthcare/regional/india/abdm/utils.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **Validation errors seen by users:** raise them with `frappe.throw(_("..."))`, which has about 180 uses in Python. Pass a `title=_(...)` for categorised dialogs (e.g. `title=_("Missing Configuration")`). Pass a specific exception class when callers or tests need to tell errors apart, e.g. `frappe.throw(msg, OverlapError)`.
-- **Custom exceptions:** define them at module level as `class XError(frappe.ValidationError): pass` in the DocType controller. Existing examples are `OverlapError`, `MaximumCapacityError` and `CoverageOverlapError`.
-- **Messages:** always translate them, and highlight values with `frappe.bold()`. For non-blocking warnings use `frappe.msgprint` (about 38 uses).
-- **Background or side-effect failures** (notifications, calendar events, patches): catch them so the main transaction can finish, and record them with `frappe.log_error(frappe.get_traceback(), _("<Short Title>"))` or `frappe.log_error(title=...)`. Example: "Appointment Confirmation Message Not Sent". Do not swallow errors silently. Use bare `except Exception` only around these side effects (about 31 occurrences exist).
-- **Desk JS:** use `frappe.throw` / `frappe.msgprint` for blocking feedback and `frappe.show_alert` for transient feedback.
-- **Portal (Vue):** show server errors as `toast.error(err.messages?.[0] || err)` from frappe-ui.
-- **Patches:** compatibility guards call `frappe.throw(message)  # nosemgrep`. Add a `# nosemgrep` annotation only with a reason.
+Follow the Frappe conventions already used here:
+
+- **Validation errors**: `frappe.throw(_("Message {0}").format(value))`, with about 180 call sites.
+  - Pass `title=` for context where useful, e.g. `frappe.throw(title="Not Configured", msg=...)`.
+  - Keep business-rule validation on the server, in `validate`/`before_submit` controller hooks. The PR template states that "All business logic and validations must be on the server-side".
+- **Typed errors**: subclass `frappe.ValidationError` near the controller and pass the class to `frappe.throw(..., exc=OverlapError)` so tests and callers can catch it. Existing examples: `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`.
+- **Non-fatal user notices**: `frappe.msgprint(...)`, with about 38 sites.
+- **Background/unexpected failures**: catch, then record with `frappe.log_error(title=..., message=...)`, which writes to the Error Log doctype. Examples are patches and the Sample Collection status update. Do not swallow exceptions silently.
+- Markup in messages: older messages use `<b>Field</b>` inside translated strings. Keep the format placeholders inside `_()`.
+- Whitelisted APIs rely on Frappe returning the thrown message to the client. The portal and desk JS display it, and they do not build custom error envelopes.
+- Avoid bare `except Exception` (about 31 exist). If you need one, log with `frappe.log_error` and re-raise or `frappe.throw` with a user-facing message.
