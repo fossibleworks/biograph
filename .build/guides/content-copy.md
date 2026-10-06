@@ -1,5 +1,5 @@
 ---
-title: Content and copy
+title: Content & copy
 category: content-copy
 layer: project
 applies_to: []
@@ -8,17 +8,22 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/patient_quick_entry.js
-  - patient_portal/src/components/Payment.vue
+  - healthcare/public/js/healthcare_note.js
+  - patient_portal/src/components/AppointmentModel.vue
+  - patient_portal/src/components/DiagnosticModel.vue
+  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
   - healthcare/locale/main.pot
   - crowdin.yml
-  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
 ---
 
-- **Translatable:** every desk string goes through `_()` / `__()`. Strings are extracted to `healthcare/locale/main.pot` and synced with Crowdin (`crowdin.yml`).
-- **Tone:** short and direct, in sentence form, ending with a full stop. Examples: "Appointment Date and Time are required.", "Appointment end must be after start.", "Only numbers are allowed in the Phone No field." An exclamation mark is sometimes used for conflicts ("Patient already has an appointment booked for the same day!").
-- Highlight record names and practitioners with `frappe.bold()` and `{0}` placeholders.
-- Dialog titles and labels use Title Case (`"Missing Configuration"`, `label: __('First Name')`).
-- **Domain terminology** comes from FHIR and the doctypes: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Service Request, Observation, Diagnostic Report, Inpatient Record, Fee Validity, Insurance Payor. Use the exact DocType names.
-- **Portal copy** speaks to the patient in the second person: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients".
-- Product name: **Biograph**. A v16 patch rebranded Marley to Biograph, so don't introduce "Marley" in user-facing text.
+**Tone:** short, plain and clinical-administrative. Messages are sentence-style statements, and many end with a period or an exclamation mark, for example `"Patient already has an appointment booked for the same day!"`, `"Appointment end must be after start."` and `"Appointment Date and Time are required."`.
+
+**Titles and buttons** are Title Case and short: `"Add Clinical Note"`, `"Create Service Request"`, `"Invalid Healthcare Service Unit"`, `"Customer Not Found"`. Primary actions are single verbs: `"Add"`, `"Create"`, `"Done"`.
+
+**Terminology:** use the DocType names exactly as they appear in the UI: Patient, Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Observation, Diagnostic Report, Service Request, Medication Request, Fee Validity, Therapy Plan, Insurance Payor. The product name is **Biograph**. Patch `v16_0/rebrand_marley_to_biograph` replaced the earlier "Marley" branding, so do not reintroduce "Marley" in user-facing text.
+
+**Statuses** use Title Case words: Open, Scheduled, Confirmed, Checked In, Checked Out, Closed, Cancelled; and for diagnostics Collected, In Progress, Completed, Approved, Not Approved, Rejected, Partly Paid. Use the British spelling **Cancelled**.
+
+**Portal copy** is friendly but brief: `"Failed to load appointments"`, `"Please enable pop-ups"`, and section labels such as `"Afternoon"`.
+
+**i18n:** every string goes through `_()` in Python or `__()` in desk JS. Interpolate with `{0}` placeholders, never with f-strings inside `_()`. Strings feed `healthcare/locale/main.pot`, which is translated through Crowdin.
