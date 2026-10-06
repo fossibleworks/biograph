@@ -1,5 +1,5 @@
 ---
-title: Design System
+title: Design system
 category: design-system
 layer: project
 applies_to: []
@@ -8,11 +8,20 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/package.json
-  - patient_portal/src/PatientPortal.vue
   - patient_portal/vite.config.js
+  - patient_portal/package.json
+  - patient_portal/components.d.ts
+  - healthcare/public/js/observation.html
 ---
 
-- **Desk UI** (most screens): standard Frappe desk components only. DocType forms are defined in JSON, with `frappe.ui.Dialog` field definitions (`fieldtype`, `label: __()`) and `frappe.show_alert` indicators (`blue`, `green`, `red`, `orange`). Shared widgets live in `healthcare/public/js/` (observation widget, healthcare notes and orders HTML templates, patient quick entry). There is no custom CSS token file. `app_include_css` is commented out.
-- **Patient Portal:** the **frappe-ui** component library (`Tabs`, `Dialog`, `Button`, `createResource`, …) with **Tailwind CSS 3** using `presets: [frappeUIPreset]` from `frappe-ui/tailwind`. That preset is the design-token source. `tailwind.config.js` only adds legacy color aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). Icons come from feather-icons and lucide, enabled in the frappe-ui vite plugin.
-- Build new portal UI from frappe-ui components and Tailwind utility classes. Do not add a separate component library or hard-coded colors.
+The **desk UI** uses the standard Frappe/ERPNext desk.
+- Build forms, lists, trees and dashboards from DocType metadata, with `frappe.ui.form` scripts and `frappe.ui.Dialog`.
+- Use the HTML templates in `healthcare/public/js/*.html` (observation, healthcare notes and orders widgets) for custom widgets.
+- Do not bring in a separate component library for desk screens.
+
+The **Patient Portal** uses **frappe-ui** as its component library and token source.
+- `tailwind.config.js` uses `presets: [frappeUIPreset]` from `frappe-ui/tailwind`, and only adds legacy colour aliases (lightBlue→sky, warmGray→stone, and so on).
+- Icons come from feather-icons and lucide (`lucideIcons: true` in the Vite plugin).
+- Components are auto-imported (`components.d.ts`).
+- Build new portal UI from frappe-ui components and Tailwind utility classes. Do not add raw CSS or new colour tokens.
+- Global CSS is `patient_portal/src/index.css`.
