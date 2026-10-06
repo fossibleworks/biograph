@@ -9,26 +9,20 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - healthcare/healthcare/api/patient_portal.py
-  - healthcare/regional/india/abdm/test_abdm.py
 ---
 
-**Biograph** (by Tacten / FossibleWorks; the Build project name is *fossibleHIS*) is an open-source Hospital Information System (HIS). It is a fork of earthians **Marley Health** with extra features. It ships as the Frappe app `healthcare` (`app_title = "Biograph"`) and needs ERPNext installed alongside it.
+Biograph (by Tacten / fossibleworks, a fork of earthians **Marley Health**, called fossibleHIS in Build) is an open-source **Hospital Information System (HIS)**. It ships as the Frappe app `healthcare` and adds the healthcare domain to **ERPNext**.
 
-**Who uses it:** healthcare practitioners, clinics and hospitals. Patients also use it through a self-service **Patient Portal**.
+**Users:** healthcare practitioners, clinics, and hospitals. Staff use the Frappe Desk (`app_home = /desk/healthcare`). Patients use a separate **Patient Portal**, a Vue SPA served at `/patient-portal` through `healthcare/www`.
 
-**What it does:**
-- Patient management and duplicate-patient checks.
-- Outpatient and inpatient workflows: Patient Appointment, Patient Encounter, Inpatient Record.
-- Clinical Procedures, Rehabilitation/Physiotherapy (therapy plans, block-based therapy booking), Laboratory and diagnostics (Lab Test, Observation, Diagnostic Report).
-- Medication requests, Insurance (payors, contracts, policies, claims), and multiple medical code standards.
-- Facilities are modelled as Healthcare Service Units, and specialities as Medical Departments.
-- Most of the design follows **HL7 FHIR**. A regional India/ABDM integration lives in `healthcare/regional/india/abdm`.
-- It uses ERPNext for billing (Sales Invoice), pharmacy and stock, HR, accounts and assets.
+**Core features:**
+- Patient management and outpatient/inpatient flows: Patient, Patient Appointment, Patient Encounter, Inpatient Record
+- Clinical Procedures, Therapy/Rehabilitation and Physiotherapy
+- Laboratory: Lab Test, Sample Collection, Observation, Diagnostic Report
+- Medication Requests, Service Requests, insurance (payor contracts, coverage, policies)
+- Medical code standards (Code System / Code Value), with a design based on **HL7 FHIR**
+- Service Units and Medical Departments; regional extensions (`healthcare/regional/india`, ABDM)
 
-**Entry points:**
-- The Desk workspace at `/desk/healthcare`.
-- The Vue patient portal served from `healthcare/www/patient_portal.html` and `www/patient-portal/`.
-- Whitelisted APIs in `healthcare/healthcare/api/patient_portal.py`.
+ERPNext provides pharmacy and stock, purchasing, HR, accounts, and assets. Billing runs through Sales Invoice, which this app hooks into and overrides.
 
-**Fork-specific design notes** live in `wiki/`, for example block-based therapy appointment booking, patient duplicate checker, insurance parity and FHIR terminology parity.
+Fork-specific features are documented in `wiki/`: block-based therapy appointment booking, the patient duplicate checker, insurance parity, and FHIR terminology parity.
