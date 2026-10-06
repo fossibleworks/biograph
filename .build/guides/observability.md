@@ -4,19 +4,19 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - patient_portal/src/socket.js
+  - healthcare/hooks.py
   - .pre-commit-config.yaml
 ---
 
-There is no metrics or tracing library. Observability relies on Frappe's built-ins:
-- **Error Log doctype:** `frappe.log_error(...)` (about 15 call sites), usually `frappe.log_error(frappe.get_traceback(), _("Human Title"))` or `frappe.log_error(title="...")`. Use it for failures in background, notification, calendar and patch code that should not block the user.
-- **File logger:** `frappe.logger().info(...)` / `.error(...)`, used mainly in setup and patch code (`setup/patient_duplicate_check.py`, `patches/v15_0/setup_patient_duplicate_check_rules.py`) and for parse failures in appointment code.
-- **User-visible feedback:** `frappe.msgprint` and realtime updates (`frappe.publish_realtime`, portal `socket.js`).
-- Do not use bare `print()` or debug statements. Pre-commit's `debug-statements` hook rejects `pdb`/`breakpoint`.
-- Background jobs started with `frappe.enqueue` appear in the RQ Job and Scheduled Job Log views in Desk.
+Observability uses only what Frappe provides. There is no external metrics or tracing library.
+
+- **`frappe.log_error(message, title)`** writes to the Error Log doctype. Use it for caught exceptions in integrations, background jobs and patches (about 24 call sites). Pass a descriptive title such as `"Unavailability Calendar Event Error"` and use `frappe.get_traceback()` for the body.
+- **`frappe.logger().info/error(...)`** is used sparingly, mostly in patches.
+- Frappe's own request, RQ job and scheduler logs cover runtime visibility. CI stores `bench_run_logs.txt` from `bench start`.
+- Business audit trails come from Frappe document versioning and the medical record (Patient History) that the global submit/cancel hooks create.
+- **Do not log PHI** (patient identifiers or clinical details) in log titles or messages beyond what you need to debug. `detect-secrets` runs in pre-commit to catch credentials.
