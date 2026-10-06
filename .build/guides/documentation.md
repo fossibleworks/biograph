@@ -9,21 +9,23 @@ source: inferred
 evidence:
   - README.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-## Where documentation lives
-- **End-user and product docs** are external: DeepWiki for the Tacten repo, and the upstream docs at `biograph.frappe.cloud` / `biograph.io` under `/wiki`.
-- **Fork design and usage docs** live in the repo-root `wiki/` as Markdown with UPPER-KEBAB names. There are two kinds:
-  - Design docs (`DESIGN-...md`, implementation plans).
-  - Usage guides (`...-USAGE.md` / `-USAGE-DOC.md`, with images placed next to them).
-- **`wiki/upstream-sync-version-16.md`** is a living ledger for the upstream cherry-pick sync. Record batch outcomes, skipped commits and lint baselines there, using `docs(wiki): ...` commits. Its outcome vocabulary is picked-clean, picked-with-conflict-resolution, already-present, skipped.
+**End-user documentation** lives outside this repo:
+- The README points to DeepWiki (`deepwiki.com/Tacten/biograph`).
+- Upstream docs are on the Frappe Cloud wiki (`biograph.frappe.cloud` / `biograph.io` `/wiki`).
 
-## Documentation in PRs
-- The `Documentation Required` workflow fails `feat` PRs unless the body links a docs page (biograph.frappe.cloud or biograph.io with `/wiki`) or contains `no-docs` or `backport`.
-- Use the PR template in `.github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md`.
+**In-repo docs (`wiki/`):** fork design, usage, and process documents in UPPER-KEBAB or kebab-case markdown. Examples:
+- `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` and `BLOCK-APPOINTMENT-BOOKING-USAGE.md` (a design + usage pair)
+- `PATIENT-DUPLICATE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
+- `insurance-parity-report.md`
+- `upstream-sync-version-16.md`: the cherry-pick ledger, recording method, conflict policy, and per-commit outcomes
 
-## Code comments
-Comment sparingly, mainly to explain intent, for example the `on_login` explanation in `hooks.py`. Docstrings are uncommon.
+Ledger and wiki updates are committed as `docs(wiki): ...`.
+
+**PR documentation gate:** `docs_checker.yml` runs `.github/helper/documentation.py`. Any PR titled `feat...` must link a `/wiki` page on `biograph.frappe.cloud` or `biograph.io` in its body, unless the body contains `no-docs` or `backport`.
+
+The PR template asks contributors to update the relevant documentation and to put `closes #XXXX` in the PR body.
