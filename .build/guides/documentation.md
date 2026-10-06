@@ -11,11 +11,11 @@ evidence:
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
   - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
-  - patient_portal/README.md
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
 ---
 
-- **User docs** are external: the README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream docs checker (`docs_checker.yml` + `.github/helper/documentation.py`) **fails `feat` PRs** unless the PR body links a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`.
-- **In-repo docs** live in `wiki/` as Markdown. Fork features get design docs and usage docs, named in upper kebab case (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`), plus parity reports and plans (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`).
-- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` records the method, conflict policy and per-commit outcomes. Batches append to it with `docs(wiki): …` commits.
+- The public docs are hosted on DeepWiki (linked from the README). The upstream check (`docs_checker.yml` → `.github/helper/documentation.py`) requires every `feat` PR to link a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`. You can opt out by writing `no-docs` (or `backport`) in the PR body.
+- In this fork, feature docs, design notes and operational ledgers live in **`wiki/`** as UPPER-KEBAB or descriptive Markdown files. Examples: `*-USAGE-DOC.md` / `*-USAGE.md` for end-user guides, `DESIGN-*.md` for design docs, `upstream-sync-version-16.md` for the cherry-pick ledger, and parity reports/plans. Images sit next to them (e.g. `patient-duplicatecheck-thumbnail.png`).
+- Usage docs start with a Table of Contents and an Overview, then cover configuration, user experience, and examples.
+- Upstream-sync work is recorded in the ledger as `docs(wiki): ...` commits. Each upstream commit gets an outcome: picked-clean, picked-with-conflict-resolution, already-present, or skipped.
 - `patient_portal/README.md` documents the SPA.
-- AI/agent guidance is in `CLAUDE.md`, `AGENTS.md` (Build guides block) and `.build/RULES.md` (still a template).
