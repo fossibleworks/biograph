@@ -9,13 +9,19 @@ source: inferred
 evidence:
   - README.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
-  - .github/workflows/docs_checker.yml
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- End-user and product documentation lives on **DeepWiki** (linked from the README).
-- In-repo design notes, usage guides and parity reports live in `wiki/` as Markdown. Long-form docs use UPPER-KEBAB names (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`). Ledgers and reports use lower-kebab names (`upstream-sync-version-16.md`, `insurance-parity-report.md`).
-- Upstream sync work must be recorded batch by batch in `wiki/upstream-sync-version-16.md`, with an outcome per commit: picked-clean, picked-with-conflict-resolution, already-present, skipped or deferred.
-- The `Documentation Required` workflow (`.github/helper/documentation.py`) fails `feat` PRs unless the body links a `/wiki` page on biograph.frappe.cloud or biograph.io, or contains `no-docs`.
-- `patient_portal/README.md` documents the frontend.
-- Docs commits use the `docs(wiki):` scope.
+# Documentation
+
+- **Public docs** are external. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`), and upstream docs live on a `/wiki` site.
+- **In-repo docs** live in `wiki/` as UPPER-KEBAB or title-case Markdown files. Each feature has a design doc and a usage doc. Examples:
+  - `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` + `BLOCK-APPOINTMENT-BOOKING-USAGE.md`
+  - `PATIENT-DUPLICATE.md` + `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
+  - Parity and implementation plans: `insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`
+  - Upstream sync ledger: `upstream-sync-version-16.md`. Each sync batch is logged there (commit outcomes picked-clean / picked-with-conflict-resolution / already-present / skipped, with reasons), and commits to it use `docs(wiki): ...`.
+- **PR docs gate:** `docs_checker.yml` fails `feat` PRs unless the body links to a `/wiki` page on an allowed docs host, or says `no-docs` or `backport`.
+- The PR template asks for an explanation of the change, screenshots/GIFs, and `closes #XXXX`.
+- In code, docstrings and comments are sparse. Add comments only where the logic is non-obvious (see the `on_login` comment in `hooks.py`).
