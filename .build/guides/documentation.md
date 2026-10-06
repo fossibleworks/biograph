@@ -9,18 +9,13 @@ source: inferred
 evidence:
   - README.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
-  - patient_portal/README.md
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **README.md** gives the overview, installation, the development (pre-commit and semgrep) steps, and a link to the external docs on DeepWiki (`deepwiki.com/Tacten/biograph`). Community support is on Telegram.
-- **`wiki/`** holds in-repo markdown for fork features and processes, named in UPPER-KEBAB-CASE or descriptive titles:
-  - design docs, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` and `FHIR Terminology Service Parity — Implementation Plan.md`
-  - usage guides, e.g. `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (images such as `patient-duplicatecheck-thumbnail.png` sit alongside)
-  - reports and ledgers, e.g. `insurance-parity-report.md` and `upstream-sync-version-16.md`. The ledger records every upstream pick with an outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped) and notes.
-- Commit wiki updates as `docs(wiki): ...`.
-- **Upstream PR rule:** the `docs_checker.yml` workflow fails `feat` PRs that lack a docs link (biograph wiki domain) unless the body contains `no-docs` or `backport`.
-- `patient_portal/README.md` documents the SPA.
-- Docstrings are sparse. Code comments are short and explain why.
+- **User and product docs** are hosted outside the repo. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **The `wiki/` directory** holds in-repo design and usage documents. File names are UPPER-KEBAB-CASE markdown, such as `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, plus parity and plan reports. Feature work usually adds a DESIGN doc and a USAGE doc here.
+- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` records every cherry-picked upstream commit and its outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped). Sync commits update it with `docs(wiki): ...` commits.
+- **PR docs gate (upstream):** `docs_checker.yml` fails a `feat` PR unless the body links a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`.
+- The PR template asks you to explain the change, attach screenshots or GIFs, and put `closes #XXXX`.
