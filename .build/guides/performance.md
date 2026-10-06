@@ -4,21 +4,20 @@ category: performance
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/hooks.py
-  - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
+  - healthcare/healthcare/api/patient_portal.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - patient_portal/vite.config.js
 ---
 
-Likely hot paths, based on how the code is wired:
+These paths are likely performance-sensitive based on the code's shape:
+- **The `doc_events["*"]` hooks** (`on_submit`/`on_cancel`/`on_update_after_submit` → `patient_history_settings.create/delete/update_medical_record`) run on **every submitted document in the whole site**, including ERPNext ones. Keep them cheap and exit early for doctypes that aren't configured.
+- **Sales Invoice and Payment Entry hooks** (`manage_invoice_validate`, `manage_invoice_submit_cancel`, `set_paid_amount_in_healthcare_docs`) sit on ERPNext's hot accounting paths.
+- **Scheduler jobs:** `send_appointment_reminder` runs on the `all` tick (every few minutes). The daily jobs update appointment status, fee validity, inpatient billables and expired medication requests. All of them scan potentially large tables, so filter in SQL and process in batches.
+- **Appointment scheduling and availability** (`patient_appointment.py`: overlap and capacity checks, practitioner availability, block-based booking) is called interactively and from the portal.
+- **Patient Portal API** (`api/patient_portal.py`) runs multi-join `frappe.qb` queries per patient and their relations.
+- **Reports** (`report/` such as `patient_appointment_analytics`, `diagnosis_trends`, `lab_test_report`) aggregate over large datasets.
 
-- **Wildcard doc events:** `hooks.py` registers `doc_events["*"]` `on_submit`, `on_cancel` and `on_update_after_submit` handlers that create, update or delete Patient Medical Records. These run on **every submittable document in the site**, including all ERPNext ones. Keep them cheap and exit early.
-- **Sales Invoice and Payment Entry hooks** (`manage_invoice_validate`, submit/cancel, `set_paid_amount_in_healthcare_docs`) run on every invoice and payment. Avoid N+1 queries there.
-- **Scheduler:** `send_appointment_reminder` runs on the `all` schedule, every few minutes. Daily jobs update appointment, fee validity and medication-request statuses, and inpatient billables. These scan large tables, so filter in SQL.
-- **Appointment booking and slots:** slot and availability calculations, overlap checks, and recurring appointments in `patient_appointment.py` (very large) are used interactively by desk and the portal.
-- **Heavy work goes to the queue:** use `frappe.enqueue(..., queue="long", enqueue_after_commit=True)`, as recurring appointments and sample collection already do.
-- **Queries:** prefer `frappe.get_all(..., fields=[...], pluck=...)` and `frappe.qb` over loading full docs in loops (about 160 get_all/get_list uses).
-- **Portal bundle:** Vite builds to an es2015 target with sourcemaps. Keep frappe-ui imports tree-shakeable.
+Conventions: prefer `frappe.qb` or single queries over per-row `frappe.get_doc` loops, and use `frappe.get_cached_doc` for settings singletons. `frappe.enqueue` is used sparingly (2 call sites); use it for heavy, non-interactive work.
