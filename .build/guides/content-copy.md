@@ -7,22 +7,17 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
-  - patient_portal/src/components/DiagnosticModel.vue
-  - healthcare/locale/main.pot
+  - healthcare/healthcare/utils.py
+  - healthcare/public/js/sales_invoice.js
+  - healthcare/public/js/healthcare_practitioner.js
+  - healthcare/permissions.py
+  - patient_portal/src/components/Payment.vue
   - crowdin.yml
-  - healthcare/patches.txt
 ---
 
-- **All user-facing strings are translatable:** `_()` in Python and `__()` in desk JS. They feed `healthcare/locale/main.pot`, which Crowdin manages (`crowdin.yml`). Use `{0}`/`{1}` placeholders with `.format()` and do not concatenate strings, so translators can reorder them.
-- **Tone:** short, direct, clinical-admin language in sentence case, ending with a period. Examples:
-  - "Appointment Date and Time are required."
-  - "Appointment end must be after start."
-  - "Please set a Customer linked to the Patient"
-  - "Patient {0} is not admitted in the service unit {1}"
-  - "Could not add conferencing to this Appointment, please contact System Manager"
-- **Terminology:** capitalise DocType names when they mean the record type: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Fee Validity, Healthcare Settings. Error dialog titles are short noun phrases, such as "Missing Configuration" and "Customer Not Found".
-- **Buttons:** one or two words, Title Case verbs or nouns: "Save", "Cancel", "Reschedule", "View", "Patient History", "Create".
-- **Portal empty states:** friendly and plain: "No Records Found", "Looks like you don’t have any orders yet.". Section labels are Title Case ("Appointment Details", "Test Report Details").
-- The product name is **Biograph**. A patch rebranded Marley to Biograph (`rebrand_marley_to_biograph`), so do not add "Marley" to UI copy.
+- **Tone**: plain, direct and instructional. Write in sentence case, often starting with "Please …" for required actions. Examples: "Please select a Patient to be invoiced", "Please Configure Clinical Procedure Consumable Item in {0}", "Only numbers are allowed in the phone number type field.", "You do not have permission to delete records."
+- **Titles** name the category of problem: "Missing Configuration".
+- **Terminology**: use the DocType names exactly, in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Healthcare Settings, Lab Test, Inpatient Record, Fee Validity, Insurance Payor. The product name is "Biograph". Clinical terms follow FHIR (Observation, Service Request, Diagnostic Report).
+- **Placeholders**: positional `{0}`, filled with `.format()` (Python) or `__("… {0}", [x])` (JS). Link to the relevant record with `get_link_to_form`.
+- **Translation**: every string must be translatable (`_()` / `__()`). Strings are collected into `healthcare/locale/main.pot` and translated through Crowdin.
+- **Portal copy** is patient-friendly and short, e.g. "Pay Your Bill", "Details of fees", "One-time registration for new patients".
