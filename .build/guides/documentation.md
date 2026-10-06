@@ -8,16 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - .github/workflows/docs_checker.yml
-  - .github/helper/documentation.py
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
-  - patient_portal/README.md
+  - .github/helper/documentation.py
+  - .github/workflows/docs_checker.yml
+  - AGENTS.md
+  - .github/instructions/build-rules.instructions.md
 ---
 
-- **User and product docs** live outside the repo. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`). The docs-checker workflow looks for wiki links on `biograph.frappe.cloud` / `biograph.io` with a `/wiki` path.
-- **PR rule (docs_checker.yml):** any PR whose title starts with `feat` must link to the docs wiki in its body, or include `no-docs` (or be a `backport`). Otherwise the check fails.
-- **In-repo `wiki/`:** Markdown design and usage notes named in UPPER-KEBAB or descriptive titles: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, an implementation plan for FHIR terminology parity, `insurance-parity-report.md`, and the **upstream sync ledger** `upstream-sync-version-16.md`. Put a design doc there for significant features (DESIGN-*.md), and a usage doc (*-USAGE*.md) for user-visible flows.
-- **Upstream sync work:** record every cherry-pick outcome (picked-clean / picked-with-conflict-resolution / already-present / skipped) in the ledger with `docs(wiki): ... (upstream sync Bn)` commits.
-- `patient_portal/README.md` covers the SPA.
-- Agent and project rules: `CLAUDE.md` and `.build/RULES.md` (the source of truth); `AGENTS.md` and the tool mirrors are generated from them.
+- **README.md** covers the product introduction, install steps (`bench get-app`, `install-app healthcare`) and developer setup (pre-commit, semgrep). Full user docs are external, on DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **`wiki/`** holds the in-repo design and usage docs as UPPER-KEBAB markdown: `DESIGN-*.md` for designs (for example block-based therapy booking), `*-USAGE*.md` for how-tos, implementation plans and parity reports, and the **upstream sync ledger** (`upstream-sync-version-16.md`). Recent commits update the ledger as `docs(wiki): …`.
+- **PR docs gate:** `docs_checker.yml` runs `.github/helper/documentation.py`. Any PR titled `feat…` must link to a docs page whose path contains `/wiki` on `biograph.frappe.cloud` or `biograph.io`, unless the body contains `no-docs` or `backport`. Note that the helper queries `earthians/biograph`.
+- `AGENTS.md`, `CLAUDE.md` and `.github/instructions/*` are generated or managed by Build from `.build/RULES.md`. Edit the source file, not the rendered copies.
