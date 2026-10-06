@@ -4,34 +4,53 @@ category: commands
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - README.md
+  - .github/workflows/ci.yml
+  - .github/helper/install.sh
+  - .pre-commit-config.yaml
   - package.json
   - patient_portal/package.json
-  - .github/workflows/ci.yml
-  - .github/workflows/linters.v2.yml
-  - .pre-commit-config.yaml
+  - .github/helper/update_pot_file.sh
 ---
 
-All server commands run inside a **Frappe bench** where `erpnext`, `payments` and this app are installed.
+Everything runs inside a Frappe bench that has ERPNext installed. The app lives at `apps/healthcare`.
 
-**Install / setup**
-- `bench get-app https://github.com/Tacten/biograph` then `bench --site <site> install-app healthcare`
-- After a schema change or a new patch: `bench --site <site> migrate`
+**Install**
+```sh
+bench get-app https://github.com/Tacten/biograph
+bench --site <site> install-app healthcare
+```
 
-**Tests** (same as CI)
-- `bench --site test_site run-parallel-tests --app healthcare` (CI form)
-- Single module: `bench --site test_site run-tests --app healthcare --module healthcare.healthcare.doctype.<name>.test_<name>`
+**Server tests (same as CI)**
+```sh
+bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1
+# single module locally:
+bench --site <site> run-tests --app healthcare --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment
+```
 
-**Lint / format** (from the repo root)
-- `pre-commit install` then `pre-commit run --all-files`. This runs ruff (`--fix`), ruff-format, prettier, eslint, pip-audit, detect-secrets and the basic file hooks.
-- Semgrep: `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules` then `semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
-- Commit titles: `npx commitlint --from <base> --to <head>`
+**Lint and format (pre-commit)**
+```sh
+pip install pre-commit
+pre-commit install
+npm install
+pre-commit run --all-files
+```
+The pre-commit hooks are: ruff `--fix`, ruff-format, prettier, eslint, pip-audit, detect-secrets and the basic hygiene hooks.
 
-**Frontend (patient portal)**
-- `yarn install` at the root (postinstall installs `patient_portal`)
-- `yarn build` at the root, which runs `cd patient_portal && yarn build` (`vite build --base=/assets/healthcare/patient_portal/`)
-- `cd patient_portal && yarn dev` starts the Vite dev server, which proxies to Frappe
-- Desk JS assets: `bench build --app healthcare`
+**Semgrep (Frappe rules)**
+```sh
+git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
+pip install semgrep
+semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
+```
+
+**Patient Portal**
+- From the repo root: `yarn install` (its postinstall step installs `patient_portal`), then `yarn build`.
+- Inside `patient_portal/`: `yarn dev` (Vite dev server) or `yarn build` (`vite build --base=/assets/healthcare/patient_portal/`).
+
+**Translations:** `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`.
+
+**CI sanity checks you can run locally:** `python -m compileall -f .` and a grep for leftover `<<<<<<<` conflict markers.
