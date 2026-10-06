@@ -81,8 +81,8 @@ B1 totals:
 
 Upstream's test-suite refactor: `HealthcareTestSuite` (on top of `ERPNextTestSuite`), deterministic
 masters via `BootStrapTestData` / `make_*` in `healthcare/tests/utils.py`, removal of
-`IntegrationTestCase` / `EXTRA_TEST_RECORD_DEPENDENCIES`, `before_tests` disabled, and CI switched
-to `run-parallel-tests --lightmode`.
+`IntegrationTestCase` / `EXTRA_TEST_RECORD_DEPENDENCIES`, and `before_tests` disabled. Upstream also switches CI
+to `run-parallel-tests --lightmode` (#86); that one-line workflow change is deferred, see below.
 
 Additional rules for this batch:
 
@@ -164,7 +164,7 @@ Additional rules for this batch:
 | 83 | fbad72bc | fix: linter report | picked-clean |  |
 | 84 | 6cfd9724 | fix: remove unnecessary customer group insert | **skipped** | Upstream deletes `create_customer_groups` from `healthcare/setup.py`, but patch `v16_0/setup_service_request_and_insurance.py` (in both the fork and upstream) imports it. Removing it would make `bench migrate` fail with an ImportError on any site that has not run that patch yet. The fork also relies on the Insurance Payor customer group being created at install. |
 | 85 | 20b1a29a | fix: remove company creation in before tests | picked-clean |  |
-| 86 | 4d89574c | fix: update ci comfig to run tests in lightmode | picked-clean |  |
+| 86 | 4d89574c | fix: update ci comfig to run tests in lightmode | **deferred** | Only touches `.github/workflows/ci.yml`. The engine's push token has no `workflow` scope, and GitHub rejected the push with "refusing to allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope". The pick is left out of this batch. Someone with workflow permission needs to apply it by hand: `git cherry-pick -x 4d89574c`, which adds `--lightmode` to the Run Tests step. |
 | 87 | ad9ef730 | fix: set customer group for test recrds explicitely | already-present | Only touches `healthcare/tests/utils.py`. The fork already has upstream's final version of that file (from 5c82db85), so the pick was empty. |
 | 88 | ff168bf0 | fix: add type hints | picked-clean |  |
 | 89 | a3701b4b | fix: explicitly set customer group for test records | picked-clean |  |
@@ -180,10 +180,11 @@ Additional rules for this batch:
 
 B2 totals (73 commits):
 
-- picked-clean: 36
+- picked-clean: 35
 - picked-with-conflict-resolution: 24
 - already-present: 12
 - skipped: 1
+- deferred: 1 (#86, CI workflow file)
 
 ### B2 follow-up commit: migrate the remaining fork tests
 
@@ -191,7 +192,7 @@ B2 totals (73 commits):
 
 - `test_package_subscription`, `test_healthcare_package` and `test_doctor_advice_template` are fork-only
   tests that no upstream commit touches. They move from `FrappeTestCase` to `HealthcareTestSuite`,
-  so they still run under `--lightmode` with the bootstrapped `_Test Company` and masters.
+  so they run on the suite's bootstrapped `_Test Company` and masters.
   The helpers they use are unchanged: `create_observation_template`, `create_therapy_type`, `create_patient`.
   The bootstrapped "Basic Rehab" (rate 5000) matches what `create_therapy_type` creates, so the expected
   package total of 5200 still holds.
@@ -210,8 +211,8 @@ B2 totals (73 commits):
 There is still no local bench, so the server suite cannot run here. The first CI run on the goal PR
 remains the baseline. What was checked statically on the final tree:
 
-- All 73 commits are accounted for: 60 `-x` commits match the picked rows exactly, and the rest are
-  12 already-present and 1 skipped. Each commit's message names its upstream sha.
+- All 73 commits are accounted for: 59 `-x` commits match the picked rows exactly, and the rest are
+  12 already-present, 1 skipped and 1 deferred. Each commit's message names its upstream sha.
 - **Import resolution:** an AST check finds that every `from healthcare… import name` in the app
   resolves to a top-level definition. 0 problems.
 - **Call signatures:** an AST check finds that every call to a helper imported from a `test_*` or
@@ -230,6 +231,12 @@ remains the baseline. What was checked statically on the final tree:
     - `healthcare/healthcare/utils.py` F401 `setup_healthcare`, because upstream comments out `before_tests`.
     - `test_medication_request.py` F401 `create_item`.
   - Both files are in pre-commit's `exclude` list.
+
+Effect of deferring #86: until `--lightmode` lands in `ci.yml`, CI runs the suite in normal mode.
+`before_tests` is commented out, and `HealthcareTestSuite` sets up its own masters through `ERPNextTestSuite`,
+so the tests should not depend on the flag. Normal mode still builds each doctype's legacy test records,
+which makes runs slower. If CI shows failures that only happen in normal mode, apply #86 first, before
+treating them as regressions.
 
 Known gaps carried forward (not introduced by B2):
 
