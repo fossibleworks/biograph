@@ -8,16 +8,21 @@ binding: reference
 source: inferred
 evidence:
   - healthcare/hooks.py
-  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/healthcare/api/patient_portal.py
 ---
 
-Paths likely to be performance-sensitive:
+Likely hot or heavy paths, based on the shape of the code:
 
-- **Wildcard doc_events:** `"*"` on_submit, on_cancel and on_update_after_submit hooks run Patient History Settings logic on *every* submitted document in the site. Keep these handlers cheap and exit early for irrelevant doctypes.
-- **Sales Invoice hooks:** `manage_invoice_validate` and `manage_invoice_submit_cancel` in `healthcare/healthcare/utils.py` run on every invoice and walk the healthcare references. Avoid per-row `frappe.get_doc` and batch the `frappe.db` reads.
-- **Scheduler:** `send_appointment_reminder` runs on `all` (every few minutes). Daily jobs update appointment status, fee validity, inpatient billables and expired medication requests, scanning tables that grow over time. Filter the queries and keep them indexed.
-- **Appointment availability and booking** (`patient_appointment.py`, about 1.8k lines): slot, overlap and capacity checks are hot interactive paths in the desk and portal.
-- **Reports and dashboards:** `report/*` (patient_appointment_analytics, diagnosis_trends, lab_test_report, …) and dashboard chart sources aggregate large datasets. Prefer `frappe.qb` / SQL aggregates over Python loops.
-- Raw `frappe.db.sql` appears in about 86 places in the module. Parameterize it and avoid N+1 patterns.
-- The patient portal bundle is built with sourcemaps and an `es2015` target. Keep frappe-ui imports tree-shakeable.
+- **Patient Appointment.** `patient_appointment.py` is very large and runs on every save. `validate` does overlap checks, practitioner schedule and unavailability lookups, capacity checks, queue position, calendar events and fee validity. Slot availability and recurring or block appointments also live here. Avoid extra per-row queries in `validate` and in slot computation.
+- **Scheduler jobs** (`hooks.py`):
+  - `send_appointment_reminder` runs on **every scheduler tick (`all`)**, so keep it cheap and indexed.
+  - The daily jobs scan appointments, fee validity, inpatient records (billables) and medication requests.
+- **Long-running work is queued with `frappe.enqueue`**, for example in `recuring_appointment_handler.py` and `sample_collection.py`. Follow this pattern for bulk creation.
+- **Portal API** (`api/patient_portal.py`) builds multi-join `frappe.qb` queries per patient. For example, `get_appointments` calls `get_patients_with_relations()` twice. Prefer one query with selected columns over N+1 `get_doc` calls.
+- **Reports** (`report/`, such as `patient_appointment_analytics` and `diagnosis_trends`) and dashboard chart sources aggregate over large tables.
+- **Raw SQL:** about 91 `frappe.db.sql` call sites. Use parameterised queries and filter on indexed columns.
+- **Caching:** there is effectively no app-level caching today (`frappe.cache` is almost unused).
+- **Portal bundle:** built with `target: es2015`, sourcemaps and hashed assets.
