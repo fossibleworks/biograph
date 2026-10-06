@@ -8,18 +8,12 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/sales_invoice.js
-  - healthcare/healthcare/utils.py
-  - patient_portal/src/components/AppointmentModel.vue
   - healthcare/locale/main.pot
+  - crowdin.yml
 ---
 
-- **Tone:** plain, direct and clinical-administrative. Messages are mostly short sentences in sentence case, often ending with a period or `!`. Examples:
-  - "Appointment Date and Time are required."
-  - "Patient already has an appointment booked for the same day!"
-  - "Please set a Customer linked to the Patient"
-- **Pattern for blocked actions:** "Not allowed, …" (e.g. "Not allowed, cannot overlap appointment {}").
-- **Ask for missing configuration with "Please …"**, e.g. "Please select Healthcare Service". Use the title "Missing Configuration".
-- **Terminology:** use DocType names, capitalised as nouns: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Code Value, Fee Validity, Inpatient Record, Healthcare Settings. Use "practitioner", not "doctor", in system copy.
-- **Placeholders:** `{0}`/`{1}`, with record names emphasised via `frappe.bold()`. Always translatable via `_()` / `__()`. Strings feed `healthcare/locale/main.pot`.
-- **Portal empty states:** a friendly heading plus an explanation, e.g. "No Records Found" / "Looks like you don't have any appointments yet."
+- **Tone:** short, plain and clinical-administrative. Labels are Title Case nouns ("Appointment Details", "Available Slots", "Consultation Fee", "Registration Fee", "Test Report Details"). Actions are verbs ("Book", "Create", "Refer Patient", "Schedule Admission", "Cancel Admission", "Schedule Discharge").
+- **Empty states** are friendly and brief: "Looks like you don't have any appointments yet.", "No Records Found".
+- **Errors** say what is wrong and, where possible, what to do: "Appointment end must be after start.", "Please select Patient", "Not allowed, cannot overlap appointment {}", "Could not add conferencing to this Appointment, please contact System Manager". Highlight record names and fields with `frappe.bold()`.
+- **Terminology:** use the domain nouns as they appear in DocType names, in Title Case: Patient, Healthcare Practitioner ("Practitioner" in the portal), Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Medical Department, Lab Test, Observation, Service Request, Medication Request, Insurance Payor, Fee Validity. The product is called **Biograph**.
+- **Translation:** every string goes through `_()` (Python) or `__()` (JS) and is extracted to `healthcare/locale/main.pot` for Crowdin. Use positional placeholders (`{0}`), not concatenation.
