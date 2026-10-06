@@ -4,20 +4,21 @@ category: tech-stack
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: required
 source: inferred
 evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
-  - .github/workflows/ci.yml
+  - patient_portal/tailwind.config.js
+  - healthcare/hooks.py
   - .github/helper/install.sh
-  - yarn.lock
+  - .github/workflows/ci.yml
 ---
 
-- **Backend:** Python >= 3.10 (ruff target `py310`; CI runs Python 3.14). Built as a **Frappe framework** app on **ERPNext** and `payments`, targeting the `version-16` branches. The package builds with `flit_core`. Runtime dependencies are minimal: `responses` and `python-barcode`.
-- **Database:** MariaDB (CI uses `mariadb:11.8`), plus Redis through Frappe.
-- **Desk UI:** plain Frappe form, list and calendar scripts in JavaScript (`<doctype>.js`, `<doctype>_list.js`, `<doctype>_calendar.js`), with Jinja/HTML templates. Bundled through `healthcare/public/js/healthcare.bundle.js`.
-- **Patient Portal:** Vue 3, vue-router, **frappe-ui**, Tailwind CSS 3.4, built with Vite 4 (`patient_portal/`). The root `package.json` sets up yarn workspaces.
-- **Tooling:** ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Frappe semgrep rules, detect-secrets, pip-audit, commitlint, semantic-release, Crowdin for translations.
-- **Node:** v24 in CI.
+- **Backend:** Python ≥3.10 (`requires-python`, ruff `target-version = py310`; CI runs Python 3.14). It is a **Frappe app** that depends on **ERPNext** and **payments**. It builds with `flit_core`, and its runtime deps are `responses` and `python-barcode`.
+- **Data:** MariaDB/MySQL through the Frappe ORM (CI uses a mysql service). Schema is defined as DocType JSON.
+- **Desk UI:** plain JavaScript form scripts per doctype, plus `healthcare/public/js/*` bundled through `healthcare.bundle.js` (`app_include_js`). The frappe, erpnext, and jQuery globals are available.
+- **Patient Portal:** Vue 3, vue-router 4, **frappe-ui**, Tailwind CSS 3.4 (with the frappe-ui preset), Vite 4.4, and feather-icons. It is a yarn workspace (`patient_portal`).
+- **Node:** v24 in CI, managed with yarn (`yarn.lock`).
+- **Target versions:** Frappe/ERPNext `version-16`. The fork branches `biograph-fh` and `goal/*` test against `version-16`.
