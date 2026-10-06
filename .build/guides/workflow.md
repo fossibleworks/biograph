@@ -1,5 +1,5 @@
 ---
-title: Workflow
+title: Work tracking & branching
 category: workflow
 layer: project
 applies_to: []
@@ -9,20 +9,27 @@ source: inferred
 evidence:
   - CLAUDE.md
   - .build/RULES.md
-  - commitlint.config.js
-  - .github/workflows/semantic-commits.yml
+  - AGENTS.md
   - .mergify.yml
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - .github/CODEOWNERS
 ---
 
-**Work tracking: Interactor Build engine.** Every code change must belong to a tracked **Goal**. A GitHub issue maps to a Goal only after an explicit import. EngineTasks under a Goal cycle through investigation, execution and review.
-- Before editing any file, a Goal must exist. Create it in the Build web UI or with `ibuild engine goal-create "<title>"` and then `ibuild engine goal queue <goalId>`.
-- Work on branch **`goal/<goalId>`** in an isolated worktree. Never commit directly to `biograph-fh` (this fork's default branch).
-- Each Goal ships as **one PR**, opened by the engine. The PR must pass review and CI before it merges. Interactive sessions may use `ibuild off` for small changes, but those still go through a hand-opened PR.
-- Standing rules live in `.build/RULES.md`, which `CLAUDE.md` imports. `AGENTS.md` and `.github/instructions/*.md` are rendered from it.
+**Build engine (this fork's contract, from CLAUDE.md)**
+- Every code change needs a tracked **Goal** in Interactor Build. Create it with the web UI, by importing a GitHub issue, or with `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`.
+- Work happens on branch **`goal/<goalId>`** in an isolated worktree. **Never commit to the default branch `biograph-fh`** (the upstream equivalent is `develop`).
+- Each Goal maps to one PR, which the engine opens. The PR merges after review and CI pass.
+- EngineTasks under a Goal go through investigation → execution → review. Report with `ibuild engine report --yes`.
+- Exception: an interactive session may run `ibuild off` for a small change, but that change still goes on its own branch and through a hand-opened PR that runs CI.
+- Standing rules: `.build/RULES.md`, mirrored to `.claude/rules`, `.cursor/rules`, `.github/instructions` and `AGENTS.md`.
 
-**Commits:** use Conventional Commits, enforced by commitlint on PRs. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, all lower-case. Scopes are optional (`fix(tests): ...`, `docs(wiki): ...`). For upstream sync work, add a suffix such as `(upstream sync B2)` and cherry-pick with `git cherry-pick -x` so the upstream sha is recorded.
+**Inherited upstream conventions (still configured)**
+- Commits follow Conventional Commits (commitlint).
+- PR template: pick the target branch, run tests, keep validations server-side, update docs, and use `closes #NNN`.
+- Mergify:
+  - Closes PRs to stable `version-14/15/16` from non-maintainers.
+  - Auto-merges with ≥1 approval (squash if labelled `squash`; `dont-merge` blocks).
+  - Backports through `backport develop` / `backport version-1x-hotfix` labels.
+- CODEOWNERS: `@akurungadam @Sajinsr`.
 
-**Branches:** `biograph-fh` is the fork integration branch. `upstream` points to `earthians/marley` `version-16`. Upstream's model is `develop` for development, `version-N-hotfix` for fixes and `version-N` for stable. Mergify auto-closes PRs against stable `version-*` branches from non-maintainers.
-
-**Review:** CODEOWNERS (`@akurungadam @Sajinsr`) review everything. Mergify merges after one approval and green CI; the `squash` label squashes and `dont-merge` blocks the merge.
+**Upstream sync work**: cherry-pick upstream earthians/marley commits with `git cherry-pick -x`. Fork behaviour wins conflicts. Log every commit in `wiki/upstream-sync-version-16.md` using the fixed outcome vocabulary. Fix-ups use a suffix such as `(upstream sync B2)`.
