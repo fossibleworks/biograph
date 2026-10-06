@@ -9,10 +9,12 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/vite.config.js
-  - patient_portal/package.json
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - patient_portal/src/components/AppointmentModel.vue
+  - patient_portal/src/components/Payment.vue
+  - healthcare/public/js/observation_widget.js
 ---
 
-- **Patient portal:** uses **frappe-ui** as both component library and token source. `tailwind.config.js` uses `presets: [frappeUIPreset]` and scans frappe-ui components. The only extension is legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Use frappe-ui components (Button, Dialog, Tabs, etc.) and `createResource` for data, with Tailwind utilities for layout. Icons come from feather-icons and lucide through the frappe-ui Vite plugin. Global styles live in `patient_portal/src/index.css`.
-- **Desk UI:** uses Frappe Desk's native form, list, calendar and dialog widgets (`frappe.ui.form.on`, `frappe.ui.Dialog`, list view inner buttons) and the standard indicator colours. Custom HTML templates live in `healthcare/public/js/*.html`, for example `observation.html` and `healthcare_orders.html`. Print formats are under `healthcare/healthcare/print_format`.
-- Do not introduce another component library or CSS framework.
+- **Desk UI:** the standard Frappe Desk UI. Forms and lists come from the doctype JSON plus `.js` form scripts. Custom widgets live in `healthcare/public/js`, e.g. `observation_widget.js`, `healthcare_note.html`, `healthcare_orders.html`. Do not introduce a separate CSS framework.
+- **Patient portal:** the component library is **frappe-ui** (`Button`, `Card`, `ErrorMessage`, resources via `getCachedResource`). Tokens come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The config only adds legacy color aliases (lightBlue, warmGray, ...). Icons are feather and lucide (`lucideIcons: true`).
+- Style with Tailwind utilities using the frappe-ui gray scale (`text-gray-800`, `text-gray-600`, `text-sm`/`text-md`). Use Button variants like `variant="subtle"`.
+- Global portal styles are in `patient_portal/src/index.css`.
