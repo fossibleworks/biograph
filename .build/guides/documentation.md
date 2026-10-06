@@ -8,21 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
   - AGENTS.md
 ---
 
-- **User and developer docs:** `README.md` links to DeepWiki (`deepwiki.com/Tacten/biograph`) as the complete documentation. There is no `docs/` tree, and `healthcare/docs/current` is gitignored.
-- **`wiki/`** holds in-repo Markdown for fork features and engineering records:
-  - usage guides (`PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`)
-  - design documents (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`)
-  - parity reports (`insurance-parity-report.md`)
-  - the upstream sync ledger (`upstream-sync-version-16.md`)
-- Usage docs follow this pattern: a numbered Table of Contents, then Overview, Configuration, then step-by-step navigation in bold (**Healthcare → Setup → Healthcare Settings**), then examples. Screenshots and thumbnails sit next to the doc in `wiki/`.
-- Doc-only commits use `docs(wiki): …`.
-- **PR docs gate:** `docs_checker.yml` runs `.github/helper/documentation.py`. It fails a `feat…` PR unless the body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`. (It queries the upstream `earthians/biograph` API.)
-- `patient_portal/README.md` documents the SPA.
-- `AGENTS.md` and `CLAUDE.md` hold the Build-managed agent guidance.
+- **Public docs:** README links to DeepWiki (`deepwiki.com/Tacten/biograph`) and the community Telegram group. Upstream user docs live on the biograph wiki (`biograph.frappe.cloud/.../wiki`, `biograph.io/.../wiki`).
+- **In-repo `wiki/`:** Markdown design docs, usage docs and ledgers, named in UPPER-KEBAB or descriptive titles. Examples: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` (design), `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (usage), `insurance-parity-report.md`, and `upstream-sync-version-16.md` (the per-batch sync ledger: one table row per upstream commit with its outcome and notes). Changes to those docs are committed as `docs(wiki): ...`.
+- **PR docs gate:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails `feat` PRs unless the body links a docs URL on the biograph wiki, or contains `no-docs` or `backport`.
+- **PR template:** asks for details, screenshots or GIFs, docs updates and `closes #XXXX`.
+- **Code docs:** sparse. Comments explain non-obvious behaviour (see the `on_login` comment in `hooks.py`). Docstrings are uncommon.
+- `AGENTS.md` and `CLAUDE.md` carry the Build-managed guides and rules (`.build/RULES.md`, `.build/guides/`). Edit the source files, never the rendered block.
