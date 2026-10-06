@@ -9,10 +9,18 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/src/patient_portal.js
-  - patient_portal/src/components/Payment.vue
   - patient_portal/vite.config.js
 ---
 
-- **Desk UI** uses the standard Frappe Desk components: forms, list, tree and calendar views, dialogs, `frappe.ui.*`. Doctype-specific UI goes in `<doctype>.js`, `_list.js`, `_tree.js` and `_calendar.js`. Shared widgets live in `healthcare/public/js` (`observation_widget.js`, `healthcare_orders.html`, `healthcare_note.js`). Don't introduce a separate CSS framework into the desk.
-- **Patient portal** uses **frappe-ui** as its component library. `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `patient_portal.js`. Styling uses **Tailwind** with the `frappe-ui/tailwind` preset as the token source. `tailwind.config.js` only adds colour aliases (lightBlue, warmGray, …). Icons come from feather and lucide through the frappe-ui Vite plugin.
-- Existing portal styling: cards are `rounded-xl shadow-sm p-5`, text uses the gray scale (`text-gray-900/800/500`), and amounts are shown in `font-bold` with green or blue accents. Format currency with `formatCurrency` from `src/utils/formatters.js`.
+# Design system
+
+## Patient Portal (Vue)
+- **frappe-ui** is the component library and token source.
+  - `tailwind.config.js` uses `presets: [frappeUIPreset]` from `frappe-ui/tailwind`. The only extensions are a few legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`).
+  - Components are registered globally in `src/patient_portal.js`: `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip`, `Card`. Data fetching uses `frappeRequest` as the `resourceFetcher`.
+  - Icons come from feather-icons, with Lucide enabled in the Vite plugin.
+- Style with Tailwind utility classes and frappe-ui tokens. Do not introduce a new CSS framework or hard-coded palette. Global styles live in `src/index.css`.
+- Existing portal components are in `patient_portal/src/components/`: `AppointmentModel`, `BookAppointmentModel`, `Calendar`, `DepartmentSelector`, `PractitionerSelector`, `DiagnosticModel`, `Payment`. Extend these before adding parallel ones.
+
+## Desk
+- Desk screens use Frappe's standard form, list and tree views and Frappe UI controls (`frappe.ui.form`, dialogs). Custom widgets use Jinja HTML templates in `healthcare/public/js/*.html`. Follow Frappe Desk styling rather than custom CSS.
