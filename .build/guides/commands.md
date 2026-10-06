@@ -7,49 +7,34 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
-  - README.md
   - package.json
   - patient_portal/package.json
   - .github/workflows/ci.yml
-  - .github/workflows/linters.v2.yml
-  - .pre-commit-config.yaml
   - .github/helper/install.sh
-  - .github/helper/update_pot_file.sh
+  - .pre-commit-config.yaml
+  - .github/workflows/linters.v2.yml
+  - README.md
 ---
 
-**Install (requires a Frappe bench with ERPNext)**
-```sh
-bench get-app https://github.com/Tacten/biograph
-bench --site <site> install-app healthcare
-```
+All server commands run inside a Frappe bench that has erpnext and payments installed. There is no Makefile.
 
-**Run tests** (matches CI)
-```sh
-cd ~/frappe-bench
-bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1
-# single module/doctype:
-bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"
-```
-CI sets up the bench with `.github/helper/install.sh`.
+**Install / setup**
+- `bench get-app <repo-url>` and then `bench --site <site> install-app healthcare`
+- `bench setup requirements --dev`
 
-**Lint and format**
-```sh
-pip install pre-commit && pre-commit install
-npm install            # root; postinstall also installs patient_portal deps
-pre-commit run --all-files   # ruff --fix, ruff-format, eslint, prettier, pip-audit, detect-secrets, yaml/json/toml/ast checks
+**Run / build**
+- `bench start`
+- `yarn install` at the root (postinstall installs `patient_portal`)
+- `yarn build`: builds the portal (`cd patient_portal && vite build --base=/assets/healthcare/patient_portal/`)
+- `cd patient_portal && yarn dev`: Vite dev server with the Frappe proxy
+- `bench build --app healthcare`: builds the desk assets
+- `bench --site <site> migrate`: runs the patches in `healthcare/patches.txt`
 
-# Frappe semgrep rules (same as CI)
-git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
-pip install semgrep
-semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
-```
+**Test**
+- `bench --site test_site run-tests --app healthcare` (optionally `--module healthcare.healthcare.doctype.<name>.test_<name>`)
+- In CI: `bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1`
 
-**Patient Portal frontend**
-```sh
-yarn build                 # root → cd patient_portal && yarn build
-cd patient_portal && yarn dev   # vite dev server (frappeProxy)
-```
-
-**Commit-message check:** `npx commitlint --from <base> --to <head>`.
-
-**Translations:** `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`.
+**Lint / format**
+- `pre-commit install` and then `pre-commit run --all-files`. This runs ruff (`--fix`), ruff-format, prettier, eslint, check-yaml/json/toml/ast, debug-statements, detect-secrets (baseline `.secrets.baseline`) and pip-audit.
+- `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules && semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
+- Commit titles: `npx commitlint --from <base> --to <head>`
