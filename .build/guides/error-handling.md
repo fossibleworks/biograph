@@ -4,24 +4,28 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - healthcare/public/js/mark_unavailable.js
 ---
 
-**User-facing validation errors:** raise them with `frappe.throw(_("Message"), <ExcClass>, title=_("Title"))` (181 call sites). Frappe turns these into a desk message dialog and an HTTP error response, so no custom API error envelope is needed.
-- For distinguishable failures, define module-level subclasses of `frappe.ValidationError`, for example `OverlapError` and `MaximumCapacityError` in `patient_appointment.py`, and `OverlapError` in `insurance_payor_contract.py`. Pass the class as the second argument to `frappe.throw`, and catch or assert on it in tests.
-- Messages are translatable and use `{0}` placeholders: `_("...{0}").format(frappe.bold(value))`.
+# Error handling
 
-**Non-fatal or background failures:** catch the exception and record it with `frappe.log_error(...)` (15 sites). The usual form is `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(title=...)`. This creates an Error Log record instead of interrupting the user. Notifications, calendar-event sync and patches use this pattern.
+## Validation errors (dominant pattern)
+- Raise user-facing errors with **`frappe.throw(_("Message"))`**. Use `.format()` placeholders outside `_()`: `frappe.throw(_("Configure a service Item for {0}").format(item))`. Optional `title=_("...")`.
+- For distinct failure modes, define subclasses of **`frappe.ValidationError`** in the controller module (`class OverlapError(frappe.ValidationError)`, `MaximumCapacityError`) and pass them as the exception class: `frappe.throw(msg, OverlapError)`. Tests can then assert the specific class.
+- Validation belongs in the controller lifecycle hooks (`validate`, `before_submit`, `on_cancel`, ...).
 
-**Patches:** wrap risky steps in `try/except`, then log with `frappe.log_error` and/or `frappe.logger().error(...)`. The original exception is not re-raised unless the migration must stop.
+## Non-fatal / background failures
+- Side effects such as notifications and calendar events, and patches, catch exceptions and record them with **`frappe.log_error(frappe.get_traceback(), _("Title"))`** or `frappe.log_error(title=...)`, without failing the main transaction (for example, "Appointment Confirmation Message Not Sent").
+- `frappe.logger().error(...)` is used occasionally for parse failures.
+- Do not swallow exceptions silently. Log them to Error Log.
 
-**Desk JS:** use `frappe.msgprint({...})` for blocking messages and `frappe.show_alert({...})` for toasts. In the portal, use frappe-ui `toast` and `ErrorMessage`, for example "Failed to load appointments".
+## JS
+- Desk scripts surface problems with `frappe.msgprint` / `frappe.throw` and translatable `__()` strings.
 
-Keep validation in the controller's `validate`/`before_submit` hooks on the server. Client-side checks are only a convenience.
+## Avoid
+- `frappe.throw(_("... {0}".format(x)))`: formatting *inside* `_()` breaks translation. It exists in legacy code (`patient_appointment.py`), so don't copy it.
