@@ -4,46 +4,36 @@ category: commands
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: required
 source: inferred
 evidence:
-  - README.md
   - package.json
   - patient_portal/package.json
+  - .github/workflows/ci.yml
   - .pre-commit-config.yaml
   - .github/workflows/linters.v2.yml
+  - README.md
   - .github/helper/install.sh
 ---
 
-**Install (in a bench with ERPNext)**
-```sh
-bench get-app https://github.com/Tacten/biograph
-bench --site <site> install-app healthcare
-bench --site <site> migrate          # runs patches.txt
-```
+The app runs inside a Frappe bench (`frappe-bench`). Run all commands from the bench or the app directory as shown.
+
+**Install**
+- `bench get-app <repo-url>` then `bench --site <site> install-app healthcare`
+- CI bootstraps the bench with `bash .github/helper/install.sh`.
 
 **Frontend (patient portal)**
-```sh
-yarn install            # root postinstall also installs patient_portal
-yarn build              # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
-cd patient_portal && yarn dev   # vite dev server with frappe proxy
-```
+- `yarn install` at the root. Its `postinstall` runs `cd patient_portal && yarn install --check-files`.
+- `yarn build`, which runs `cd patient_portal && vite build --base=/assets/healthcare/patient_portal/`.
+- `cd patient_portal && yarn dev` starts the Vite dev server with the Frappe proxy.
 
-**Lint and format (the same checks CI runs)**
-```sh
-pip install pre-commit && pre-commit install
-npm install            # eslint deps
-pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
+**Tests**
+- `bench --site test_site run-parallel-tests --app healthcare` (this is what CI runs)
+- `bench --site <site> run-tests --app healthcare [--doctype "Patient Appointment"]` runs a subset locally.
 
-git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
-pip install semgrep
-semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
-```
+**Lint and format**
+- `pre-commit install` then `pre-commit run --all-files`. This runs ruff (`--fix`), ruff-format, prettier, eslint, pip-audit, detect-secrets and the basic hygiene hooks.
+- Semgrep: `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules && semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
+- Commit titles: `npx commitlint --from <base> --to <head>`
 
-**Tests (Frappe test runner, inside a bench)**
-```sh
-bench --site <site> set-config allow_tests true
-bench --site <site> run-tests --app healthcare
-bench --site <site> run-tests --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment
-```
-`.github/helper/install.sh` builds a CI bench (frappe, erpnext and payments on `version-16`), but no test workflow is currently checked in.
+**Migrations:** `bench --site <site> migrate` runs the entries in `healthcare/patches.txt`.
