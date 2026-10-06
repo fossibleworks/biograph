@@ -9,12 +9,10 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/vite.config.js
-  - patient_portal/src/PatientPortal.vue
   - patient_portal/package.json
-  - healthcare/public/js/healthcare_note.js
 ---
 
-- **Desk UI** uses stock Frappe Desk components: `frappe.ui.Dialog`, form scripts and list/calendar views. Custom HTML templates live in `healthcare/public/js/*.html` (healthcare_note, healthcare_orders, observation), and widgets are in `observation_widget.js` and `form.js`. Do not introduce a separate CSS framework in Desk.
-- **Patient portal** uses the **frappe-ui** component library (`Tabs`, `Dialog`, `Button`, `createResource`, and others), with **Tailwind CSS 3** on `frappe-ui/tailwind` as the preset. That preset is the design-token source for colours, spacing and typography. `tailwind.config.js` only adds legacy colour aliases (lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate).
-- Icons come from Feather and Lucide, enabled with `lucideIcons: true` in the frappe-ui Vite plugin. Dialog icons use names like `alert-triangle` with an `appearance` of warning or similar.
-- Global portal styles are in `patient_portal/src/index.css`. Prefer Tailwind utility classes in templates.
+- **Desk UI** (almost all staff screens) uses Frappe's built-in form, list, tree and calendar views, configured through DocType JSON and `frappe.ui.form.on` scripts. Use standard Frappe controls and dialogs (`frappe.ui.Dialog`, `frm.add_custom_button`) before writing custom HTML. Custom HTML snippets live in `healthcare/public/js/*.html` (e.g. `healthcare_orders.html`, `observation.html`).
+- **Patient Portal** uses **frappe-ui** as its component library and token source. `tailwind.config.js` uses `presets: [frappeUIPreset]` and only adds legacy colour aliases (lightBlue → sky, warmGray → stone, and so on). Use frappe-ui components and Tailwind utility classes. Do not add new colour scales or another UI kit.
+- Icons: frappe-ui lucide icons (`lucideIcons: true` in Vite) and `feather-icons`.
+- Global styles are in `patient_portal/src/index.css`.
