@@ -9,27 +9,33 @@ source: inferred
 evidence:
   - CLAUDE.md
   - .build/RULES.md
-  - .github/instructions/build-rules.instructions.md
   - commitlint.config.js
   - .github/workflows/semantic-commits.yml
-  - .mergify.yml
-  - .github/CODEOWNERS
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - .github/CODEOWNERS
+  - .mergify.yml
 ---
 
-**Interactor Build engine (this fork, from CLAUDE.md):**
-- Every code change belongs to a tracked **Goal**. A GitHub issue maps to a Goal only after it is explicitly imported. The engine generates **EngineTasks** under the Goal, and each task goes through investigation → execution → review.
-- **The gate:** with no Goal, no edits. Create a Goal (web UI at build.interactor.com, or `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`). Then work on branch **`goal/<goalId>`** in an isolated worktree. Never commit directly to the default branch **`biograph-fh`**.
-- The engine opens a single PR per Goal, and that PR must pass review and CI. Use `ibuild engine work <task>` / `ibuild engine report --yes` to work and report phases, and `ibuild engine goal accept <goalId>` to deliver.
-- An interactive session may run `ibuild off` for a small change. That change still goes on its own branch through a hand-opened PR that runs CI.
-- Standing AI rules come from `.build/RULES.md`, which is mirrored into `.claude/rules/build-rules.md`, `.github/instructions/build-rules.instructions.md` and `AGENTS.md`. Edit the source file, not the mirrors.
+**Interactor Build engine (fork policy, from CLAUDE.md)**
+- Every code change needs a tracked **Goal**. Create it in the Build web UI or with `ibuild engine goal-create "<title>"`; GitHub issues must be explicitly imported to become a Goal.
+- Work on the goal branch `goal/<goalId>` in an isolated worktree, and ship through the goal's single PR into **`biograph-fh`**, the fork's main branch.
+- Never commit or push directly to `biograph-fh`.
+- Goals break down into EngineTasks, each going investigation → execution → review.
+- `ibuild off` is allowed only for small changes, and those still land via a hand-opened PR that runs CI.
 
-**Commits and PRs:**
-- Conventional Commits, checked by commitlint on every PR.
-- Upstream cherry-picks use `git cherry-pick -x` and are recorded in `wiki/upstream-sync-version-16.md`. The conflict policy there is "fork intent wins" (union of DocType `fields` / `field_order` and of `patches.txt`; keep the fork's `.releaserc`).
-- PR template: pick the target branch, follow commit conventions, run tests locally, keep validations server-side, update docs, and add `closes #XXXX`.
+**Standing rules**
+- `.build/RULES.md` holds the standing rules and is mirrored to the AGENTS.md, Claude, Cursor and Copilot rules files. It is currently unfilled.
 
-**Inherited upstream rules (Mergify, CODEOWNERS):**
-- PRs to stable `version-14/15/16` branches are auto-closed unless the author is on the allow-list. Target a hotfix or develop branch instead.
-- Auto-merge needs ≥1 approval and no `dont-merge` label. The `squash` label selects squash merge.
-- The default code owners are @akurungadam and @Sajinsr.
+**Commits**
+- Conventional Commits, enforced by commitlint on PRs. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test.
+- Fork convention is to append context, for example `fix: ... (upstream sync B2)`. Documentation goes in `docs(wiki): ...`.
+
+**Upstream sync**
+- Pull Marley `version-16` fixes with `git cherry-pick -x`.
+- Conflict policy: the fork's intent wins. DocType JSON is a three-way union of fields and field_order, and `patches.txt` is a union.
+- Record every commit's outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped) in `wiki/upstream-sync-version-16.md`.
+
+**PRs**
+- Follow `.github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md`: explain the problem, add screenshots for UI changes, keep logic on the server, update docs, and add `closes #N`.
+- Code owners are @akurungadam and @Sajinsr.
+- Inherited upstream Mergify rules apply: one approval auto-merges, the `squash` label squashes, `backport <branch>` labels backport, and PRs against `version-1x` stable branches are auto-closed.
