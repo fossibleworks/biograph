@@ -12,27 +12,21 @@ evidence:
   - eslint.config.mjs
   - commitlint.config.js
   - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - patient_portal/src/components/PractitionerSelector.vue
 ---
 
-**Python (ruff)**
-- Indent with **tabs**, use **double quotes**, line length 110 (E501 is ignored, so long lines are tolerated). Target py310.
-- Lint rule sets are `F,E,W,I,UP,B,RUF`. Notable ignores: F401 (unused imports), B904, E402, F403/F405.
-- Import order: future, stdlib, third-party, `frappe`, `erpnext`, `healthcare`, first-party, local. Separate each group with a blank line, as in `test_patient_appointment.py`.
-- Use absolute imports from the package root, e.g. `from healthcare.healthcare.doctype.x.x import y`.
-- Files and folders are `snake_case` matching the DocType name (`Patient Appointment` → `patient_appointment/patient_appointment.py`). Controller classes are `PascalCase` doctype names subclassing `Document`.
-- Wrap user-facing strings in `_()` (`from frappe import _`), and use `.format()` for placeholders (`_("{0} with {1}").format(...)`).
-- Expose server endpoints with `@frappe.whitelist()`. Prefer `frappe.qb` or `frappe.get_all`/`get_list` over raw SQL. Raw `frappe.db.sql` appears mainly in tests.
-- Keep the license header comment at the top of doctype files, matching the existing ones.
-- Semgrep's Frappe rules apply. Suppress a rule only with an inline `# nosemgrep` and a reason.
+**Python (ruff, configured in `pyproject.toml`)**
+- Indent with **tabs**, use **double quotes**, line length 110. E501 is ignored, so long lines are tolerated. Target version is py310.
+- Lint selection is `F, E, W, I, UP, B, RUF`. The many ignores (for example F401 unused imports and B904) match Frappe/ERPNext conventions.
+- isort sections go in this order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate the groups with blank lines, as in `test_patient_appointment.py`.
+- `typing-modules = ["frappe.types.DF"]`, so DocType controllers may carry auto-generated type annotations.
+- Naming: DocType names are Title Case ("Patient Appointment"), their folders and modules are snake_case, and controller classes are PascalCase (`PatientAppointment(Document)`). Server functions are snake_case. Use absolute imports such as `from healthcare.healthcare.utils import ...`.
+- Wrap user-facing strings in `_()` from `frappe`.
+- Prefer `frappe.qb`, `frappe.get_all` and `frappe.db.get_value` over raw SQL. Raw SQL exists in older code and tests.
 
-**JavaScript (Desk)**
-- Prettier settings: tabs (`useTabs: true`, `tabWidth: 4`), `printWidth: 88`, `arrowParens: avoid`. ESLint uses `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `$`, `__`, ...).
-- Translate strings with `__("...")`.
-- Form scripts follow the `frappe.ui.form.on("Doctype", {...})` pattern.
+**JavaScript and Vue**
+- Prettier settings: tabs (width 4), print width 88, `arrowParens: avoid`. ESLint uses `eslint:recommended` with the Frappe globals (`frappe`, `erpnext`, `__`, `$`, …).
+- Wrap desk strings in `__()`.
+- Vue components are PascalCase `.vue` files in `patient_portal/src/components`. Use `<script setup>`, Tailwind utility classes and frappe-ui components.
 
-**Vue (patient_portal)**
-- Vue 3 SFCs with PascalCase component names (`BookAppointmentModel.vue`, `PractitionerSelector.vue`). Use frappe-ui components (`Button`, `Dialog`, ...) and Tailwind utility classes. The `@/` alias points to `src/`.
-- `patient_portal/` is excluded from Prettier, so match the formatting of the surrounding file.
-
-**Commits:** Conventional Commits with lower-case type from `build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test`. A subject is required.
+**Commits:** Conventional Commits, enforced by commitlint. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, written in lower case.
