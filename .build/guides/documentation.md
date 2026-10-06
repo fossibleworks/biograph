@@ -8,18 +8,19 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - .github/helper/documentation.py
-  - .github/workflows/docs_checker.yml
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - AGENTS.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
+  - .github/workflows/docs_checker.yml
+  - .github/helper/documentation.py
+  - patient_portal/README.md
 ---
 
-- **End-user docs** are published externally. The README points to DeepWiki, and upstream docs live on the `biograph.frappe.cloud` / `biograph.io` wiki. The **Documentation Required** workflow fails any PR whose title starts with `feat` unless the body links to a `/wiki` page on those hosts, or says `no-docs` or `backport`.
-- **In-repo docs** live in `wiki/` as UPPER-KEBAB-CASE markdown files:
-  - `DESIGN-*.md` for design documents.
-  - `*-USAGE*.md` for usage guides.
-  - Parity and plan reports.
-  - `upstream-sync-version-16.md`, the **upstream sync ledger**. Every cherry-picked upstream commit gets a table row with its sha, subject, outcome (`picked-clean`, `picked-with-conflict-resolution`, `already-present` or `skipped`) and notes. Commits that only update the ledger use `docs(wiki): ...`.
-- **README** covers the introduction, installation (bench), docs link, community (Telegram), license and the dev setup for pre-commit and semgrep.
-- **Code comments:** sparse. Doctype files carry a copyright header. Explanations of non-obvious fork-versus-upstream decisions go in the ledger, not in code comments.
-- `AGENTS.md` and `CLAUDE.md` are managed by Build (the `BEGIN BUILD GUIDES` block). Edit the source files under `.build/` instead of the rendered block.
+- **README.md** gives the overview, installation, the development (pre-commit and semgrep) steps, and a link to the external docs on DeepWiki (`deepwiki.com/Tacten/biograph`). Community support is on Telegram.
+- **`wiki/`** holds in-repo markdown for fork features and processes, named in UPPER-KEBAB-CASE or descriptive titles:
+  - design docs, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` and `FHIR Terminology Service Parity — Implementation Plan.md`
+  - usage guides, e.g. `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (images such as `patient-duplicatecheck-thumbnail.png` sit alongside)
+  - reports and ledgers, e.g. `insurance-parity-report.md` and `upstream-sync-version-16.md`. The ledger records every upstream pick with an outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped) and notes.
+- Commit wiki updates as `docs(wiki): ...`.
+- **Upstream PR rule:** the `docs_checker.yml` workflow fails `feat` PRs that lack a docs link (biograph wiki domain) unless the body contains `no-docs` or `backport`.
+- `patient_portal/README.md` documents the SPA.
+- Docstrings are sparse. Code comments are short and explain why.
