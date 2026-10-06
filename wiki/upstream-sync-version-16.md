@@ -247,7 +247,7 @@ treating them as regressions.
 - `test_patient_appointment`: `test_tele_consultation` is renamed back to the fork's `test_teleconsultation`.
   Upstream already used `test_tele_consultation` at the merge-base `df9bf5b9`, so this was never an
   upstream rename inside B2. A sweep of every `def test_*` / `class Test*` in `healthcare/**/test_*.py`
-  at `b229aad8` against the final tree finds only the six allowed upstream renames missing, each with its
+  at `b229aad8` against the final tree finds only the seven allowed upstream renames missing (including #38's `test_creation_on_encounter_submission` → `test_service_request_creation_on_encounter_submission`), each with its
   successor present. None of the 13 merge-base `test_patient_appointment` tests the fork removed is back.
 - `healthcare/tests/utils.py`: the duplicate `_Test Patient 2` / `_Test Patient 3` records from #82 are
   dropped. `git diff upstream/version-16 -- healthcare/tests/utils.py` is empty.
