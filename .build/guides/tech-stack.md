@@ -4,21 +4,33 @@ category: tech-stack
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: required
 source: inferred
 evidence:
   - pyproject.toml
+  - healthcare/hooks.py
   - package.json
   - patient_portal/package.json
-  - patient_portal/vite.config.js
+  - patient_portal/tailwind.config.js
   - .github/workflows/ci.yml
-  - .github/helper/install.sh
-  - yarn.lock
+  - crowdin.yml
 ---
 
-- **Backend:** Python ≥3.10 (CI uses 3.14). The app is a **Frappe** app depending on **ERPNext** and **payments**. Packaging uses `flit_core`. Runtime Python dependencies are in `pyproject.toml` (`responses`, `python-barcode`).
-- **Database:** MariaDB (CI uses `mariadb:11.8`, utf8mb4) and Redis, both through Frappe bench.
-- **Desk UI:** plain Frappe desk JavaScript: doctype `.js` form scripts, `healthcare/public/js/*`, and a bundle at `healthcare.bundle.js`. Uses jQuery and the `frappe`/`erpnext` globals.
-- **Patient Portal SPA:** Vue 3, vue-router and **frappe-ui**, styled with Tailwind 3.4 (frappe-ui preset) and built with Vite 4. It lives in `patient_portal/` (yarn workspace) and builds into `healthcare/public/patient_portal/assets`, served from `healthcare/www/patient_portal.html`.
-- **Node:** Node 24 in CI. The root uses yarn workspaces (`yarn.lock`).
-- **Tooling:** ruff (lint + format), prettier, ESLint 10 flat config, pre-commit, Frappe semgrep rules, pip-audit, detect-secrets, commitlint, semantic-release, CodeQL.
+# Tech stack
+
+## Backend
+- **Python ≥ 3.10** (ruff target `py310`; CI runs Python 3.14). Packaged with **flit_core**, and the version lives in `healthcare/__init__.py`.
+- **Frappe Framework** app with a hard dependency on **ERPNext** (`required_apps = ["frappe/erpnext"]`). Supported release lines are version-14, version-15, and version-16.
+- Database: **MariaDB** (CI uses `mariadb:11.8`), accessed through the Frappe ORM, `frappe.qb` (PyPika query builder), and `frappe.db`.
+- Extra Python dependencies: `responses`, `python-barcode`.
+
+## Desk frontend
+- Classic Frappe Desk JavaScript (form scripts `<doctype>.js`, `*_list.js`, `*_tree.js`). It is bundled through `healthcare/public/js/healthcare.bundle.js` and uses jQuery and the `frappe` / `erpnext` globals.
+
+## Patient Portal SPA (`patient_portal/`)
+- **Vue 3** + **vue-router 4**, **Vite 4.4.9**, **Tailwind CSS 3.4.15** with the **frappe-ui** preset and components, and feather/lucide icons.
+- Managed with **Yarn** workspaces (`yarn.lock` at the root, workspaces `patient_portal` and `frappe-ui`).
+
+## Tooling
+- Node 24 in CI, ESLint 10 (flat config), Prettier, Ruff (lint + format), pre-commit, Semgrep (Frappe rules), CodeQL, pip-audit, detect-secrets, commitlint, and semantic-release.
+- Translations: gettext `.pot`/`.po` files synced through Crowdin.
