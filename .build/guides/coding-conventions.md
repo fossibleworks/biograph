@@ -8,31 +8,28 @@ binding: required
 source: inferred
 evidence:
   - pyproject.toml
-  - eslint.config.mjs
   - .prettierrc.yaml
+  - eslint.config.mjs
   - .pre-commit-config.yaml
   - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
-  - commitlint.config.js
+  - healthcare/healthcare/api/patient_portal.py
+  - .git-blame-ignore-revs
 ---
 
-**Python** (ruff, `pyproject.toml`)
-- Indent with **tabs**, use **double quotes**, and keep lines to 110 characters (E501 is ignored, so long lines are tolerated). Target py310.
-- Lint rule sets F, E, W, I, UP, B, RUF, with a Frappe-friendly ignore list (F401, E402, B904, and others).
-- Imports are sorted into sections in this order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, local. Use full dotted absolute imports such as `from healthcare.healthcare.doctype.x.x import ...`.
-- Use Frappe idioms:
-  - Wrap user-facing strings in `_()`.
-  - Expose client-callable functions with `@frappe.whitelist()` (about 180 uses).
-  - Query with `frappe.get_all`/`get_list` (`pluck=`), `frappe.db.get_value`/`set_value`, `frappe.qb`.
-  - Use `frappe.utils` helpers (`getdate`, `flt`, `nowdate`, `add_days`).
-- Doctype controllers are classes named after the DocType in PascalCase (`PatientAppointment(Document)`). Files and folders use snake_case versions of the DocType name. Use `frappe.types.DF` typing for auto-generated type hints.
-- Patches go in `healthcare/patches/vNN_0/<verb_description>.py` and define `execute()`.
+**Python** (ruff, configured in `pyproject.toml`)
+- **Tabs** for indentation, **double quotes**, line length 110. E501 is ignored, but keep lines reasonable. Docstring code is formatted.
+- Lint rule sets are `F, E, W, I, UP, B, RUF`. Notable ignores: F401 (unused imports), B904, E402, E741, W191.
+- Import order is enforced via isort sections: stdlib → third-party → `frappe` → `erpnext` → `healthcare`, with a blank line between groups (see `test_patient_appointment.py`).
+- Use absolute imports: `from healthcare.healthcare.doctype.<dt>.<dt> import ...`.
+- Doctype controllers are classes named after the DocType in PascalCase (e.g. `PatientAppointment(Document)`) with Frappe lifecycle methods (`validate`, `on_submit`, `on_cancel`, `before_insert`). Functions and modules are snake_case.
+- Wrap user-facing strings in `_()` (`from frappe import _`) with positional `{0}` placeholders.
+- Prefer `frappe.qb` or the ORM (`frappe.get_list`, `frappe.db.get_value`) for queries. Raw `frappe.db.sql` is common in older code. Semgrep's Frappe rules flag unsafe usage, and `# nosemgrep` is used only where justified.
+- Expose server methods to the client with `@frappe.whitelist()`.
 
-**JavaScript** (ESLint flat config `eslint.config.mjs` with eslint:recommended, plus Prettier for js/ts/vue/css)
-- Desk scripts use `frappe.ui.form.on("DocType", {...})`. The globals `frappe`, `erpnext`, `$` and `moment` are allowed.
-- Wrap user-facing strings in `__()`.
-- Prettier excludes `patient_portal/` and a few large legacy form scripts.
+**JavaScript/Vue** (ESLint `eslint:recommended` flat config + Prettier)
+- Prettier settings: tabs (`useTabs: true`, tabWidth 4), printWidth 88, `arrowParens: avoid`.
+- Frappe globals (`frappe`, `__`, `cur_frm`, `$`, `moment`, …) are declared in `eslint.config.mjs`.
+- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})` and wrap strings in `__()`.
+- The Patient Portal uses Vue SFCs with PascalCase component files (`BookAppointmentModel.vue`), Tailwind utility classes and frappe-ui components. `patient_portal/` is excluded from Prettier.
 
-**Vue (patient_portal)**
-- SFCs use PascalCase filenames (`BookAppointmentModel.vue`), frappe-ui components, and Tailwind utility classes. Use the `@/` alias for `src/`.
-
-**Commits:** Conventional Commits (`feat:`, `fix(tests):`, `docs(wiki):`, `chore:`, `refactor:`), enforced by commitlint.
+**Legacy exclusions:** many legacy files are listed in the pre-commit/semgrep exclude list. Don't remove them from the list without reformatting them in a dedicated `style:` commit, and add mass-reformat commits to `.git-blame-ignore-revs`.
