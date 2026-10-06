@@ -10,24 +10,27 @@ evidence:
   - healthcare/tests/utils.py
   - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
   - codecov.yml
-  - .github/labeler.yml
   - .github/workflows/ci.yml
 ---
 
+# Testing
+
 ## Framework
-- Tests use Frappe/ERPNext integration tests run by bench (`run-parallel-tests` in CI) against a real MariaDB site (`test_site`).
-- Test classes extend **`HealthcareTestSuite`** from `healthcare/tests/utils.py`, which subclasses `ERPNextTestSuite`. Recent commits moved all tests off `IntegrationTestCase` and `EXTRA_TEST_RECORD_DEPENDENCIES`.
-- Master data comes from **`BootStrapTestData`** (`healthcare/tests/utils.py`). It creates `_Test Company`, service items, patients, practitioners, service units, templates, insurance payors and other masters. Tests **reuse these records** (e.g. `frappe.get_list("Patient", pluck="name")[0]`) and do not create their own. Do not delete master data after tests.
-- Always call `super().setUp()` in `setUp`. Keep tests deterministic; several recent fixes targeted ordering and date flakiness.
-- Reuse helper factories exported from other tests (e.g. `create_appointment` in `test_patient_appointment.py`).
+- Tests are Frappe/ERPNext integration tests run with `bench run-tests` / `run-parallel-tests`, against a real MariaDB site.
+- Every test class extends **`HealthcareTestSuite`** from `healthcare/tests/utils.py`, which subclasses ERPNext's `ERPNextTestSuite`. Recent work moved all fork tests onto it, and no test uses `FrappeTestCase` or `IntegrationTestCase` directly.
+- `healthcare/tests/utils.py` also holds `BootStrapTestData`, which builds the shared master data: `_Test Company`, service and stock items, practitioners, patients, service units, templates, insurance payors, and so on. Records use the `_Test ...` naming.
 
 ## Layout
-`healthcare/healthcare/doctype/<doctype>/test_<doctype>.py`, next to the controller (85 test files). Report tests live in the report folder.
+- Each doctype's test sits beside it: `healthcare/healthcare/doctype/<name>/test_<name>.py`. There are about 85 such files.
+- Tests reuse factory helpers exported from other test modules, for example `from ...patient_appointment.test_patient_appointment import create_appointment`.
 
-## Coverage expectations
-- Codecov patch target is **85%** on PRs to `develop`. Project coverage may drop by at most 0.5%.
-- Coverage is captured on scheduled and non-PR runs.
-- The labeler adds **`needs-tests`** when a PR changes `healthcare/**/*.py` without changing any `test*.py`.
+## Conventions
+- Always call `super().setUp()` in `setUp`.
+- Look up fixtures deterministically, for example `frappe.get_list("Patient", pluck="name")`, and do not create ad-hoc companies.
+- Change settings through `frappe.get_single("Healthcare Settings")` followed by `.save(ignore_permissions=True)`.
+- Name test methods `test_<behaviour>`.
 
-## Fork note
-The fork's CI has no history on `biograph-fh`, so the first CI run on a goal PR serves as the baseline. Compare failures against the commit that introduced them.
+## Coverage
+- Codecov is set up with patch coverage **target 85%** on PRs and a project threshold of 0.5%.
+- CI collects coverage only on scheduled and non-PR runs (`WITH_COVERAGE`/`CAPTURE_COVERAGE`).
+- Bug fixes and features should add or update the `test_<doctype>.py` next to the code they change.
