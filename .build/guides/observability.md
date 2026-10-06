@@ -9,15 +9,15 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - .pre-commit-config.yaml
+  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
+  - .github/helper/install.sh
 ---
 
-The project relies on Frappe's built-in facilities. There is no external metrics or tracing stack.
+There is no metrics or tracing stack. Observability relies on Frappe built-ins:
 
-- **Error Log DocType:** `frappe.log_error(...)`, about 15 uses, records caught failures. Pass a traceback or message and a short translated title, for example `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-- **App logger:** `frappe.logger()` with `.info` / `.debug` / `.error` for setup routines and patches, for example `healthcare/healthcare/setup/patient_duplicate_check.py` logs progress per rule. Use f-strings with counts and names.
-- **User-visible signals:** `frappe.msgprint(..., alert=True)` for success toasts, and `indicator="orange"` for degraded-but-continued paths.
-- **Realtime:** `frappe.publish_realtime` is used sparingly (sample collection).
-- **Background jobs and scheduler:** monitor them through Frappe's RQ Job and Scheduled Job Log. Failures inside jobs should call `log_error`.
-- Do not use `print()`. The `debug-statements` pre-commit hook blocks `pdb` and `breakpoint`.
+- **The Error Log doctype**, via `frappe.log_error(...)` (about 15 sites). Use it for failures in scheduler jobs, notifications, calendar sync, payment records and patches. Pass a short human title and the traceback (`frappe.get_traceback()`) or the exception message.
+- **The `frappe.logger()`** file logger (a few sites) logs `.info`/`.error` progress in setup and patches, e.g. `patient_duplicate_check.py`.
+- `print()` appears in some legacy and patch code. Do not add it to runtime paths.
+- Background jobs go through `frappe.enqueue`, so they show up in RQ Job and Scheduled Job Log.
+- In CI, bench output is captured to `bench_run_logs.txt`, and coverage goes to Codecov.
