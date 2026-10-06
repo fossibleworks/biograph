@@ -9,17 +9,15 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
   - healthcare/hooks.py
-  - .pre-commit-config.yaml
 ---
 
-# Observability
+There are no external metrics or tracing. Observability relies on Frappe's built-in facilities.
 
-The app adds no metrics or tracing stack of its own. It relies on Frappe's built-in facilities.
-
-- **`frappe.log_error(...)`** writes to the Error Log doctype and is the main way to record failures. There are about 15 call sites, mostly in patches and in background or notification paths such as appointment confirmation messages and unavailability calendar events. Pass a clear, translatable title: `frappe.log_error(frappe.get_traceback(), _("<What failed>"))` or `frappe.log_error(title=...)`.
-- **`frappe.logger()`** is used sparingly, about 9 times, for informational or parse warnings, for example `frappe.logger().error(f"Could not parse appointment time: {appt_time_str}")`.
-- **Realtime events** go through `frappe.publish_realtime` (for example in sample collection). Long work goes through `frappe.enqueue`, and those jobs show up in Frappe's RQ job views.
-- Scheduled jobs are declared in `scheduler_events` in `hooks.py` and appear in the Scheduled Job Log.
-- Do not use `print()` or leftover debug statements. The pre-commit `debug-statements` hook rejects them.
+- **`frappe.log_error(...)`** writes an Error Log doctype entry and is the main mechanism (about 15 calls). Pass the traceback plus a short translated title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`, or use the keyword form `frappe.log_error(title=...)`.
+- **`frappe.logger()`** goes to file logs (about 9 calls). It's used in patches and parsing fallbacks with `.info` and `.error`.
+- **User-visible signals:** `frappe.msgprint(..., indicator="orange")` or `alert=True` for non-fatal failures.
+- **Audit trail:** Frappe's document versioning, plus the medical-record timeline created on submit (Patient History Settings).
+- **Background jobs** (`frappe.enqueue`) surface through the RQ Job / Error Log UI.
+- **Avoid** `print()` debugging, which exists in `patient_appointment.py`, in new code.
