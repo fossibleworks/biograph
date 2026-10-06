@@ -8,26 +8,24 @@ binding: reference
 source: inferred
 evidence:
   - README.md
-  - healthcare/hooks.py
+  - pyproject.toml
 ---
 
-**Biograph** (by Tacten / fossibleworks; shown as *fossibleHIS* in Build) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' *Marley Health*, with added features. It is a Frappe app named `healthcare` that adds a healthcare domain to **ERPNext**. `required_apps = ["frappe/erpnext"]` and the desk home is `/desk/healthcare`.
+**Biograph** (by Tacten / fossibleworks; the GitHub repo is `fossibleworks/biograph`, and Build calls it fossibleHIS) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians **Marley Health** with extra features. It ships as the Frappe app `healthcare` and adds the health domain to **ERPNext**. Much of the data model follows **HL7 FHIR**.
 
-**Users:** healthcare practitioners, clinics, hospitals and their staff (front desk, nursing, lab, billing and insurance). Patients use the **Patient Portal**.
+**Users:** healthcare practitioners, clinics and hospitals (clinical, front-desk, lab, nursing and billing staff use Frappe Desk), plus patients, who use the **Patient Portal** (`/patient-portal`).
 
-**Core feature areas** (README and the 139 doctypes under `healthcare/healthcare/doctype/`):
-- Patient management, including patient duplicate checking (fork-specific, see `wiki/PATIENT-DUPLICATE*.md`)
-- Outpatient and inpatient: Patient Appointment (with recurring and block-based therapy booking), Patient Encounter, inpatient records and medication orders
-- Clinical procedures, rehabilitation and physiotherapy (Therapy Plan, Therapy Session, Exercise Type)
-- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report, Service Request
-- Insurance: Insurance Payor, Payor Contract, Patient Insurance Policy and Coverage, claims
-- Medical code standards and FHIR-style terminology. The design follows **HL7 FHIR**.
-- Regional features: `healthcare/regional/india` and ABDM doctypes (`abdm_request`, `abdm_settings`)
-- ERPNext integration for billing (Sales Invoice hooks), pharmacy and stock, HR and accounts
+**Main feature areas:**
+- Patient management: patients, duplicate-patient checking, patient history and medical records
+- Outpatient and inpatient care: Patient Appointment (including block-based and recurring booking), Patient Encounter, Inpatient Record, Fee Validity
+- Clinical Procedures, Therapy/Rehabilitation/Physiotherapy, Nursing checklists
+- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
+- Service Requests and Medication Requests (orders)
+- Insurance: payors, contracts, policies, coverage, claims
+- Medical code standards and FHIR terminology
+- Regional: India ABDM integration (`healthcare/regional/india/abdm`)
+- Billing is integrated with ERPNext Sales Invoice and Payment Entry.
 
-**Surfaces:**
-- Frappe Desk UI (doctype forms, reports, dashboards, workspaces)
-- A Vue 3 patient portal SPA served at `/patient-portal` (`healthcare/www/patient_portal.html`)
-- Whitelisted API in `healthcare/healthcare/api/patient_portal.py`
+ERPNext supplies the rest: pharmacy and stock, purchasing, HR, accounts and assets. Facilities are modelled as Healthcare Service Units, and specialities as Medical Departments.
 
-**Upstream relationship:** `biograph-fh` is the fork's main branch. It is kept in sync with `earthians/marley` `version-16` by cherry-picking (`wiki/upstream-sync-version-16.md`). When they conflict, fork behaviour wins.
+**Branch context:** the fork's main branch is `biograph-fh`. It is being synced with upstream `earthians/marley` `version-16` (see `wiki/upstream-sync-version-16.md`). Fork behaviour wins over upstream when the two conflict.
