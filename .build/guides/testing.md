@@ -13,10 +13,9 @@ evidence:
   - .github/workflows/ci.yml
 ---
 
-- **Framework:** Frappe's unittest-based runner (`bench run-tests` / `run-parallel-tests`). It needs a bench site with ERPNext installed and runs on MariaDB in CI.
-- **Layout:** tests sit next to their DocType as `healthcare/healthcare/doctype/<name>/test_<name>.py` (about 85 files). Report tests sit next to their reports.
-- **Base class:** subclass `HealthcareTestSuite` from `healthcare/tests/utils.py`, which builds on ERPNext's `ERPNextTestSuite`. `BootStrapTestData` creates the shared master data (company, items, practitioners, patients, service units, templates, insurance payors). Call `super().setUp()`.
-- **Fixtures:** test records use a `_Test ` name prefix (e.g. `_Test Insurance Payor`). Tests often clean up with `frappe.db.sql("delete from `tabX`")` in `setUp`.
-- **Coverage:** Codecov sets a **patch target of 85%** on PRs to `develop`, and the project coverage may drop by at most 0.5%. Coverage is only captured on scheduled and non-PR runs.
-- **CI scope:** the server-test workflow skips PRs that only touch `*.js`, `*.css`, `*.md`, `*.html` or `*.csv`. Patient-portal (Vue) code has no JS test suite.
-- **Fork note:** the fork (`biograph-fh`) has no CI baseline yet. Local bench runs may also be unavailable, so record in the PR when tests could not run locally.
+- **Framework:** Frappe's test runner (unittest based), executed with `bench run-tests` / `run-parallel-tests` against a real site and a MariaDB/MySQL database.
+- **Layout:** tests sit next to each DocType as `doctype/<name>/test_<name>.py` (about 85 test files), with shared helpers in `healthcare/tests/`.
+- **Base class:** subclass `HealthcareTestSuite` from `healthcare/tests/utils.py`, which builds on ERPNext's `ERPNextTestSuite`. `BootStrapTestData` creates the master data (company, items, departments, practitioners, patients, service units, templates, and more). Reuse these factories rather than creating ad-hoc fixtures.
+- Test methods are named `test_<behaviour>` and use `setUp` for per-test configuration (e.g. Healthcare Settings).
+- **Coverage:** Codecov patch target is **85%** on PRs to `develop`, and project coverage may drop by at most 0.5%. CI collects coverage only on non-PR runs (`WITH_COVERAGE`).
+- **CI note:** the `biograph-fh` fork has no CI history yet, so there is no baseline of failures (see the wiki ledger). When you change behaviour, run the affected doctype's tests locally.
