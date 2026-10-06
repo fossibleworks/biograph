@@ -1,5 +1,5 @@
 ---
-title: Design system
+title: Design System
 category: design-system
 layer: project
 applies_to: []
@@ -8,9 +8,15 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
+  - patient_portal/vite.config.js
   - patient_portal/package.json
+  - patient_portal/src/components/Payment.vue
+  - patient_portal/src/index.css
+  - healthcare/public/js/healthcare_orders.html
 ---
 
-- **Desk (staff UI):** the stock Frappe Desk UI. Build forms from DocType JSON and extend them with form scripts, `frappe.ui.Dialog`, and the HTML templates in `healthcare/public/js/*.html` (e.g. `observation.html`, `healthcare_orders.html`). Don't add custom CSS frameworks to Desk.
-- **Patient Portal:** **frappe-ui** components plus **Tailwind CSS 3** with the `frappe-ui/tailwind` preset as the token source. The only theme extension is legacy color aliases (lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate). Use **feather-icons** for icons. Styles start from `patient_portal/src/index.css`.
-- Reuse the existing portal components (`Calendar.vue`, `DepartmentSelector.vue`, `PractitionerSelector.vue`, `Payment.vue`) before writing new ones.
+- **Desk UI (staff):** use the standard Frappe Desk form, list, tree, calendar and dialog components (`frappe.ui.form.on`, `frappe.ui.Dialog`, `frm.add_custom_button`), plus HTML templates in `healthcare/public/js/*.html` and `page/*/` (with page-local `.css`). Build on Frappe's built-in styles rather than adding a separate CSS framework.
+- **Patient portal:** **frappe-ui** is the component library (e.g. `Card`, plus frappe-ui resources). **Tailwind CSS 3** is configured with `presets: [frappeUIPreset]` from `frappe-ui/tailwind`, which provides the design tokens. It extends a few legacy colour aliases (`lightBlue`→sky, `warmGray`→stone, `trueGray`→neutral, `coolGray`→gray, `blueGray`→slate). The `content` globs include frappe-ui's components.
+- Icons come from feather-icons and lucide, via the frappe-ui vite plugin with `lucideIcons: true`.
+- Existing portal styling patterns: neutral grays for text (`text-gray-900` headings, `text-gray-500` secondary text), `rounded-xl shadow-sm` cards, `p-5` padding, and green or blue accents for amounts.
+- Global portal CSS lives in `patient_portal/src/index.css`.
