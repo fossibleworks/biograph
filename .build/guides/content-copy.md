@@ -1,5 +1,5 @@
 ---
-title: Content and copy
+title: Content & copy
 category: content-copy
 layer: project
 applies_to: []
@@ -9,13 +9,17 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment_list.js
   - patient_portal/src/components/BookAppointmentModel.vue
-  - patient_portal/src/PatientPortal.vue
   - healthcare/locale/main.pot
 ---
 
-- **Terminology:** use the domain DocType names exactly and in Title Case: Patient, Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Lab Test, Sample Collection, Clinical Procedure, Inpatient Record, Insurance Payor, Healthcare Settings. Call the person "Practitioner", not "Doctor".
-- **Error messages:** short, declarative sentences ending with a period, sometimes with an exclamation mark for conflicts (`"Appointment end must be after start."`, `"Appointment Date and Time are required."`, `"Patient already has an appointment booked for the same day!"`). Record names go in `{0}` placeholders, often wrapped in `frappe.bold`. Dialog titles are Title Case noun phrases (`Missing Configuration`, `Customer Not Found`).
-- **Toasts:** past-tense confirmations (`"Sales Invoice {0} created"`).
-- **Portal copy:** friendly and plain. Headings are Title Case (`Book an Appointment`, `Available Slots`, `Appointment Details`, `Pay Your Bill`, `Payment Successful`). Selectors use the "Select a …" form (`Select a Department`, `Select a Practitioner`). Empty states use "Looks like you don't have any appointments yet." or `No Records Found`. Button labels are short verbs (`Book`).
-- All server strings use `_()` and all desk JS strings use `__()`, so they reach `healthcare/locale/main.pot` and Crowdin.
+- **Terminology:** use the DocType names as written in Title Case: Patient, Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Fee Validity, Sales Invoice, Insurance Payor, Service Request. Use "Practitioner", not "Doctor".
+- **Tone:** short, plain and direct.
+  - Errors state the problem: `"Appointment Date and Time are required."`, `"Appointment end must be after start."`, `"Registration Fee cannot be negative or zero"`, `"Configure a service Item for {0}"`.
+  - Success alerts: `"Sales Invoice {0} created"`, `"Unavailability record cancelled successfully"`.
+  - Degraded paths: `"SMS not sent, please check SMS Settings"`.
+- **Formatting:** use `{0}` placeholders with `.format()` after `_()`. Interpolate before translating, as in `_("{0} is a holiday".format(date))`, only in legacy code; do not copy it. Dialog titles are Title Case (`"Not Available"`, `"Missing Configuration"`).
+- **Desk buttons and labels:** Title Case verbs and nouns wrapped in `__()`, for example `"Repeat Appointments"` and `"Mark Unavailable"`.
+- **Portal copy** is friendly and patient-facing: "Book an Appointment", "Available Slots", "Pay Your Bill", "Payment Successful". The empty state reads "Looks like you don't have any appointments yet." and there is also "No Records Found".
+- Every string must be translatable. The POT file is regenerated weekly.
