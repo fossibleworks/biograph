@@ -8,14 +8,13 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
-  - AGENTS.md
-  - .github/instructions/build-rules.instructions.md
+  - .github/helper/documentation.py
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
 ---
 
-- **README.md** covers the product introduction, install steps (`bench get-app`, `install-app healthcare`) and developer setup (pre-commit, semgrep). Full user docs are external, on DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **`wiki/`** holds the in-repo design and usage docs as UPPER-KEBAB markdown: `DESIGN-*.md` for designs (for example block-based therapy booking), `*-USAGE*.md` for how-tos, implementation plans and parity reports, and the **upstream sync ledger** (`upstream-sync-version-16.md`). Recent commits update the ledger as `docs(wiki): …`.
-- **PR docs gate:** `docs_checker.yml` runs `.github/helper/documentation.py`. Any PR titled `feat…` must link to a docs page whose path contains `/wiki` on `biograph.frappe.cloud` or `biograph.io`, unless the body contains `no-docs` or `backport`. Note that the helper queries `earthians/biograph`.
-- `AGENTS.md`, `CLAUDE.md` and `.github/instructions/*` are generated or managed by Build from `.build/RULES.md`. Edit the source file, not the rendered copies.
+- **User and product docs** live outside the repo. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`). Upstream feature docs live on the Biograph Frappe wiki (`biograph.frappe.cloud` or `biograph.io` `/wiki`).
+- **Docs gate for `feat` PRs:** `docs_checker.yml` runs `.github/helper/documentation.py`. It fails any PR titled `feat...` whose body has no link to a `biograph.frappe.cloud` or `biograph.io` URL containing `/wiki`. To bypass it, put `no-docs` or `backport` in the PR body.
+- **In-repo design docs:** the fork keeps design, usage and planning docs as Markdown in `wiki/`. Examples: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `insurance-parity-report.md`, and the upstream sync ledger `upstream-sync-version-16.md`. Names are UPPER-KEBAB for design and usage docs. Images sit alongside the docs.
+- **Ledgers:** upstream-sync work is recorded in `wiki/upstream-sync-version-16.md` (method, outcome vocabulary, per-batch results), using `docs(wiki): ...` commits.
+- **Code comments:** `hooks.py` keeps Frappe's scaffold comments. Add a short explanatory comment block when you add non-obvious hooks, as the `on_login` comment does.
