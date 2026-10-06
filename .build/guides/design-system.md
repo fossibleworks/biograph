@@ -10,10 +10,8 @@ evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/package.json
   - patient_portal/vite.config.js
+  - patient_portal/src/components/Payment.vue
 ---
 
-- **Desk UI:** use Frappe desk's native components (`frappe.ui.Dialog`, form fields, `frappe.ui.form.on`), and define fields in doctype JSON. Do not add custom CSS frameworks to desk. HTML snippets for widgets live in `healthcare/public/js/*.html`, for example `healthcare_note.html`, `observation.html` and `healthcare_orders.html`.
-- **Patient Portal:** use the **frappe-ui** component library with its **Tailwind preset** (`frappeUIPreset`). That preset is the source of design tokens. `tailwind.config.js` only adds legacy colour aliases (lightBlue→sky, warmGray→stone, and so on).
-  - Icons: feather-icons and lucide (frappe-ui Vite plugin `lucideIcons: true`).
-  - Styling: Tailwind utility classes in Vue SFCs, plus `src/index.css`.
-- **Static assets:** under `healthcare/public/images` (app logo `healthcare.svg`).
+- **Patient Portal (Vue):** the component library is **frappe-ui** (`Card`, `ErrorMessage`, `Button`, …, auto-imported through unplugin). Design tokens come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]`). The local config only adds legacy color aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Icons are feather-icons and lucide (`lucideIcons: true`). Style with Tailwind utility classes. The existing look uses `text-gray-900/800/500` text, `rounded-xl shadow-sm` cards, and `space-y-*` stacks, with green/blue accents for amounts. Global CSS lives in `patient_portal/src/index.css`.
+- **Desk UI:** standard Frappe Desk form, list and dialog components (`frappe.ui.form`, `frappe.ui.Dialog`) with small HTML partials in `healthcare/public/js/*.html` (e.g. `observation.html`, `healthcare_orders.html`). Don't introduce a separate CSS framework into the desk.
