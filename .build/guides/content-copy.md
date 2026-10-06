@@ -8,18 +8,18 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/public/js/sales_invoice.js
   - healthcare/healthcare/utils.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment_list.js
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - patient_portal/src/components/AppointmentModel.vue
   - healthcare/locale/main.pot
 ---
 
-- **Terminology:** use the DocType names as written in Title Case: Patient, Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Fee Validity, Sales Invoice, Insurance Payor, Service Request. Use "Practitioner", not "Doctor".
-- **Tone:** short, plain and direct.
-  - Errors state the problem: `"Appointment Date and Time are required."`, `"Appointment end must be after start."`, `"Registration Fee cannot be negative or zero"`, `"Configure a service Item for {0}"`.
-  - Success alerts: `"Sales Invoice {0} created"`, `"Unavailability record cancelled successfully"`.
-  - Degraded paths: `"SMS not sent, please check SMS Settings"`.
-- **Formatting:** use `{0}` placeholders with `.format()` after `_()`. Interpolate before translating, as in `_("{0} is a holiday".format(date))`, only in legacy code; do not copy it. Dialog titles are Title Case (`"Not Available"`, `"Missing Configuration"`).
-- **Desk buttons and labels:** Title Case verbs and nouns wrapped in `__()`, for example `"Repeat Appointments"` and `"Mark Unavailable"`.
-- **Portal copy** is friendly and patient-facing: "Book an Appointment", "Available Slots", "Pay Your Bill", "Payment Successful". The empty state reads "Looks like you don't have any appointments yet." and there is also "No Records Found".
-- Every string must be translatable. The POT file is regenerated weekly.
+- **Tone:** plain, direct and clinical-administrative. Messages are mostly short sentences in sentence case, often ending with a period or `!`. Examples:
+  - "Appointment Date and Time are required."
+  - "Patient already has an appointment booked for the same day!"
+  - "Please set a Customer linked to the Patient"
+- **Pattern for blocked actions:** "Not allowed, …" (e.g. "Not allowed, cannot overlap appointment {}").
+- **Ask for missing configuration with "Please …"**, e.g. "Please select Healthcare Service". Use the title "Missing Configuration".
+- **Terminology:** use DocType names, capitalised as nouns: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Code Value, Fee Validity, Inpatient Record, Healthcare Settings. Use "practitioner", not "doctor", in system copy.
+- **Placeholders:** `{0}`/`{1}`, with record names emphasised via `frappe.bold()`. Always translatable via `_()` / `__()`. Strings feed `healthcare/locale/main.pot`.
+- **Portal empty states:** a friendly heading plus an explanation, e.g. "No Records Found" / "Looks like you don't have any appointments yet."
