@@ -10,11 +10,10 @@ evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/package.json
   - patient_portal/vite.config.js
-  - patient_portal/src/components/Payment.vue
-  - healthcare/hooks.py
-  - healthcare/public/js/observation.html
+  - patient_portal/src/components/PractitionerSelector.vue
+  - healthcare/public/js/observation_widget.js
 ---
 
-- **Desk UI** (most screens) uses the **Frappe desk** components: DocType forms, list views, dialogs (`frappe.ui.Dialog`), `frappe.msgprint`, workspaces, number cards and dashboard charts. Look comes from Frappe/ERPNext. There is no custom CSS bundle (`app_include_css` is commented out). HTML snippets for widgets live in `healthcare/public/js/*.html` (healthcare_note, observation, healthcare_orders).
-- **Patient portal** uses **frappe-ui** as its component library (`Card` and others) and its Tailwind preset (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only theme extension is legacy colour aliases (lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate). Icons are feather-icons and lucide (`lucideIcons: true`).
-- **Portal styling:** Tailwind utility classes directly in SFC templates, e.g. `text-2xl font-bold text-gray-900`, `text-sm text-gray-500`, `p-5 rounded-xl shadow-sm`, with accent `text-green-600` for amounts. Use the frappe-ui and Tailwind gray scale rather than custom hex values.
+- **Desk UI:** use Frappe desk's built-in components (`frappe.ui.form`, `frappe.ui.Dialog` with `primary_action_label`, list and calendar views). There is no custom token layer, and app CSS is not included (`app_include_css` is commented out).
+- **Patient Portal:** the component library is **frappe-ui** (`Button`, `Card`, `createResource`/cached resources, etc.). Styling uses **Tailwind 3.4** with the `frappe-ui/tailwind` preset as the design-token source. `tailwind.config.js` only adds legacy colour aliases (lightBlue, warmGray, …). Icons are feather-icons or Lucide (`lucideIcons: true` in the frappe-ui vite plugin).
+- Use frappe-ui button variants and sizes (`variant="subtle"`, `size="sm"`) instead of custom-styled buttons.
