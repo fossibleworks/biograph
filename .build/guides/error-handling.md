@@ -4,29 +4,22 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/setup.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
+  - healthcare/patches/v15_0/check_version_compatibility_with_frappe.py
 ---
 
-# Error handling
-
-## Validation errors (user-facing)
-- Raise with **`frappe.throw(_("message {0}").format(value))`**. There are about 180 call sites, and this is the standard way to stop a save, submit, or API call.
-- When callers or tests need to tell an error apart, define a module-level subclass of `frappe.ValidationError` and pass it as the second argument. Examples: `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`.
-- For permission failures, use `frappe.throw(_("Not permitted"), frappe.PermissionError)`.
-- Use `frappe.msgprint(..., alert=True)` for non-blocking notices.
-
-## Background/side-effect failures
-- Side effects that must not block the main transaction, such as calendar events, SMS/notification sending, and patches, go in `try/except Exception` and are recorded with **`frappe.log_error(frappe.get_traceback(), _("Title"))`** or `frappe.log_error(title=...)` (Error Log doctype).
-- Expected duplicates in setup/install are caught narrowly (`except frappe.DuplicateEntryError`).
-- Avoid `print()` for errors (one legacy occurrence exists in patient_appointment). Use `frappe.log_error` instead.
-
-## Client side
-- Desk relies on Frappe's server message dialogs.
-- In the Patient Portal, frappe-ui `createResource` `onError(e)` handlers show `e.messages?.[0] || e` through `<ErrorMessage>` or `toast`.
+- **Validation errors:** raise them with **`frappe.throw(_("Message"))`** (about 180 uses).
+  - Pass `title=_("...")` to group errors, for example `title=_("Missing Configuration")` or `title=_("Not Available")`.
+  - Interpolate values with `_("... {0}").format(value)`, not f-strings inside `_()`. Older code violates this.
+  - Highlight names with `frappe.bold()`.
+- **Typed errors:** subclass `frappe.ValidationError` per module and pass the class to throw, for example `frappe.throw(msg, OverlapError)`. Existing examples: `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`. Tests can then assert on the class.
+- **Non-blocking messages:** use `frappe.msgprint`.
+- **Background or best-effort work:** catch `Exception`, then record it with `frappe.log_error(message_or_traceback, "Title")` and use `frappe.get_traceback()` for detail. Do not swallow errors silently. Do not use `print()`, even though some legacy appointment code does.
+- **Patches:** guard risky renames with try/except and `frappe.log_error`. Version-compatibility patches throw on purpose (marked `# nosemgrep`).
+- **Client side:** desk JS uses `frappe.msgprint` and `frappe.throw` with `__()` strings.
