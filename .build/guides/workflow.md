@@ -9,21 +9,22 @@ source: inferred
 evidence:
   - CLAUDE.md
   - .build/RULES.md
-  - AGENTS.md
   - .mergify.yml
   - .github/CODEOWNERS
-  - .github/helper/install.sh
+  - commitlint.config.js
 ---
 
-**This fork (`fossibleworks/biograph`) is driven by Interactor Build.**
-- Every code change needs a tracked **Goal**. Create one in the Build web UI or with `ibuild engine goal-create "<title>"` and admit it with `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after an explicit import.
-- Work on branch **`goal/<goalId>`** in an isolated worktree. **Never commit to the main branch `biograph-fh` directly.**
-- Each Goal ships through a single PR that the engine opens. The PR must pass review and CI. EngineTasks under the Goal each go through investigation, execution and review.
-- Small interactive changes may use `ibuild off`. They still land on their own branch through a hand-opened PR that runs CI.
-- Project rules live in `.build/RULES.md`. That file is mirrored to `.claude/rules/`, `.cursor/rules/`, `.github/instructions/` and `AGENTS.md`; edit the source, not the mirrors.
+This repo is driven by **Interactor Build's engine** (see `CLAUDE.md`):
 
-**Upstream conventions that still apply**
-- Conventional Commit titles (commitlint).
-- Upstream (earthians) releases from `version-14/15/16`, and PRs go to `develop` or `version-N-hotfix`. Mergify closes PRs that target stable branches. Mergify also automerges after at least one approval (squash with the `squash` label) and backports with `backport <branch>` labels.
-- Upstream syncs: use `git cherry-pick -x` from `earthians/marley version-16`, and record each pick in `wiki/upstream-sync-version-16.md`. Conflict policy: **the fork's intent wins**.
-- Code owners: @akurungadam, @Sajinsr.
+1. **No edits without a tracked Goal.** Create one in the Build web UI or with `ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after an explicit import.
+2. **Work on `goal/<goalId>` in an isolated worktree. Never commit to the default branch `biograph-fh`.**
+3. **One PR per Goal.** The engine opens it, and it must pass review and CI. Each EngineTask under a Goal goes through investigation → execution → review.
+4. A small change can use `ibuild off` only if the project allows it. It still needs its own branch and a hand-opened PR.
+
+**Branches:** `biograph-fh` is the fork's integration/default branch. `version-14/15/16` are stable release branches, and Mergify auto-closes PRs from non-maintainers to them. Upstream `earthians/marley` `version-16` arrives through `git cherry-pick -x`, and fork intent wins conflicts. Record every pick in `wiki/upstream-sync-version-16.md`.
+
+**Commits:** Conventional Commits (commitlint). Upstream-sync commits add the suffix `(upstream sync B<n>)`.
+
+**Merging:** Mergify merges once CI passes and there is ≥1 approving review (or squashes with the `squash` label). `dont-merge` blocks merging. CODEOWNERS: @akurungadam @Sajinsr.
+
+Project rules live in `.build/RULES.md`. Mirrors such as `AGENTS.md` and `.claude/rules/` are generated from it.
