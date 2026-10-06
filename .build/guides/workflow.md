@@ -8,21 +8,23 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
+  - .build/RULES.md
   - commitlint.config.js
   - .github/workflows/semantic-commits.yml
   - .mergify.yml
   - .github/CODEOWNERS
-  - .build/RULES.md
 ---
 
-**Work tracking (Interactor Build engine, per `CLAUDE.md`):**
-- Every code change needs a tracked **Goal** first. Create one in the Build web UI, with `ibuild engine goal-create "<title>"`, or by importing a GitHub issue.
-- Each Goal owns a single branch, **`goal/<goalId>`**, worked in an isolated worktree, and a **single PR** opened by the engine. The engine breaks Goals into EngineTasks, and each task goes through investigation → execution → review.
-- Never commit or push directly to the default branch **`biograph-fh`**. For small changes in an interactive session, `ibuild off` is allowed, but the change still goes through its own branch and a PR.
-- Project rules: `.build/RULES.md`, mirrored to `.claude/rules/` and `.github/instructions/`. Guides go in `.build/guides/`, indexed in `AGENTS.md`.
+**Work tracking (Interactor Build engine):** every code change needs a tracked **Goal**. A GitHub issue maps to a Goal, and the engine generates EngineTasks beneath it. Each task cycles investigation → execution → review. Create Goals in the Build web UI or with `ibuild engine goal-create "<title>"` / `ibuild engine goal queue <id>`.
 
-**Commits:** Conventional Commits, enforced by commitlint on PRs. Allowed types are `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, all lowercase, and the subject is required. Scopes are common (`fix(tests): ...`, `docs(wiki): ...`). Upstream-sync work adds a suffix such as `(upstream sync B2)`.
+**Branching:**
+- The fork's main integration branch is **`biograph-fh`**.
+- Work happens on **`goal/<goalId>`** in an isolated worktree, and ships via a single PR the engine opens.
+- Never commit or push directly to the main branch. A small change may bypass the gate with `ibuild off`, but it still goes through its own branch and a hand-opened PR.
+- Upstream (earthians) uses `develop`, `version-NN-hotfix` and the stable `version-14/15/16` branches. Mergify auto-closes PRs to stable branches from non-maintainers, and auto-merges after one approval plus CI. The `squash` label squashes; `dont-merge` blocks the merge.
 
-**Upstream sync:** pull upstream earthians/marley `version-16` commits with `git cherry-pick -x`. On conflict, the fork's intent wins (union DocType `fields`/`field_order`, union `patches.txt`, keep the fork's `.releaserc`). Log each commit's outcome in `wiki/upstream-sync-version-16.md`.
+**Commits:** Conventional Commits, enforced by commitlint. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, in lower case, with a non-empty subject. Scopes are common, e.g. `docs(wiki): ...`, `chore(rules): ...`.
 
-**Review:** CODEOWNERS are `@akurungadam` and `@Sajinsr`. Mergify (an upstream config) auto-closes PRs against the `version-1x` stable branches unless the author is a maintainer or bot. It auto-merges after one approval and green CI unless the PR is labelled `dont-merge` or `squash`.
+**Upstream sync:** cherry-pick with `git cherry-pick -x`. Conflicts follow the "fork intent wins" policy, and every pick is recorded in `wiki/upstream-sync-version-16.md`.
+
+**Code owners:** @akurungadam and @Sajinsr. Project rules live in `.build/RULES.md`.
