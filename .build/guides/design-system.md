@@ -8,11 +8,11 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
+  - patient_portal/src/patient_portal.js
+  - patient_portal/src/components/Payment.vue
   - patient_portal/vite.config.js
-  - patient_portal/package.json
 ---
 
-- **Desk UI** (almost all staff screens) uses Frappe's built-in form, list, tree and calendar views, configured through DocType JSON and `frappe.ui.form.on` scripts. Use standard Frappe controls and dialogs (`frappe.ui.Dialog`, `frm.add_custom_button`) before writing custom HTML. Custom HTML snippets live in `healthcare/public/js/*.html` (e.g. `healthcare_orders.html`, `observation.html`).
-- **Patient Portal** uses **frappe-ui** as its component library and token source. `tailwind.config.js` uses `presets: [frappeUIPreset]` and only adds legacy colour aliases (lightBlue → sky, warmGray → stone, and so on). Use frappe-ui components and Tailwind utility classes. Do not add new colour scales or another UI kit.
-- Icons: frappe-ui lucide icons (`lucideIcons: true` in Vite) and `feather-icons`.
-- Global styles are in `patient_portal/src/index.css`.
+- **Desk UI** uses the standard Frappe Desk components: forms, list, tree and calendar views, dialogs, `frappe.ui.*`. Doctype-specific UI goes in `<doctype>.js`, `_list.js`, `_tree.js` and `_calendar.js`. Shared widgets live in `healthcare/public/js` (`observation_widget.js`, `healthcare_orders.html`, `healthcare_note.js`). Don't introduce a separate CSS framework into the desk.
+- **Patient portal** uses **frappe-ui** as its component library. `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `patient_portal.js`. Styling uses **Tailwind** with the `frappe-ui/tailwind` preset as the token source. `tailwind.config.js` only adds colour aliases (lightBlue, warmGray, …). Icons come from feather and lucide through the frappe-ui Vite plugin.
+- Existing portal styling: cards are `rounded-xl shadow-sm p-5`, text uses the gray scale (`text-gray-900/800/500`), and amounts are shown in `font-bold` with green or blue accents. Format currency with `formatCurrency` from `src/utils/formatters.js`.
