@@ -7,16 +7,17 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
-  - healthcare/healthcare/api/patient_portal.py
-  - patient_portal/src/PatientPortal.vue
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/patches/v15_0/check_version_compatibility_with_frappe.py
 ---
 
-- **Validation errors:** raise them with `frappe.throw(_("Message."))`, about 181 call sites. Add `title=_(...)` for a dialog heading, for example `frappe.throw(msg, title=_("Customer Not Found"))`. Pass an exception class when callers or tests need to tell errors apart: `frappe.throw(_("..."), OverlapError)`.
-- **Custom exceptions:** subclass `frappe.ValidationError` at module level in the doctype controller. Examples: `OverlapError` and `MaximumCapacityError` in patient_appointment; `CoverageNotFoundError` and `NoActiveContractError` in patient_insurance_coverage; `CoverageOverlapError`.
-- Business logic and validation **must live on the server side** (PR template rule). Client JS may also call `frappe.throw(__('...'))` for quick input checks.
-- **Non-fatal failures** (notifications, calendar events, patches) are caught and logged with `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)`, so the transaction is not aborted. `except Exception` appears about 31 times. Keep it for these best-effort paths only.
-- Whitelisted API functions return `None` or empty results for a missing patient or context, rather than raising (see `api/patient_portal.py`). Permission checks go through `has_website_permission` hooks.
-- On the portal, frappe-ui `createResource` exposes `onSuccess`/`onError`. Problems are shown in a frappe-ui `Dialog` with a warning icon.
+- **Validation errors:** use `frappe.throw(_("..."), title=_("..."))` (about 180 call sites). Messages are translatable and often use positional formatting (`_("Patient {0} is not admitted in the service unit {1}").format(...)`). Pass a specific exception class when callers or tests need to tell it apart: `frappe.throw(msg, OverlapError)`.
+- **Typed errors:** define them at module level as subclasses of `frappe.ValidationError`, e.g. `MaximumCapacityError`, `OverlapError`, `CoverageNotFoundError`, `NoActiveContractError`.
+- **Non-blocking notices:** `frappe.msgprint(...)`.
+- **Caught failures in background or integration code:** catch them, then call `frappe.log_error(message_or_traceback, "<Title>")` so they show in the Error Log doctype, and keep the main transaction going where that is safe (e.g. calendar event creation in Patient Appointment, migration patches).
+- **Patches:** wrap risky steps in try/except with `frappe.log_error(title=...)` so `migrate` does not abort on data quirks.
+- **Whitelisted APIs:** rely on Frappe's permission and exception handling. Raise with `frappe.throw` and do not return error dicts.
+- Semgrep (frappe rules) runs in CI. Use `# nosemgrep` only with a reason, as in `check_version_compatibility_with_frappe.py`.
