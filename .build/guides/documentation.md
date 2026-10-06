@@ -8,15 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
 ---
 
-- **User and product docs** live outside the repo: the README links to DeepWiki (`deepwiki.com/Tacten/biograph`), and the upstream `docs_checker.yml` expects `feat` PRs to link to a `/wiki` page on `biograph.frappe.cloud` / `biograph.io`.
-- **In-repo `wiki/`** holds the fork's design and usage docs as Markdown, mostly in UPPER-KEBAB-CASE: `DESIGN-*.md` for designs, `*-USAGE*.md` for usage guides, plus parity and implementation-plan reports. Screenshots sit alongside them (`patient-duplicatecheck-thumbnail.png`). Usage docs open with a numbered table of contents.
-- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` records each sync batch (picked, skipped, deferred commits and why). Update it with `docs(wiki): ...` commits whenever upstream commits are cherry-picked.
-- **`patient_portal/README.md`** documents the SPA.
-- **Agent docs:** `CLAUDE.md` (engine workflow), `AGENTS.md`, and `.build/RULES.md`.
-- **Code comments:** sparse. Copyright headers in older files, and short docstrings on helpers.
+- Published end-user documentation is external: the README links to DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **In-repo design and usage docs** live in `wiki/` as upper-case kebab-case Markdown files: `DESIGN-*.md` for designs, `*-USAGE*.md` for how-tos, and parity reports and plans. Screenshots sit alongside them.
+- **`wiki/upstream-sync-version-16.md`** is the ledger for upstream cherry-picks. Each batch gets a table with columns #, upstream sha, subject, outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped, deferred) and notes. Record every sync decision there in a `docs(wiki): ...` commit.
+- **The PR docs gate** (`docs_checker.yml`): a PR whose title starts with `feat` must link a `/wiki` URL on biograph.frappe.cloud or biograph.io in its body, or include `no-docs` (or `backport`).
+- Code comments are sparse. Docstrings appear on whitelisted APIs.
