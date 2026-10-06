@@ -4,21 +4,22 @@ category: performance
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/hooks.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
   - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/healthcare/api/patient_portal.py
 ---
 
-# Performance-sensitive areas
+These are the likely hot paths:
 
-- **Appointment scheduling and availability**: `patient_appointment.py` is the largest controller (~1,900 lines). It handles slot computation, overlap and capacity checks, practitioner availability and recurring appointments. These paths run on every booking and from the portal. Keep queries bounded and indexed.
-- **Scheduler jobs**: `send_appointment_reminder` runs on the `all` scheduler tick (every few minutes). Daily jobs update appointment status, fee validity, inpatient billables and expired medication requests. They scan whole tables, so filter in SQL and process in batches.
-- **Wildcard doc_events**: `doc_events["*"]` (on_submit / on_cancel / on_update_after_submit → Patient Medical Record) fires for *every* submitted document site-wide, including ERPNext documents. Keep these handlers cheap and exit early.
-- **Long-running work goes to the queue**: recurring appointment creation and sample collection use `frappe.enqueue(..., queue="long", enqueue_after_commit=True)`. Follow that pattern rather than doing bulk work in a request.
-- **Raw SQL**: about 90 `frappe.db.sql` call sites. Prefer `frappe.get_all` / the query builder with explicit `fields` and filters. Many doctype JSONs declare `search_index` on hot link fields; add one when you introduce a new frequently filtered field.
-- **Reports and dashboard charts** (`report/`, `dashboard_chart_source/`) aggregate across appointments, encounters and lab tests, so they need date-bounded filters.
-- **Portal**: a Vite SPA. Bundle size and the number of API round-trips to `api/patient_portal.py` matter on mobile.
+- **The global `doc_events["*"]` hooks.** `on_submit`, `on_cancel` and `on_update_after_submit` call Patient History Settings for *every* submitted document in the site, so keep them cheap and return early.
+- **Appointment scheduling.** `patient_appointment.py` is about 1,800+ lines. It runs availability, overlap and capacity checks, and `send_appointment_reminder` runs on the `all` scheduler (every few minutes). Daily jobs update appointment, fee-validity and medication-request status, and add inpatient billables.
+- **Patient portal API.** `api/patient_portal.py` uses multi-join `frappe.qb` queries over appointments and encounters. Select only the columns you need.
+- **Bulk operations go to the background queue.** Recurring appointment creation and sample collection already use `frappe.enqueue`. Follow that pattern for anything that loops over many records.
+- **Reports** (`healthcare/healthcare/report/*`), such as appointment analytics and diagnosis trends, can scan large tables.
+
+Prefer `frappe.get_all` with `pluck`/`fields` and `frappe.db.get_value` over loading full documents with `frappe.get_doc` inside loops.
