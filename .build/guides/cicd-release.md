@@ -1,5 +1,5 @@
 ---
-title: CI/CD & release
+title: CI/CD and release
 category: cicd-release
 layer: project
 applies_to: []
@@ -8,32 +8,34 @@ binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
-  - .github/workflows/linters.v2.yml
+  - .github/helper/install.sh
+  - .github/workflows/linters.yml
   - .github/workflows/semantic-commits.yml
-  - .github/workflows/docs_checker.yml
   - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
-  - .github/workflows/release_notes.yml
   - .releaserc
   - .github/release.yml
+  - codecov.yml
 ---
 
-## On pull requests
-- **CI / Server Tests** (`ci.yml`) runs on PRs, except changes that touch only css/js/md/html/csv, and nightly at 00:00 UTC. Steps:
-  1. Run `compileall` and a merge-marker check.
-  2. `install.sh` sets up a bench with frappe, erpnext and payments. They use the base branch, or `version-16` for fork branches.
-  3. Install the app.
-  4. Run `bench run-parallel-tests --app healthcare` against MariaDB 11.8, with a 30-minute timeout.
-  5. On non-PR runs, upload coverage to Codecov.
-- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus Frappe semgrep rules and `r/python.lang.correctness`.
+# CI/CD and release
+
+## PR checks (GitHub Actions)
+- **CI / Server Tests** (`ci.yml`)
+  - Runs on pull requests, skipping changes that touch only css, js, md, html or csv and skipping `version-*-beta` branches. Also runs nightly at 00:00 UTC.
+  - Setup: Python 3.14, Node 24, a MariaDB 11.8 service, `python -m compileall`, and a merge-conflict-marker check.
+  - `install.sh` bootstraps a bench with frappe, erpnext and payments. Fork branches such as `biograph-fh` and `goal/*` clone Frappe and ERPNext `version-16`.
+  - Then runs `bench run-parallel-tests --app healthcare`. Coverage goes to Codecov only on non-PR runs.
+- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets, …) plus Frappe Semgrep rules.
 - **Semantic Commits**: commitlint over the PR's commits.
-- **Documentation Required**: `feat` PRs must link wiki docs.
-- **Labeler**: adds `needs-tests`. **CodeQL**: python and JS, on develop and weekly.
+- **Documentation Required**: `feat` PRs need a docs link. This is an upstream-oriented check.
+- **CodeQL**, a **labeller**, and Dependabot.
 
-## Release (inherited from upstream earthians/biograph)
-- `initiate_release.yml` opens a release PR from `version-1x-hotfix` into `version-1x` (14, 15, 16) every Tuesday.
-- `on_release.yml`: pushes to `version-14/15/16` run **semantic-release** (angular preset; breaking changes do not trigger a major release). It rewrites the version in `healthcare/__init__.py` and commits `chore(release): Bumped to Version x.y.z`.
-- `release_notes.yml` regenerates the notes and strips chore/ci/test/docs/style lines. The `skip-release-notes` label excludes a PR.
-- `generate-pot-file.yml` refreshes translations weekly.
-
-Fork note: the release workflows target the `earthians/biograph` repo and use earthians bot tokens. On `biograph-fh`, versions are bumped by hand with `chore: bump version to x.y.z` commits that follow upstream. Workflow-file changes need the `workflow` token scope, so they may be deferred (see the sync ledger).
+## Release (inherited from upstream)
+- `initiate_release.yml` opens a weekly PR (Tuesdays) from `version-N-hotfix` into `version-N` for N = 14, 15, 16.
+- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`, using the angular preset with breaking changes not auto-releasing.
+  - It rewrites the version in `healthcare/__init__.py` and commits `chore(release): Bumped to Version x.y.z`.
+  - It then creates the GitHub release. `release.yml` excludes PRs labelled `skip-release-notes` from the changelog.
+- `generate-pot-file.yml` regenerates the translation template every week, and Crowdin opens translation PRs.
+- Deployment runs through bench or Frappe Cloud (`bench get-app` + `install-app` / `migrate`). The repo has no deploy workflow.
+- Several workflows point at the upstream `earthians/biograph` repo and its secrets. On the fork, the PR checks are what matter.
