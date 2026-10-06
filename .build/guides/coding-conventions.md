@@ -10,26 +10,24 @@ evidence:
   - pyproject.toml
   - .prettierrc.yaml
   - eslint.config.mjs
-  - commitlint.config.js
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - .pre-commit-config.yaml
-  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
-  - healthcare/healthcare/api/patient_portal.py
+  - commitlint.config.js
 ---
 
 **Python** (ruff, `pyproject.toml`)
-- **Tabs** for indentation, **double quotes**, line length 110 (E501 is ignored, so long lines are tolerated).
-- Lint rule sets: `F, E, W, I, UP, B, RUF`. Several rules are explicitly ignored, including F401 unused imports, E402 and B904.
-- Import order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Each group is separated by a blank line (see `test_patient_appointment.py`).
-- Use absolute imports from `healthcare.healthcare...`.
-- DocType controllers are `class PatientAppointment(Document)`: PascalCase from the DocType name. The file and folder names are the snake_case form of the DocType.
-- Use `frappe.qb` (query builder) for new queries. Older code uses `frappe.db.sql`.
-- Wrap every user-facing string with `_()` and use `.format()` placeholders: `_("Invalid Code Value: {0}").format(code_value)`.
-- Mark server endpoints with `@frappe.whitelist()`.
-- A large legacy file list in `.pre-commit-config.yaml` is excluded from linting. New files are linted, so do not add new files to that exclude list.
+- **Tabs** for indentation, **double quotes**, line length 110. Rule sets: F, E, W, I, UP, B, RUF. Many rules are ignored, including F401 unused imports, E501, and B904.
+- Import order: stdlib → third-party → `frappe` → `erpnext` → `healthcare`, with each group separated by a blank line. Use absolute dotted imports (`from healthcare.healthcare.doctype.fee_validity.fee_validity import ...`).
+- Wrap user-facing strings in `_()` from `frappe` (`from frappe import _`).
+- Each DocType's controller lives at `doctype/<snake_name>/<snake_name>.py` as `class PatientAppointment(Document)`. Hooks are methods such as `validate`, `on_submit`, and `on_cancel`. Client-callable functions use `@frappe.whitelist()`.
+- Files start with a copyright/license header comment.
+- `pre-commit-config.yaml` holds a very large exclude list of legacy files that are not linted. New files are linted, so don't add new entries to that list.
 
-**JavaScript** (Prettier and ESLint)
-- Tabs (width 4), printWidth 88, `arrowParens: avoid`. ESLint uses `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `__`, `$`).
-- Desk scripts use `frappe.ui.form.on("<DocType>", {...})`. Wrap strings in `__()`.
-- Portal code is Vue 3 SFCs in PascalCase (`BookAppointmentModel.vue`). Prettier skips `patient_portal/`.
+**JavaScript**
+- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. ESLint: `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `$`, `__`, etc.).
+- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})`. Wrap strings in `__()`.
 
-**Commits:** Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Types are lowercase and an optional scope is allowed, e.g. `feat(appointment): ...`.
+**Vue (patient_portal)**
+- Single-file components in PascalCase (`BookAppointmentModel.vue`, `PractitionerSelector.vue`), Tailwind classes, and frappe-ui components.
+
+**Commits:** Conventional Commits (`feat|fix|chore|docs|refactor|perf|test|ci|build|style|revert`) with a lower-case type, enforced by commitlint. Upstream picks use `git cherry-pick -x`.
