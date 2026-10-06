@@ -8,24 +8,25 @@ binding: reference
 source: inferred
 evidence:
   - README.md
-  - healthcare/hooks.py
   - pyproject.toml
-  - healthcare/www/patient_portal.html
+  - healthcare/www/patient_portal.py
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
 ---
 
-**Biograph** (by Tacten / fossibleworks; the repo is tracked in Build as *fossibleHIS*) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' Marley Health, with enhancements. It ships as the Frappe app `healthcare` (`app_title = "Biograph"`) and depends on ERPNext (`required_apps = ["frappe/erpnext"]`).
+**Biograph** (by Tacten / FossibleWorks; tracked in Build as **fossibleHIS**) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' *Marley Health* with added features. It ships as a Frappe app named `healthcare` that installs on top of **ERPNext**.
 
-**Who uses it:** healthcare practitioners, clinics and hospitals, working in the Frappe desk at `/desk/healthcare`. Patients use the self-service **Patient Portal** (`/patient-portal`, a Vue SPA).
+**Who uses it:** healthcare practitioners, clinics and hospitals (front desk, clinicians, lab, nursing, billing), plus patients through a self-service **Patient Portal**.
 
-**Main features:**
-- Patient management, including duplicate-patient detection (see `wiki/PATIENT-DUPLICATE*.md`)
-- Outpatient appointments: Patient Appointment, fee validity, practitioner schedules and availability, block-based therapy booking
-- Inpatient: Inpatient Record, medication orders and entries, nursing tasks and checklists
-- Clinical Procedures, Rehabilitation/Physiotherapy (therapy plans, exercises), Laboratory (Lab Test, Sample Collection, Observation, Diagnostic Report)
-- Medical coding: Code System, Code Value. The design follows **HL7 FHIR** (Service Request, Medication Request, Observation, and so on)
-- Insurance: Payor, Payor Contract, Eligibility Plan, Patient Insurance Coverage/Policy, Insurance Claim
-- Billing through ERPNext (Sales Invoice override, Payment Entry hooks)
-- India-specific ABDM integration under `healthcare/regional/india/abdm`
+**What it does:**
+- Patient management: registration, duplicate checking, medical records, patient history.
+- Outpatient and inpatient care: Patient Appointment (including recurring and block-based therapy booking), Patient Encounter, Inpatient Record, discharge summaries.
+- Clinical procedures, rehabilitation and physiotherapy (therapy plans, sessions, exercise types), nursing checklists.
+- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report.
+- Medication requests and service requests (orders).
+- Insurance: payors, contracts, policies, coverage, claims.
+- Medical coding: Code System, Code Value and multiple medical code standards. The data model follows **HL7 FHIR** concepts.
+- Regional support: India **ABDM** integration (`healthcare/regional/india/abdm`).
+- Billing goes through ERPNext Sales Invoice and Payment Entry. Pharmacy, stock, HR, accounts and assets come from ERPNext.
 
-ERPNext supplies pharmacy/stock, purchasing, HR, accounts and assets. Biograph adds the health domain on top of these.
+The top-level desk navigation is the `Healthcare` module (workspaces, dashboards, number cards, reports). The patient-facing web route is `/patient-portal`, a Vue SPA served from `healthcare/www`.
