@@ -9,24 +9,27 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - pyproject.toml
+  - patient_portal/src/PatientPortal.vue
 ---
 
-Biograph (by Tacten / fossibleworks) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians **Marley Health**, with additions. It is a Frappe app (`app_name = "healthcare"`, `app_title = "Biograph"`) that adds the healthcare domain to **ERPNext**, and it requires `frappe/erpnext`.
+**Biograph (fossibleHIS)** is an open-source Hospital Information System (HIS) from Tacten. It is a fork of earthians' **Marley Health**, with Tacten's own enhancements. It ships as a Frappe app named `healthcare`, with app title "Biograph", and it requires ERPNext. It adds a healthcare domain to ERPNext.
 
-**Users:** practitioners, clinics and hospitals. That means clinical staff (practitioners, nurses, lab techs), front desk and billing staff, and patients through the Patient Portal.
+**Who uses it:** hospitals, clinics and healthcare practitioners. Front-desk, clinical, lab, nursing and billing staff work in Frappe Desk at `/desk/healthcare`. Patients use a self-service **Patient Portal** at `/patient-portal` (a Vue SPA) and Frappe web forms.
 
-**Core feature areas** (from README and doctypes):
-- Patient management, outpatient appointments and encounters, inpatient records and admissions
-- Clinical procedures, therapy, rehabilitation and physiotherapy, nursing tasks and checklists
-- Laboratory (lab tests, samples, templates), observations and diagnostic reports
-- Medication requests and inpatient medication orders
-- Insurance payors, contracts, eligibility and claims
-- Medical code standards and code systems. The data model follows **HL7 FHIR** (Service Request, Observation, Diagnostic Report, Code Value, etc.)
-- Facilities are modelled as Healthcare Service Units, and specialities as Medical Departments
-- Regional: India ABDM integration (`healthcare/regional/india/abdm`)
-- A Patient Portal SPA (`/patient-portal`) for booking appointments, payment and viewing diagnostics
+**Core feature areas** (139 doctypes under `healthcare/healthcare/doctype/`):
+- Patient management, plus patient duplicate checking
+- Outpatient appointments, including block-based therapy booking, recurring appointments and practitioner schedules/availability
+- Patient Encounters
+- Inpatient records and service units
+- Clinical procedures
+- Rehabilitation and physiotherapy (therapy plans and sessions)
+- Laboratory work: Lab Tests, Observations, Diagnostic Reports, Sample Collection
+- Medication requests
+- Nursing tasks
+- Insurance: payors, contracts, policies, coverage, claims
+- Medical code standards
+- Regional India ABDM integration
 
-Billing, stock, HR and accounts come from ERPNext (Sales Invoice, Payment Entry, Item and Company hooks).
+Most of the data design follows **HL7 FHIR**. Billing, pharmacy, stock, HR and accounting come from ERPNext. Sales Invoice and Payment Entry are extended through hooks.
 
-This fork's integration branch is `biograph-fh`. It is periodically synced from upstream `earthians/marley` `version-16`, and **fork behaviour wins** on conflict.
+The fork tracks upstream `earthians/marley` `version-16` into the fork's main branch `biograph-fh`. Fork behaviour wins when the two conflict (see `wiki/upstream-sync-version-16.md`).
