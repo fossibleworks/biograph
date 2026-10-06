@@ -10,17 +10,13 @@ evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - patient_portal/src/socket.js
-  - .github/workflows/codeql.yml
+  - .pre-commit-config.yaml
 ---
 
-# Observability
+Biograph uses Frappe's built-in facilities only. There are no metrics or tracing libraries.
 
-There is no metrics or tracing stack (no OpenTelemetry, Sentry, or Prometheus in the repo). Observability relies on Frappe's built-in facilities:
-
-- **Error Log doctype via `frappe.log_error`** (about 15 call sites) is the primary channel. Pass the traceback and a short, human-readable title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(title="Error renaming DocType ...")`.
-- **`frappe.logger()`** (a few call sites) is used for informational and error lines in patches and parsing fallbacks.
-- **Audit trail:** Frappe document versioning and the Patient Medical Record timeline, which the wildcard doc_events populate.
-- **Realtime:** `frappe.publish_realtime` is used sparingly. The portal has `socket.js`.
-- **Coverage and security signals:** Codecov, CodeQL, Semgrep, pip-audit.
-
-Use `frappe.log_error` for failures you swallow, and `frappe.logger()` for diagnostic info. Do not use `print()`. Never log PHI (patient-identifying clinical data) in error titles.
+- **Error Log:** `frappe.log_error(message_or_traceback, "Short Title")` writes to the Error Log doctype. It is the main way to record failures from background jobs, patches and best-effort side effects (15 call sites). Include `frappe.get_traceback()` for exceptions.
+- **App logger:** `frappe.logger().info/error(...)` is used sparingly, for example in patches.
+- **Realtime and UI feedback:** use `frappe.publish_realtime` and `doc.notify_update()` to refresh clients. The portal listens for `refetch_resource` over socket.io.
+- **Avoid:** about 38 non-patch `print()` calls (for example `DEBUG -`/`ERROR -` prints in `patient_appointment.py`) are legacy. Don't add more. Pre-commit's `debug-statements` hook blocks `pdb`/`breakpoint`.
+- **CI-side:** Codecov coverage reports and CodeQL scanning.
