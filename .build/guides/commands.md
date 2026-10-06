@@ -7,36 +7,33 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
-  - README.md
   - package.json
   - patient_portal/package.json
   - .github/workflows/ci.yml
   - .github/helper/install.sh
   - .pre-commit-config.yaml
-  - .github/workflows/linters.yml
-  - .github/helper/update_pot_file.sh
+  - .github/workflows/linters.v2.yml
+  - README.md
 ---
 
-All commands assume a Frappe bench. The app installs into `~/frappe-bench/apps/healthcare`.
+The app runs inside a **Frappe bench**. CI reproduces that setup with `.github/helper/install.sh`.
 
-**Setup**
-- `bench get-app https://github.com/Tacten/biograph`, then `bench --site <site> install-app healthcare`
-- CI bootstrap: `bash .github/helper/install.sh`. It runs `bench init`, gets payments and erpnext on the matching branch (fork branches use `version-16`), runs `bench setup requirements --dev`, and installs the app on `test_site`.
-- `bench --site <site> migrate`: runs `patches.txt` and `after_migrate`.
+**Install / run**
+- `bench get-app <repo-url>` then `bench --site <site> install-app healthcare`
+- `bench start` starts the dev server. `bench --site <site> migrate` runs patches and schema sync.
 
-**Tests**
+**Tests** (server, needs a bench site):
 - `bench --site test_site run-parallel-tests --app healthcare` (what CI runs)
-- One module: `bench --site test_site run-tests --app healthcare --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment`
-- `python -m compileall -f .` and a grep for `^<<<<<<< ` (CI's syntax and conflict check)
+- Single module: `bench --site <site> run-tests --app healthcare --module healthcare.healthcare.doctype.<name>.test_<name>`
 
-**Lint/format**
-- `pip install pre-commit && pre-commit install && npm install && pre-commit run --all-files` (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, pre-commit-hooks)
-- Semgrep: `git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules && pip install semgrep && semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness`
+**Lint / format** (the same hooks CI runs):
+- `pre-commit run --all-files`. This runs ruff (`--fix`), ruff-format, prettier (desk JS), eslint, pip-audit, detect-secrets and the standard hygiene hooks.
+- Semgrep, as CI runs it: `semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness`
+- Commit messages: `npx commitlint --from <base> --to <head>`
 
-**Frontend (patient portal)**
-- `yarn install` at the root. The postinstall step installs `patient_portal`.
-- `yarn build`, which runs `cd patient_portal && vite build --base=/assets/healthcare/patient_portal/`
-- `cd patient_portal && yarn dev` (Vite dev server, proxying to Frappe)
-- Desk assets: `bench build --app healthcare`
+**Frontend (Patient Portal)**
+- `yarn install`. The root postinstall installs `patient_portal` too.
+- `yarn build` (root) is the same as `cd patient_portal && vite build --base=/assets/healthcare/patient_portal/`
+- `cd patient_portal && yarn dev` starts the Vite dev server with a Frappe proxy.
 
-**Translations:** `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`.
+**Sanity checks CI runs:** `python -m compileall -f .` and a grep for leftover `<<<<<<< ` conflict markers.
