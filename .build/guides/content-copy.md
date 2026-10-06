@@ -1,5 +1,5 @@
 ---
-title: Content and copy
+title: Content & copy
 category: content-copy
 layer: project
 applies_to: []
@@ -8,18 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/sales_invoice.js
-  - healthcare/public/js/utils.js
   - healthcare/healthcare/utils.py
-  - patient_portal/src/components/PractitionerSelector.vue
-  - healthcare/patches.txt
+  - patient_portal/src/components/AppointmentModel.vue
+  - patient_portal/src/components/BookAppointmentModel.vue
   - healthcare/locale/main.pot
+  - healthcare/patches.txt
 ---
 
-- **Tone:** short, direct, clinical and administrative. Validation messages are usually one sentence with a full stop or exclamation mark, for example "Appointment end must be after start.", "Appointment Date and Time are required." and "Patient already has an appointment booked for the same day!".
-- **Instructions:** start with "Please …", for example "Please select Healthcare Service" and "Please select Drug".
-- **Error dialog titles:** use Title Case nouns, such as "Missing Configuration".
-- **Terminology:** use the domain DocType names exactly and in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Observation, Fee Validity, Inpatient Record, Healthcare Settings. The brand is **Biograph**; the `rebrand_marley_to_biograph` patch removed "Marley" from user-facing strings.
-- **Placeholders:** use `{0}` (`_("… {0}").format(x)` / `__("… {0}", [x])`), for example "Mismatch in Code-data for row {0}".
-- **Portal copy:** headings use sentence or title case ("Select a Practitioner"), plus short status text ("Page {{ page }} of {{ totalPages }}").
-- **Translation:** every string goes through `_()`/`__()`. `main.pot` is regenerated weekly and Crowdin syncs the translations.
+- **Tone:** short, plain and direct. Messages often start with "Please ..." for required actions ("Please set a Customer linked to the Patient", "Please enter {}"). Use "Not allowed, ..." for blocked actions. Exclamation marks appear only rarely ("Patient already has an appointment booked for the same day!").
+- **Terminology:** use domain DocType names in Title Case inside copy: Patient, Healthcare Practitioner, Patient Appointment, Healthcare Service Unit, Inpatient Record, Fee Validity, Healthcare Settings. In UI text, "practitioner" is the word for a clinician. When pointing users to an administrator, say "System Manager".
+- **Formatting:** interpolate with `{0}`/`{1}` placeholders inside `_()` and wrap entity names in `frappe.bold()`. Error titles are short Title Case nouns ("Missing Configuration", "Invalid Healthcare Service Unit").
+- **Translation:** every string must be translatable (`_()` in Python, `__()` in JS) because strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin.
+- **Portal empty states:** "No Records Found" and "No slots available". Errors appear as toasts.
+- **Branding:** the product is "Biograph". Patch `rebrand_marley_to_biograph` replaced "Marley" in user-facing strings, so do not reintroduce "Marley" in UI copy.
