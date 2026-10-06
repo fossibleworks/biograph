@@ -8,26 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/FHIR Terminology Service Parity — Implementation Plan.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-**Where documentation lives**
-- `README.md`: overview, install, pre-commit and semgrep setup. It links to the external docs at DeepWiki (`deepwiki.com/Tacten/biograph`) and to a Telegram group.
-- `wiki/`: in-repo design, usage and process docs, written in Markdown.
-  - Feature designs use UPPER-KEBAB names: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`.
-  - Usage guides end in `-USAGE` or `-USAGE-DOC` (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`).
-  - Implementation plans and parity reports use descriptive titles (`FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`).
-  - Ledgers record process work (`upstream-sync-version-16.md`).
-- Design docs open with Context/Problem statement, then Goal, then plan sections. They reference PR numbers and the doctypes and files involved.
-
-**Doc requirement on PRs**
-- `docs_checker.yml` fails any `feat` PR whose body lacks a docs link (biograph.frappe.cloud or biograph.io `/wiki`).
-- To opt out, put `no-docs` in the PR body; backports are exempt.
-- In practice, the fork records documentation as `docs(wiki): ...` commits under `wiki/`.
-
-**Other places**
-- Code comments and docstrings are sparse but explain why something is done, for example the `on_login` hook comment.
-- Issue templates (`bug_report.yaml`, `feature_request.yaml`) and the PR template live in `.github/ISSUE_TEMPLATE/`.
+- **External user docs:** the README points to DeepWiki (`deepwiki.com/Tacten/biograph`). There is also a `context7.json` registration.
+- **In-repo docs:** `wiki/` holds markdown design and usage docs with UPPER-KEBAB names (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`), parity reports (`insurance-parity-report.md`), plans, and the upstream sync ledger (`upstream-sync-version-16.md`, which records every cherry-picked upstream commit with its outcome and notes). Images sit next to the docs.
+- **Docs-required check:** `docs_checker.yml` runs `.github/helper/documentation.py`. Any PR titled `feat…` must include a docs link (a `/wiki` URL on `biograph.frappe.cloud` or `biograph.io`), or put `no-docs` or `backport` in the body.
+- **PR template:** explain the problem and details, attach screenshots or GIFs, and "Update necessary Documentation".
+- **Code comments:** sparse. Doctype test files carry a copyright header, and `hooks.py` keeps Frappe's commented-out template sections.
