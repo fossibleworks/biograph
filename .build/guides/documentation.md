@@ -8,18 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
+  - .github/helper/documentation.py
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
+  - patient_portal/README.md
 ---
 
-- **Public docs:** the README points to DeepWiki (`deepwiki.com/Tacten/biograph`) and a Telegram group.
-- **Fork docs live in `wiki/`** as Markdown. Each feature gets a design doc and/or a usage doc in UPPER-KEBAB names, for example:
-  - `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`
-  - `BLOCK-APPOINTMENT-BOOKING-USAGE.md`
-  - `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
-
-  The folder also holds implementation plans and parity reports (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`) and the upstream sync ledger `upstream-sync-version-16.md`.
-- Doc-only commits use `docs(wiki): ...`.
-- **Docs check (inherited from upstream):** the `docs_checker` workflow fails PRs titled `feat...` unless the body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs`, or is a backport.
-- Code comments are sparse. `hooks.py` keeps the Frappe scaffold comments.
+- **User and product docs** live outside the repo. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`). The docs-checker workflow looks for wiki links on `biograph.frappe.cloud` / `biograph.io` with a `/wiki` path.
+- **PR rule (docs_checker.yml):** any PR whose title starts with `feat` must link to the docs wiki in its body, or include `no-docs` (or be a `backport`). Otherwise the check fails.
+- **In-repo `wiki/`:** Markdown design and usage notes named in UPPER-KEBAB or descriptive titles: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, an implementation plan for FHIR terminology parity, `insurance-parity-report.md`, and the **upstream sync ledger** `upstream-sync-version-16.md`. Put a design doc there for significant features (DESIGN-*.md), and a usage doc (*-USAGE*.md) for user-visible flows.
+- **Upstream sync work:** record every cherry-pick outcome (picked-clean / picked-with-conflict-resolution / already-present / skipped) in the ledger with `docs(wiki): ... (upstream sync Bn)` commits.
+- `patient_portal/README.md` covers the SPA.
+- Agent and project rules: `CLAUDE.md` and `.build/RULES.md` (the source of truth); `AGENTS.md` and the tool mirrors are generated from them.
