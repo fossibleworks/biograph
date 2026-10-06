@@ -4,20 +4,20 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v16_0/populate_appointment_end_fields.py
   - .pre-commit-config.yaml
-  - codecov.yml
 ---
 
-There is no metrics or tracing stack. Observability relies on Frappe built-ins:
+The project relies on Frappe's built-in facilities. There is no external metrics or tracing stack.
 
-- **Error Log doctype:** `frappe.log_error(frappe.get_traceback(), _("Short Title"))` or `frappe.log_error(title=..., message=...)` inside `except` blocks for failures that shouldn't abort the request (appointment confirmation messages, calendar events, patches). There are about 24 `log_error`/`logger` call sites.
-- **Logger:** `frappe.logger().info(...)` and `frappe.logger().error(...)` are used occasionally (patches, time parsing in Patient Appointment).
-- **User feedback:** `frappe.msgprint` and `frappe.throw` surface issues in the UI.
-- **Coverage reporting:** Codecov, on scheduled CI runs only.
-- **Convention:** give log entries a short, translatable Title Case title that names the failed action (for example, `Appointment Confirmation Message Not Sent`), with the traceback as the message. Don't add `print` statements; the pre-commit `debug-statements` hook blocks debugger imports.
+- **Error Log DocType:** `frappe.log_error(...)`, about 15 uses, records caught failures. Pass a traceback or message and a short translated title, for example `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
+- **App logger:** `frappe.logger()` with `.info` / `.debug` / `.error` for setup routines and patches, for example `healthcare/healthcare/setup/patient_duplicate_check.py` logs progress per rule. Use f-strings with counts and names.
+- **User-visible signals:** `frappe.msgprint(..., alert=True)` for success toasts, and `indicator="orange"` for degraded-but-continued paths.
+- **Realtime:** `frappe.publish_realtime` is used sparingly (sample collection).
+- **Background jobs and scheduler:** monitor them through Frappe's RQ Job and Scheduled Job Log. Failures inside jobs should call `log_error`.
+- Do not use `print()`. The `debug-statements` pre-commit hook blocks `pdb` and `breakpoint`.
