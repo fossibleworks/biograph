@@ -8,15 +8,20 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - .github/helper/documentation.py
-  - .github/workflows/docs_checker.yml
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
-  - AGENTS.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
+  - .github/workflows/docs_checker.yml
+  - .github/helper/documentation.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **User and product docs** live outside the repo. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream `docs_checker` workflow requires every `feat:` PR body to link a wiki page on `biograph.frappe.cloud` or `biograph.io` (`/wiki` in the path), unless the body contains `no-docs` or `backport`.
-- **In-repo engineering docs** live in `wiki/` as flat Markdown files. File names are UPPER-KEBAB for feature docs: `DESIGN-<feature>.md` for designs, `<FEATURE>-USAGE[-DOC].md` for usage guides, and descriptive names for plans and reports (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`). Images sit next to them.
-- **Upstream-sync ledger:** `wiki/upstream-sync-version-16.md` records every cherry-picked upstream commit with an outcome (picked-clean, picked-with-conflict-resolution, already-present, skipped). Update it in `docs(wiki): ...` commits whenever sync work happens.
-- Agent and contributor rules: `CLAUDE.md` (Build engine workflow), `AGENTS.md` (managed guides index), `.build/RULES.md`, `.github/instructions/`.
-- Code comments are sparse. Use the copyright header plus short inline comments that explain *why*. `hooks.py` keeps Frappe's boilerplate section headers.
+- **Public docs** live outside the repo. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`) and the Telegram community.
+- **`wiki/`** holds the in-repo fork documentation as flat Markdown. Two naming styles are in use:
+  - `DESIGN-<FEATURE>.md` / `<FEATURE>.md` for design notes, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`
+  - `<FEATURE>-USAGE[-DOC].md` for user guides, e.g. `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
+  - Plans and reports, e.g. `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`
+  - Ledgers, e.g. `upstream-sync-version-16.md`. It records every upstream cherry-pick, its outcome (picked-clean / picked-with-conflict-resolution / already-present / skipped), and lint baselines. Changes to it are committed as `docs(wiki): ...`.
+  - Images sit next to the docs (`patient-duplicatecheck-thumbnail.png`).
+- **Docs gate (inherited upstream):** `docs_checker.yml` fails a `feat` PR unless the body links to a docs page (`/wiki` on an allowed host), or contains `no-docs` or `backport`.
+- The PR template asks contributors to update the relevant docs and explain the change in detail.
+- `AGENTS.md` and `CLAUDE.md` carry agent/process guidance. `.build/RULES.md` is the source for the generated rule copies.
