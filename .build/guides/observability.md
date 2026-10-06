@@ -9,15 +9,14 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - healthcare/hooks.py
+  - patient_portal/src/socket.js
+  - .pre-commit-config.yaml
 ---
 
-There are no external metrics or tracing. Observability relies on Frappe's built-in facilities.
+There is no external metrics or tracing stack. Observability uses Frappe built-ins:
+- **`frappe.log_error(...)`** writes to the Error Log doctype and is the main mechanism (about 24 call sites). Pass a traceback with a translatable title, `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`, or `title=`.
+- **`frappe.logger()`** (`.info` / `.error`) for non-fatal diagnostics, e.g. unparseable appointment times, or patch progress.
+- **`frappe.publish_realtime`** / `frappe.msgprint` for user-visible progress. The portal listens over socket.io (`patient_portal/src/socket.js`).
+- In CI, bench output goes to `bench_run_logs.txt`. Coverage goes to Codecov.
 
-- **`frappe.log_error(...)`** writes an Error Log doctype entry and is the main mechanism (about 15 calls). Pass the traceback plus a short translated title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`, or use the keyword form `frappe.log_error(title=...)`.
-- **`frappe.logger()`** goes to file logs (about 9 calls). It's used in patches and parsing fallbacks with `.info` and `.error`.
-- **User-visible signals:** `frappe.msgprint(..., indicator="orange")` or `alert=True` for non-fatal failures.
-- **Audit trail:** Frappe's document versioning, plus the medical-record timeline created on submit (Patient History Settings).
-- **Background jobs** (`frappe.enqueue`) surface through the RQ Job / Error Log UI.
-- **Avoid** `print()` debugging, which exists in `patient_appointment.py`, in new code.
+Don't add `print()`: the pre-commit `debug-statements` hook and the Frappe semgrep rules flag debug code.
