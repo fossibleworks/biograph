@@ -7,13 +7,15 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/locale/main.pot
   - crowdin.yml
+  - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/public/js/sales_invoice.js
+  - healthcare/patches.txt
 ---
 
-- **Tone:** short, plain and clinical-administrative. Labels are Title Case nouns ("Appointment Details", "Available Slots", "Consultation Fee", "Registration Fee", "Test Report Details"). Actions are verbs ("Book", "Create", "Refer Patient", "Schedule Admission", "Cancel Admission", "Schedule Discharge").
-- **Empty states** are friendly and brief: "Looks like you don't have any appointments yet.", "No Records Found".
-- **Errors** say what is wrong and, where possible, what to do: "Appointment end must be after start.", "Please select Patient", "Not allowed, cannot overlap appointment {}", "Could not add conferencing to this Appointment, please contact System Manager". Highlight record names and fields with `frappe.bold()`.
-- **Terminology:** use the domain nouns as they appear in DocType names, in Title Case: Patient, Healthcare Practitioner ("Practitioner" in the portal), Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Medical Department, Lab Test, Observation, Service Request, Medication Request, Insurance Payor, Fee Validity. The product is called **Biograph**.
-- **Translation:** every string goes through `_()` (Python) or `__()` (JS) and is extracted to `healthcare/locale/main.pot` for Crowdin. Use positional placeholders (`{0}`), not concatenation.
+- **Every user-facing string is translatable.** Use `_()` in Python and `__()` in JS and Jinja templates. Strings are extracted into `healthcare/locale/main.pot` and translated through Crowdin. Use positional placeholders inside the translated string: `_("Invalid Code Value: {0}").format(code_value)`. Do not concatenate strings or call `.format()` inside `_()`. The existing `_("{0} is a holiday".format(date))` is an anti-pattern.
+- **Tone:** short, plain, sentence-case statements of the problem, e.g. "Appointment Date and Time are required.", "Appointment end must be after start.", "Please select Healthcare Service", "Patient already has an appointment booked for the same day!". Error dialogs get a Title Case title (`"Missing Configuration"`, `"Not Available"`).
+- **Buttons and dialog titles** use Title Case verb + noun: "Add Observation", "Edit Observation", "New Service Request", "New Medication Request".
+- **Terminology:** use the DocType names exactly as defined: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Observation, Service Request, Medication Request, Inpatient Record, Fee Validity, Insurance Payor. The product brand is **Biograph**. Patch `v16_0.rebrand_marley_to_biograph` removed "Marley" from user-facing text, so do not reintroduce it.
