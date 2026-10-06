@@ -8,16 +8,18 @@ binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
   - healthcare/healthcare/utils.py
-  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - healthcare/public/js/utils.js
-  - patient_portal/src/components/Payment.vue
+  - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
+  - healthcare/permissions.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **User-facing validation:** use `frappe.throw(_("message"), [ExcClass], title=_("Title"))` (about 181 call sites). Wrap the message in `_()` and highlight values with `frappe.bold()`. Pass `title=` for categorised errors (e.g. `title=_("Missing Configuration")`).
-- **Domain error classes:** subclass `frappe.ValidationError` inside the doctype module, e.g. `OverlapError` and `MaximumCapacityError` in `patient_appointment.py`, and `OverlapError` in `insurance_payor_contract.py`. Pass the class to `frappe.throw` so tests can assert on it.
-- **Background or non-fatal failures:** for scheduler jobs, notifications, calendar events and patches, catch the exception and call `frappe.log_error(...)` instead of raising. The preferred form is `frappe.log_error(frappe.get_traceback(), _("Short Title"))` or `frappe.log_error(message=..., title=...)`, which writes to the Error Log doctype.
-- Avoid bare `except Exception:` that swallows errors without logging (there are about 31 broad catches, a legacy pattern).
-- **Desk JS:** use `frappe.msgprint(__("..."))` for user feedback, and `frappe.throw` in form validation.
-- **Portal:** render frappe-ui `ErrorMessage` with the resource error.
+- **Validation errors:** raise them with `frappe.throw(_("message {0}").format(frappe.bold(value)), <ExcClass>, title=_("..."))` (181 uses). Frappe turns these into user-facing dialogs and HTTP error responses, so don't build custom error JSON.
+- **Typed errors:** subclass `frappe.ValidationError` in the controller module so tests can `assertRaises` them. Examples: `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`.
+- **Missing setup:** throw with `title=_("Missing Configuration")` and say which settings to fill (see `healthcare/healthcare/utils.py`).
+- **Non-blocking failures** (notifications, calendar events, patches): catch the exception and record it with `frappe.log_error(frappe.get_traceback(), _("<Short Title>"))` so it appears in Error Log. Don't re-raise. Example: Appointment Confirmation Message Not Sent.
+- `frappe.msgprint` (38 uses) is for warnings and info that should not abort the transaction. `frappe.show_alert` and `frappe.msgprint` are the client-side equivalents.
+- Avoid bare `except Exception` that hides errors. Existing ones (about 31) should log via `frappe.log_error`.
+- Patches that must stop a migration use `frappe.throw(message)  # nosemgrep`.
+- Permission checks raise through `frappe.throw` (`healthcare/permissions.py`). Business logic and validation belong on the server, as the PR template says.
