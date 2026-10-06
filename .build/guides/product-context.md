@@ -1,5 +1,5 @@
 ---
-title: Product context — Biograph (fossibleHIS)
+title: Product context
 category: product-context
 layer: project
 applies_to: []
@@ -9,18 +9,32 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - pyproject.toml
+  - .build/project.yaml
 ---
 
-## What it is
-Biograph (by Tacten / fossibleworks) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians **Marley Health** with extra features. It is packaged as the Frappe app `healthcare` (`app_title = "Biograph"`), and it brings a healthcare domain into **ERPNext**. Much of the data model follows **HL7 FHIR**: Observation, Service Request, Medication Request, Diagnostic Report, Code System/Code Value.
+# Product context
+
+**Biograph** (by Tacten/FossibleWorks) is an open-source Hospital Information System (HIS). It is a fork of, and adds to, earthians **Marley Health**. It ships as the Frappe app `healthcare` (`app_title = "Biograph"`). The Build project for this repo is named **fossibleHIS**.
+
+## What it does
+- Adds the healthcare domain to **ERPNext**. Most of the design follows **HL7 FHIR**.
+- Core feature areas:
+  - Patient management
+  - Outpatient and inpatient care (admissions, transfers, discharge, inpatient medication orders and entries)
+  - Patient appointments, practitioner schedules and availability, fee validity
+  - Clinical procedures, therapy and rehabilitation plans, exercises
+  - Lab tests, sample collection, observations and diagnostic reports
+  - Medication and medication requests, nursing tasks and checklists
+  - Insurance: payors, contracts, eligibility, claims and coverage
+  - Medical code standards and FHIR-style code systems and value sets
+  - India ABDM integration under `healthcare/regional/india/abdm`
+- Facilities are modelled as **Healthcare Service Units** (a tree). Specialities are modelled as **Medical Departments**.
+- Billing, pharmacy and stock, HR, accounts and assets come from ERPNext (for example Sales Invoice and Payment Entry hooks).
 
 ## Who uses it
-- **Clinical and admin staff** in clinics and hospitals: practitioners, nurses, lab staff, front desk and billing. They work in the Frappe Desk (`app_home = /desk/healthcare`).
-- **Patients**, through the Vue **Patient Portal** at `/patient-portal`. It requires the `Patient` role. Patients can view appointments, book appointments, see diagnostics and pay.
-
-## Main feature areas
-Patient management, outpatient and inpatient care (Patient Appointment, Patient Encounter, Inpatient Record, Inpatient Medication Order/Entry), clinical procedures, rehabilitation and physiotherapy (Therapy Plan/Session, Exercise), laboratory (Lab Test, Sample Collection, Observation, Diagnostic Report), nursing tasks, insurance (Payor, Contract, Eligibility Plan, Claim), fee validity and packages, medical code standards, and service units and medical departments. Billing uses ERPNext Sales Invoice and Payment Entry through hooks. India-specific ABDM integration lives in `healthcare/regional/india/abdm`.
+- **Hospital and clinic staff** use Frappe Desk. The app home is `/desk/healthcare`, and staff work in workspaces, doctype forms, reports and the patient history and progress pages. Users include practitioners, nurses, lab staff, front desk and billing.
+- **Patients** use the **Patient Portal** at `/patient-portal`. It is a Vue SPA where patients view and book appointments, see prescriptions and lab and diagnostic reports, and pay bills.
 
 ## Fork context
-- The working mainline is `biograph-fh`. Upstream earthians/marley `version-16` is brought in with tracked sync batches; see `wiki/upstream-sync-version-16.md`. When a sync conflicts, **fork behaviour wins**.
+- This fork's integration branch is `biograph-fh`. Fork changes are layered on top of upstream earthians/marley `version-16`, and upstream commits are cherry-picked in batches. The sync ledger is `wiki/upstream-sync-version-16.md`.
+- Fork-specific features are documented in `wiki/`. Examples: block-based therapy appointment booking, the patient duplicate checker, insurance parity, and FHIR terminology service parity.
