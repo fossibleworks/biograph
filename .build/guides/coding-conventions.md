@@ -10,30 +10,28 @@ evidence:
   - pyproject.toml
   - .prettierrc.yaml
   - eslint.config.mjs
-  - commitlint.config.js
-  - healthcare/healthcare/doctype/allergy/allergy.py
-  - healthcare/healthcare/doctype/lab_test/lab_test.js
-  - healthcare/healthcare/api/patient_portal.py
   - .pre-commit-config.yaml
+  - commitlint.config.js
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - healthcare/healthcare/api/patient_portal.py
+  - patient_portal/src/PatientPortal.vue
 ---
 
-**Python** (ruff, configured in `pyproject.toml`)
-- **Tabs** for indentation and **double quotes**. Line length is 110, though E501 is ignored.
-- Lint selection: F, E, W, I, UP, B and RUF, with a documented ignore list (for example F401, E402 and B904).
-- Import order is enforced by isort sections: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Put a blank line between each group, for example `import frappe` / `import erpnext` / `from healthcare...`.
-- Translate user-facing strings with `from frappe import _` and `_("...")`, using `.format()` for placeholders (`_("Invalid Code Value: {0}").format(code_value)`).
-- Each DocType controller is a class named in PascalCase after the DocType (`class Allergy(Document)`), in `<snake_name>.py`. Whitelisted functions use `@frappe.whitelist()`, and newer code adds type hints.
-- Files start with a copyright and licence header comment.
-- Use `frappe.qb` or `frappe.db.get_all` with `fields` and `filters` for queries, not raw SQL strings.
+**Python** (ruff 0.15.18 via pre-commit, configured in `pyproject.toml`)
+- **Tabs** for indentation, double quotes, line length 110 (E501 is ignored). Target is py310.
+- Lint rule set: `F,E,W,I,UP,B,RUF`, with notable ignores: F401 (unused imports), F403/F405, E402, B904.
+- Import order uses custom isort sections: future → stdlib → third-party → `frappe` → `erpnext` → `healthcare`, with a blank line between each group.
+- Use absolute dotted imports such as `from healthcare.healthcare.doctype.x.x import ...`.
+- Wrap user-facing strings in `_()` (`from frappe import _`), using positional `{0}` formatting: `_("Patient {0} is not admitted in the service unit {1}").format(...)`.
+- Prefer `frappe.qb` for new queries. Raw `frappe.db.sql` still exists (about 91 call sites, versus about 80 using qb).
+- Doctype naming: the folder and module use snake_case (`patient_appointment`), the class uses PascalCase (`PatientAppointment`), and the DocType name uses Title Case ("Patient Appointment"). Expose client-callable functions with `@frappe.whitelist()`.
+- Older files carry a `# Copyright (c) <year>, ...` / `# See license.txt` header.
+- **Legacy exclusion:** about 620 legacy paths are listed in the `exclude` block of `.pre-commit-config.yaml`, so pre-commit skips them. When you touch them, do not add new ruff findings. The sync ledger records ruff counts before and after.
 
-**JavaScript** (Prettier and ESLint)
-- Prettier: `useTabs: true`, `tabWidth: 4`, `printWidth: 88`, `arrowParens: "avoid"`.
-- ESLint flat config extends `eslint:recommended`, with Frappe globals (`frappe`, `erpnext`, `$`, `moment`, `__`, ...).
-- Form scripts use `frappe.ui.form.on("DocType Name", { setup(frm) {...}, refresh(frm) {...} })`, and all labels are wrapped in `__("...")`.
-- The `patient_portal/` Vue code is excluded from Prettier. It uses `<script setup>`-style Vue 3, the `@/` alias and frappe-ui components.
+**JavaScript/Vue** (prettier and eslint)
+- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`.
+- ESLint flat config extends `eslint:recommended`, with Frappe globals (`frappe`, `__`, `$`, `erpnext`, `moment`, ...).
+- Desk strings use `__('...')`.
+- Portal uses Vue 3 `<script setup>`, frappe-ui components (`Tabs`, `Dialog`, `createResource`), the `@/` alias for `src/`, and PascalCase component filenames (`BookAppointmentModel.vue`). Variables are often snake_case (`portal_tabs`, `alert_dialog`).
 
-**Naming:** DocTypes use Title Case with spaces ("Patient Appointment"). Directories and fieldnames are snake_case. Test fixture records are prefixed `_Test ` ("_Test Lab Test - with Sample").
-
-**Commits** use Conventional Commits (commitlint). The allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, always lower-case, with optional scopes such as `fix(tests):` and `docs(wiki):`.
-
-Many legacy files are excluded in `.pre-commit-config.yaml`. Don't widen that list, and don't add new ruff findings to excluded files.
+**Commits:** Conventional Commits, enforced by commitlint. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Use a lower-case type and an optional scope, for example `fix(tests): ...` or `docs(wiki): ...`.
