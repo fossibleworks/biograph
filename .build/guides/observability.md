@@ -9,14 +9,16 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/public/js/mark_unavailable.js
-  - .pre-commit-config.yaml
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - patient_portal/src/socket.js
 ---
 
-The project has no metrics or tracing stack. It relies on Frappe's built-in facilities:
+The app has no metrics or tracing. Observability relies on Frappe's built-in tools:
 
-- **Error Log doctype:** `frappe.log_error(message_or_traceback, title)` (15 uses) is the main way to record failures. Pass `frappe.get_traceback()` and a short translated title such as `_("Appointment Confirmation Message Not Sent")` or "Unavailability Calendar Event Error".
-- **File logger:** `frappe.logger().info(...)` / `.error(...)` is used in setup and patches (`setup/patient_duplicate_check.py`, `patches/v15_0/setup_patient_duplicate_check_rules.py`) and for parse failures in `patient_appointment.py`.
-- **Client side:** `console.error` is used sparingly in desk JS for non-fatal problems. User feedback goes through `frappe.show_alert`.
-- Do not use `print` or the stdlib `logging` module directly. pre-commit's `debug-statements` hook rejects leftover debuggers.
+- **Error Log DocType** through `frappe.log_error(...)`, about 15 call sites. Use it for caught failures in notifications, calendar sync, patches and background jobs. Pass a short, human-readable title: either `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(title="…")`.
+- **`frappe.logger()`** is used for info and error lines in setup and patch code (`patient_duplicate_check.py`, `setup_patient_duplicate_check_rules.py`) and for parse failures in `patient_appointment.py`.
+- **Realtime:** `frappe.publish_realtime` is used once. The portal has a `socket.js` client.
+- **JS:** a few `console.log` / `console.error` calls exist in desk and portal code. Do not add more in shipped code.
+- **CI-side:** Codecov coverage, CodeQL and semgrep.
+
+For new code, use `frappe.log_error` for anything an admin must notice, and `frappe.logger()` for informational traces. Do not use `print`.
