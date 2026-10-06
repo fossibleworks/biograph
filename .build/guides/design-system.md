@@ -9,12 +9,19 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/package.json
-  - patient_portal/src/components/AppointmentModel.vue
-  - patient_portal/vite.config.js
-  - healthcare/public/js/observation.html
+  - patient_portal/src/components/PractitionerSelector.vue
 ---
 
-- **Desk UI** (the clinician and admin screens) uses Frappe Desk's own form, list and workspace components. Customise it with DocType JSON, form scripts (`frappe.ui.form.on`), HTML templates in `healthcare/public/js/*.html` (for example `healthcare_note.html`, `observation.html`) and Jinja print formats. Do not introduce another component library there.
-- **Patient portal** uses **frappe-ui** as its component library: `Button` (`variant="subtle"`, `theme="gray"`, `size="sm"/"md"`), `toast`, and Lucide/feather icons.
-- **Design tokens** come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The config only adds legacy colour aliases (lightBlue=sky, warmGray=stone, and so on).
-- Style with Tailwind utility classes in the Vue SFCs. Global styles live in `patient_portal/src/index.css`.
+**Desk UI:** use standard Frappe Desk components:
+- Form scripts and `frappe.ui.Dialog`
+- `frappe.show_alert` and `frappe.msgprint`
+- Jinja/HTML templates in `healthcare/public/js/*.html` (`healthcare_orders.html`, `observation.html`)
+
+Don't introduce a separate CSS framework into Desk.
+
+**Patient Portal:**
+- Component library: **frappe-ui**. Commonly used pieces are `Card`, `Button`, `ErrorMessage`, `createResource`, `createDocumentResource`, and `getCachedResource`.
+- Design tokens come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]`). The local theme only adds legacy color aliases (lightBlue→sky, warmGray→stone, etc.).
+- Style with Tailwind utility classes. Reuse frappe-ui components before writing custom ones.
+- Icons: `feather-icons`.
+- Branding assets live in `healthcare/public/images` (`healthcare.svg` app logo).
