@@ -8,16 +8,17 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
-  - .github/helper/install.sh
+  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - .pre-commit-config.yaml
 ---
 
-There is no metrics or tracing stack. Observability relies on Frappe built-ins:
+There is no metrics or tracing stack. Observability uses Frappe's built-in facilities:
 
-- **The Error Log doctype**, via `frappe.log_error(...)` (about 15 sites). Use it for failures in scheduler jobs, notifications, calendar sync, payment records and patches. Pass a short human title and the traceback (`frappe.get_traceback()`) or the exception message.
-- **The `frappe.logger()`** file logger (a few sites) logs `.info`/`.error` progress in setup and patches, e.g. `patient_duplicate_check.py`.
-- `print()` appears in some legacy and patch code. Do not add it to runtime paths.
-- Background jobs go through `frappe.enqueue`, so they show up in RQ Job and Scheduled Job Log.
-- In CI, bench output is captured to `bench_run_logs.txt`, and coverage goes to Codecov.
+- **Error Log doctype:** `frappe.log_error(frappe.get_traceback(), _("Short Title"))` or `frappe.log_error(title=...)` for caught failures in background jobs, notifications, calendar sync and patches (about 15 call sites). This is the main operational signal.
+- **File logger:** `frappe.logger().info/error(...)` is used sparingly (about 9 sites, mostly setup and patches) for progress messages.
+- **User feedback:** `frappe.msgprint`, plus `frappe.show_alert` on the client. Realtime events (`frappe.publish_realtime`) are used once.
+- No `print()` debugging. pre-commit `debug-statements` blocks `pdb`/`breakpoint`.
+- Background jobs run through `frappe.enqueue`, so their failures appear in RQ Job and Error Log.
+
+New code should put a descriptive, translated title on `frappe.log_error` and keep the traceback.
