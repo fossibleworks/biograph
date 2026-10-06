@@ -1,5 +1,5 @@
 ---
-title: Error Handling
+title: Error handling
 category: error-handling
 layer: project
 applies_to: []
@@ -9,13 +9,23 @@ source: inferred
 evidence:
   - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/patches/v15_0/check_version_compatibility_with_frappe.py
+  - healthcare/healthcare/api/patient_portal.py
 ---
 
-- **Validation errors:** raise them with `frappe.throw(_("message"), [ExcClass], title=_("Title"))`. There are about 180 uses. Messages are translated with `_()` and use `{0}` placeholders. Links to config records are built with `get_link_to_form(...)`, e.g. `frappe.throw(msg, title=_("Missing Configuration"))`.
-- **Typed errors:** domain-specific exceptions subclass `frappe.ValidationError` inside the controller module: `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`. Pass the class as the second argument to `frappe.throw` so tests can `assertRaises` on it.
-- **Non-fatal user notices:** `frappe.msgprint` on the server, and `frappe.show_alert({message, indicator})` / `frappe.msgprint` on the client.
-- **Background or best-effort failures** (notifications, calendar events, patches): catch the exception and record it with `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)`. This logs to the Error Log doctype and does not break the user flow. Example: "Appointment Confirmation Message Not Sent".
-- Broad `except Exception` is used about 31 times, mainly in patches and integrations. Prefer narrow catches in new code.
-- Use server-side validation in controller `validate()` / `before_submit()` hooks, not client-only checks (PR template).
+**Validation errors shown to users:** raise them with `frappe.throw(_("…"), title=_("…"))`. There are about 180 call sites.
+- Messages are translated and use `{0}` placeholders filled with `.format(...)`, often with `get_link_to_form` for links (for example, `_("{0} is a holiday")`).
+- Use an optional `title`, such as `title=_("Missing Configuration")` in `utils.py`.
+- For a typed error, subclass `frappe.ValidationError` (`class OverlapError(frappe.ValidationError)`) and pass it as `exc=` to `frappe.throw`.
+
+**Non-fatal notices:** use `frappe.msgprint(_("…"))`, for example `"Sales Invoice {0} created"` or `"SMS not sent, please check SMS Settings"`.
+
+**Background, notification and patch failures:** catch the exception and record it with `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)` so it appears in the Error Log, then continue. Examples are appointment confirmation SMS and unavailability calendar events. Patches wrap risky steps in `try/except` and log the failure.
+
+**API endpoints** (`api/patient_portal.py`) return `None` or an empty result for missing data instead of raising, and rely on Frappe's permission system and whitelisting.
+
+**Cautions**
+- About 31 `except Exception` blocks exist. Keep them limited to logging and best-effort side effects; do not swallow them on validation paths.
+- ruff's B904 (raise from) is ignored.
+- Mark intentional `frappe.throw` calls in patches with `# nosemgrep`.
