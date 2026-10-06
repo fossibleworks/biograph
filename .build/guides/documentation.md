@@ -8,19 +8,15 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
   - .github/helper/documentation.py
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - .github/workflows/docs_checker.yml
 ---
 
-# Documentation
-
-- **README.md** covers the product overview, installation through bench, pre-commit and Semgrep setup, and links to the external docs at **DeepWiki** (`deepwiki.com/Tacten/biograph`) and the Telegram group.
-- **`wiki/`** holds the fork's in-repo design and usage docs as Markdown. Existing pairs are:
-  - a design doc and a usage doc (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` and `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`)
-  - parity reports and plans (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`)
-  - the upstream sync ledger `upstream-sync-version-16.md`. Every upstream sync batch records its outcomes there in `docs(wiki): ...` commits.
-- Upper-case kebab names are the norm for feature docs. Images sit next to the docs that use them.
-- The upstream *Documentation Required* workflow fails `feat` PRs whose body has no `/wiki` link on biograph.frappe.cloud or biograph.io, unless the body contains `no-docs` or `backport`.
-- The PR template asks contributors to update the relevant documentation.
+- **User and product docs** live outside the repo: the README links to DeepWiki (`deepwiki.com/Tacten/biograph`), and the upstream `docs_checker.yml` expects `feat` PRs to link to a `/wiki` page on `biograph.frappe.cloud` / `biograph.io`.
+- **In-repo `wiki/`** holds the fork's design and usage docs as Markdown, mostly in UPPER-KEBAB-CASE: `DESIGN-*.md` for designs, `*-USAGE*.md` for usage guides, plus parity and implementation-plan reports. Screenshots sit alongside them (`patient-duplicatecheck-thumbnail.png`). Usage docs open with a numbered table of contents.
+- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` records each sync batch (picked, skipped, deferred commits and why). Update it with `docs(wiki): ...` commits whenever upstream commits are cherry-picked.
+- **`patient_portal/README.md`** documents the SPA.
+- **Agent docs:** `CLAUDE.md` (engine workflow), `AGENTS.md`, and `.build/RULES.md`.
+- **Code comments:** sparse. Copyright headers in older files, and short docstrings on helpers.
