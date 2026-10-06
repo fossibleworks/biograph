@@ -1,33 +1,48 @@
 ---
-title: CI/CD & release
+title: CI/CD & Release
 category: cicd-release
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
-  - .github/helper/install.sh
   - .github/workflows/linters.v2.yml
+  - .github/workflows/linters.yml
   - .github/workflows/semantic-commits.yml
   - .github/workflows/docs_checker.yml
-  - .github/workflows/on_release.yml
+  - .github/workflows/codeql.yml
   - .github/workflows/initiate_release.yml
+  - .github/workflows/on_release.yml
+  - .github/workflows/release_notes.yml
   - .releaserc
+  - .github/helper/install.sh
   - codecov.yml
 ---
 
-**On pull requests**
-- **CI / Server Tests** (`ci.yml`) sets up a bench on Python 3.14 and Node 24 with a MySQL service, installs frappe, payments, and erpnext (fork branches map to `version-16` in `.github/helper/install.sh`), and runs `bench run-parallel-tests --app healthcare`. It skips PRs that only touch css/js/md/html/csv and branches named `version-**-beta`, and it also runs nightly. Coverage goes to Codecov on non-PR runs.
-- **Linters** (`linters.yml`, `linters.v2.yml`) run pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) and Semgrep with the Frappe rules plus `r/python.lang.correctness`.
-- **Semantic Commits** checks PR and commit titles with commitlint.
-- **Documentation Required** fails `feat` PRs that lack a wiki docs link (or `no-docs`).
-- **Labeler**, plus **CodeQL** on `develop` and weekly.
-- Editing `.github/workflows/*` needs a credential with the `workflow` scope. The sync ledger records B2 #86 as skipped for exactly this reason.
+**PR checks (GitHub Actions):**
+- **CI / Server Tests** (`ci.yml`)
+  - triggers: PRs (skipped when only `.css`, `.js`, `.md`, `.html` or `.csv` files change, and for `version-**-beta` branches) and nightly at 00:00 UTC
+  - environment: Ubuntu, MariaDB 11.8, Python 3.14, Node 24
+  - steps:
+    1. `compileall` and a merge-conflict-marker check
+    2. `.github/helper/install.sh` (bench, frappe, erpnext and payments; fork branches use `version-16`)
+    3. `bench run-parallel-tests --app healthcare`
+  - coverage is uploaded to Codecov on non-PR runs
+- **Linters** (`linters.yml` and `linters.v2.yml`): the pre-commit action (ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit, file checks) plus Semgrep with Frappe rules and `r/python.lang.correctness`.
+- **Semantic Commits:** commitlint over the PR commit range.
+- **Documentation Required:** `feat` PRs need a docs link, or `no-docs` / `backport` in the body.
+- **CodeQL** (python and javascript) runs on `develop` pushes and PRs, plus weekly. **Labeler** adds `needs-tests`.
 
-**Release**
-- `initiate_release.yml` opens weekly release PRs for versions 14, 15, and 16 every Tuesday.
-- `on_release.yml` runs `npx semantic-release` on pushes to `version-14/15/16` using the Angular preset (breaking changes don't trigger majors). It rewrites the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and publishes a GitHub release.
-- `release_notes.yml` updates notes for a given tag. `generate-pot-file.yml` regenerates the POT file weekly.
-- Deployment is via `bench get-app` / Frappe Cloud. No container or deploy pipeline exists in the repo.
+**Release (inherited from upstream earthians):**
+- `initiate_release.yml` opens a weekly (Tuesday) PR from `version-N-hotfix` to `version-N` for N = 14, 15, 16 against `earthians/biograph`.
+- `on_release.yml` runs `semantic-release` on pushes to `version-14/15/16` (`.releaserc`: angular preset, breaking changes do not trigger a major release). It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
+- `release_notes.yml` regenerates the notes and strips chore, ci, test, docs and style entries.
+- `generate-pot-file.yml` refreshes translations weekly on `develop`.
+
+**Fork caveats:**
+- Several workflows hard-code `earthians/biograph` and earthians bot tokens.
+- According to the sync ledger, `ci.yml` has never run on `fossibleworks/biograph`, so there is no CI baseline.
+- The goal-branch push credential cannot write `.github/workflows/*`. Workflow edits must be applied by hand (see B2 #86 in the ledger).
+- Deployment is through Frappe Bench and Frappe Cloud (`bench get-app` / `install-app`, then `bench migrate` runs `patches.txt`). The repo has no deploy pipeline.
