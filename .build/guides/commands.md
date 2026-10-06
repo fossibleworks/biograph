@@ -10,50 +10,46 @@ evidence:
   - README.md
   - package.json
   - patient_portal/package.json
-  - .github/workflows/ci.yml
-  - .github/workflows/linters.yml
   - .pre-commit-config.yaml
-  - .github/helper/install.sh
+  - .github/workflows/ci.yml
+  - .github/workflows/linters.v2.yml
+  - .github/workflows/semantic-commits.yml
 ---
 
-# Commands
-
-The app runs inside a Frappe **bench**, not on its own.
-
-## Setup
+**Setup (inside a Frappe bench)**
 ```sh
 bench get-app https://github.com/Tacten/biograph
 bench --site <site> install-app healthcare
-bench setup requirements --dev
 ```
 
-## Tests (server)
-```sh
-bench --site <site> run-tests --app healthcare                # all tests
-bench --site <site> run-tests --module healthcare.healthcare.doctype.fee_validity.test_fee_validity
-bench --site test_site run-parallel-tests --app healthcare     # what CI runs
-```
-
-## Lint and format
+**Lint and format** (the same hooks CI runs)
 ```sh
 pip install pre-commit && pre-commit install
-pre-commit run --all-files    # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
+npm install
+pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
+```
 
-# Semgrep (also runs in CI)
-git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
+**Semgrep** (Frappe rules, as CI runs them)
+```sh
+git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
 pip install semgrep
-semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-## Frontend
+**Tests** (they need a bench site with erpnext and payments installed)
 ```sh
-yarn install                         # root postinstall also installs patient_portal
-yarn build                           # = cd patient_portal && yarn build
-cd patient_portal && yarn dev        # vite dev server, proxies to frappe
-bench build --app healthcare         # build Desk assets (healthcare.bundle.js)
+bench --site test_site run-parallel-tests --app healthcare   # CI
+bench --site <site> run-tests --app healthcare --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment
 ```
 
-## Migrations
+**Patient portal**
 ```sh
-bench --site <site> migrate          # runs patches.txt and after_migrate
+yarn install        # root postinstall installs patient_portal
+yarn build          # root: cd patient_portal && yarn build
+cd patient_portal && yarn dev   # vite dev server with frappe proxy
+```
+
+**Commit titles** are checked with commitlint:
+```sh
+npx commitlint --from <base> --to <head>
 ```
