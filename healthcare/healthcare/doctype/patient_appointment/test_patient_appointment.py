@@ -541,7 +541,7 @@ class TestPatientAppointment(HealthcareTestSuite):
 			patient,
 			None,
 			nowdate(),
-			appointment_type=appointment_type,
+			appointment_type=appointment_type.name,
 			appointment_for="Department",
 			department=medical_department,
 		)
@@ -554,7 +554,7 @@ class TestPatientAppointment(HealthcareTestSuite):
 			patient_1,
 			None,
 			nowdate(),
-			appointment_type=appointment_type,
+			appointment_type=appointment_type.name,
 			appointment_for="Department",
 			department=medical_department,
 		)
@@ -572,7 +572,7 @@ class TestPatientAppointment(HealthcareTestSuite):
 			patient,
 			None,
 			nowdate(),
-			appointment_type=appointment_type,
+			appointment_type=appointment_type.name,
 			appointment_for="Service Unit",
 			service_unit=service_unit,
 		)
@@ -585,7 +585,7 @@ class TestPatientAppointment(HealthcareTestSuite):
 			patient_1,
 			None,
 			nowdate(),
-			appointment_type=appointment_type,
+			appointment_type=appointment_type.name,
 			appointment_for="Service Unit",
 			service_unit=service_unit,
 		)
@@ -663,6 +663,7 @@ def create_appointment(
 	appointment_time=None,
 	discount_percentage=0,
 	discount_amount=0,
+	duration=15,
 ):
 	item = "HLC-SI-001"
 	frappe.db.set_single_value("Healthcare Settings", "inpatient_visit_charge_item", item)
@@ -674,7 +675,7 @@ def create_appointment(
 	appointment.department = department or "_Test Medical Department"
 	appointment.appointment_date = appointment_date or nowdate()
 	appointment.company = "_Test Company"
-	appointment.duration = 15
+	appointment.duration = duration
 	appointment.appointment_type = appointment_type or "_Test Appointment Type"
 
 	if service_unit:
