@@ -8,18 +8,18 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/healthcare/doctype/abdm_request/abdm_request.py
-  - .pre-commit-config.yaml
+  - healthcare/uninstall.py
+  - patient_portal/src/socket.js
 ---
 
-There is no dedicated metrics or tracing stack. Observability uses Frappe's built-in facilities:
+The project uses Frappe's built-in facilities only. It has no metrics or tracing libraries.
 
-- **Error Log doctype** via `frappe.log_error(...)` (about 15 uses). This is the main convention for unexpected failures.
-  - Pass the traceback (`frappe.get_traceback()`) and a short translatable title, for example `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-  - Or use the `title=` keyword.
-- **`frappe.logger()`** is used sparingly (about 9 uses) for informational or error lines in patches and parsing code, for example `frappe.logger().error(f"Could not parse appointment time: ...")`.
-- **Do not use `print` or debugger statements.** pre-commit's `debug-statements` hook rejects them.
-- **Integration request logs.** ABDM calls are persisted as `ABDM Request` documents, which serve as an audit trail of external calls.
-- **CI-side code quality signals** come from CodeQL, Semgrep and Codecov coverage.
+- **`frappe.log_error(message, title)`** is the primary error sink (about 15 uses). It writes to the Error Log doctype.
+  - Pass `frappe.get_traceback()` or a descriptive message.
+  - Use a short human title, e.g. "Appointment Confirmation Message Not Sent" or "Unavailability Calendar Event Error".
+- **`frappe.logger().info/error(...)`** is used occasionally, mainly in patches, for file-based logs.
+- **`print`** is acceptable only in install, uninstall, and migrate scripts (`uninstall.py`, `after_migrate.py`), which run in the bench console. Avoid `print` in request or controller code. Existing instances, such as in `patient_appointment.py`, are legacy.
+- **`console.log`** appears about 23 times in JS. Don't add new ones to shipped code.
+- **Realtime** updates use `frappe.publish_realtime` (rare). The portal uses a socket (`patient_portal/src/socket.js`) with frappe-ui cached resources.
+- **CI-level:** Codecov coverage, CodeQL, semgrep, pip-audit.
