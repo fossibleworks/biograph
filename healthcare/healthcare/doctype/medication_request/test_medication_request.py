@@ -4,7 +4,6 @@
 import frappe
 from frappe.utils import get_time, now
 
-from erpnext.stock.doctype.item.test_item import create_item
 
 from healthcare.healthcare.doctype.service_request.test_service_request import (
 	create_encounter,

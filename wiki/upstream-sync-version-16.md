@@ -228,10 +228,11 @@ remains the baseline. What was checked statically on the final tree:
   - `test_nursing_task`, `test_observation`, `test_observation_template`, `test_medication` and `test_clinical_procedure`
 - **ruff 0.15.18 (`--select F`)** on every `.py` file B2 changed:
   - Before: 3 findings, all already in the fork: `patient_encounter.py` F811 ×2 and `test_service_request.py` F401.
-  - After: 5 findings. The two new ones are identical in upstream `aeca803f`:
-    - `healthcare/healthcare/utils.py` F401 `setup_healthcare`, because upstream comments out `before_tests`.
-    - `test_medication_request.py` F401 `create_item`.
-  - Both files are in pre-commit's `exclude` list.
+  - After: 3 findings, the same three. Upstream `aeca803f` left two new F401s, and the fork drops both
+    imports (see "B2 rework, round 2" below):
+    - `healthcare/healthcare/utils.py` `setup_healthcare`, unused because upstream comments out `before_tests`.
+    - `test_medication_request.py` `create_item`.
+  - Non-test files only: 2 → 2.
 
 Effect of deferring #86: until `--lightmode` lands in `ci.yml`, CI runs the suite in normal mode.
 `before_tests` is commented out, and `HealthcareTestSuite` sets up its own masters through `ERPNextTestSuite`,
@@ -266,3 +267,17 @@ Known gaps carried forward (not introduced by B2):
 
 Both are upstream tests written against upstream behaviour. If CI flags them, decide per test
 whether it is fork behaviour or a gap, rather than changing app code inside a sync batch.
+
+### B2 rework, round 2 (review round)
+
+`fix: drop unused imports left by upstream aeca803f (upstream sync B2)`. No upstream sha.
+
+- `healthcare/healthcare/utils.py`: removed `from healthcare.setup import setup_healthcare`. Its only user is
+  the `before_tests` body that upstream commented out. Nothing imports `setup_healthcare` from this module.
+- `test_medication_request.py`: removed the unused `create_item` import.
+- ruff 0.15.18 `--select F --isolated` over the 84 `.py` files changed since `b5f55a02` (16.0.7):
+  3 findings before, 3 after. These are the fork's existing `patient_encounter.py` F811 ×2 and
+  `test_service_request.py` F401.
+- Upstream #86 (`4d89574c`, `--lightmode` in `.github/workflows/ci.yml`) is still deferred. This run's GitHub
+  token has no `workflow` scope, and GitHub rejects any push that changes a workflow file. Someone with that
+  scope needs to run `git cherry-pick -x 4d89574c` on this goal branch.
