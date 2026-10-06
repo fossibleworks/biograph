@@ -231,6 +231,16 @@ remains the baseline. What was checked statically on the final tree:
     - `healthcare/healthcare/utils.py` `setup_healthcare`, unused because upstream comments out `before_tests`.
     - `test_medication_request.py` `create_item`.
   - Non-test files only: 2 → 2.
+- **ruff 0.15.18, full repo config** (same basis as the B1 baseline), on every non-test `.py` file B2
+  changed, `b229aad8` → HEAD:
+  - `healthcare/__init__.py`: 0 → 0
+  - `observation.py`: 5 → 5
+  - `patient.py`: 3 → 3
+  - `patient_encounter.py`: 47 → 47
+  - `healthcare/healthcare/utils.py`: 0 → 0
+  - `healthcare/hooks.py`: 0 → 0
+
+  So batch B2 adds no new ruff findings under the full config either.
 
 Effect of deferring #86: until `--lightmode` lands in `ci.yml`, CI runs the suite in normal mode.
 `before_tests` is commented out, and `HealthcareTestSuite` sets up its own masters through `ERPNextTestSuite`,
@@ -288,3 +298,9 @@ whether it is fork behaviour or a gap, rather than changing app code inside a sy
   The local pick was dropped so the branch can still be pushed.
 - The ledger now records #86 as `skipped`, not `deferred`, so it uses only the AC-4 outcome words. The
   reason is still in the row's notes. Once someone applies the pick by hand, the row becomes picked-clean.
+
+### B2 rework, round 4
+
+- Ledger: added full-repo-config ruff counts for B2's non-test files, matching how B1 records its baseline.
+- #86 is unchanged: still `skipped`, for the same `workflow`-scope push rejection as rounds 2 and 3. It needs a
+  person with that scope to run `git cherry-pick -x 4d89574c` on this goal branch and push.
