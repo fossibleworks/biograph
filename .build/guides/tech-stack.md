@@ -11,15 +11,13 @@ evidence:
   - package.json
   - patient_portal/package.json
   - patient_portal/vite.config.js
-  - .github/helper/install.sh
-  - .github/workflows/linters.v2.yml
-  - healthcare/healthcare/api/patient_portal.py
+  - .github/workflows/ci.yml
+  - healthcare/hooks.py
 ---
 
-- **Backend:** Python 3.10 or newer (ruff targets `py310`; CI runs Python 3.14). The app is built on the **Frappe Framework** and depends on **ERPNext**; the CI installer targets the frappe/erpnext `version-16` branches. It is packaged with **flit_core**. Its own runtime dependencies are `responses` and `python-barcode`.
-- **Data:** MariaDB through the Frappe ORM and `frappe.qb` (pypika query builder), with Redis for cache and queues. Doctypes are defined as JSON metadata.
-- **Desk UI:** plain JavaScript form scripts using the `frappe.ui.form` / jQuery globals, bundled via `healthcare/public/js/healthcare.bundle.js`. There are also Jinja `.html` templates.
-- **Patient Portal SPA:** **Vue 3** with vue-router, **frappe-ui** (^0.1.176), **Tailwind CSS 3.4** with the frappe-ui preset, built with **Vite 4.4**. It uses feather/lucide icons and a socket.io client (`socket.js`).
-- **JS tooling:** Yarn workspaces (`yarn.lock`; workspaces are `patient_portal` and `frappe-ui`). ESLint 10 (flat config), Prettier 3. CI uses Node 24.
-- **Quality and security tooling:** pre-commit, ruff (lint and format), ESLint, Prettier, Semgrep (Frappe rules plus `r/python.lang.correctness`), pip-audit, detect-secrets, CodeQL.
-- **Release:** semantic-release with commitlint (conventional commits).
+- **Backend:** Python ≥3.10 (ruff targets py310; CI runs Python 3.14). It is a **Frappe Framework** app that depends on **ERPNext** (`required_apps = ["frappe/erpnext"]`) and is packaged with `flit_core`. Runtime pip dependencies are `responses` and `python-barcode`.
+- **Database:** MariaDB (CI uses `mariadb:11.8`), accessed through the Frappe ORM, `frappe.qb` (query builder) and `frappe.db.sql`.
+- **Desk UI:** plain JavaScript form scripts with Frappe client APIs (`frappe.ui.form`, `frappe.call`, `__()`), bundled through `healthcare/public/js/healthcare.bundle.js`. Doctype JS and JSON live next to each controller.
+- **Patient portal SPA:** Vue 3 with `<script setup>`, vue-router, **frappe-ui** (components, Tailwind preset, Vite plugin), Tailwind CSS 3.4, Vite 4.4, feather/lucide icons, and socket.io for realtime resource refetch.
+- **Package management:** Yarn workspaces (`patient_portal`, `frappe-ui`), `yarn.lock` at the root, and Node 24 in CI.
+- **Tooling:** ruff (lint and format), ESLint 10 flat config, Prettier, pre-commit, semgrep (Frappe rules), CodeQL, pip-audit, detect-secrets, commitlint, semantic-release.
