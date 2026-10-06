@@ -4,21 +4,22 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - .github/workflows/codeql.yml
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/hooks.py
   - .pre-commit-config.yaml
 ---
 
-Observability here relies on Frappe's built-in mechanisms; the repo has no metrics or tracing library.
+# Observability
 
-- **`frappe.log_error(message_or_traceback, title)`** writes to the Error Log doctype. Use it for failed notifications, calendar-event errors and patch failures (15 call sites). Always give a clear title.
-- **`frappe.logger()`** with `.info/.debug/.error` is used for setup and patch progress, e.g. in `healthcare/healthcare/setup/patient_duplicate_check.py`.
-- CI saves the bench output to `bench_run_logs.txt`. Coverage XML is uploaded to Codecov on non-PR runs.
-- CodeQL runs weekly and on PRs to develop. Semgrep and pip-audit run on every PR.
+The app adds no metrics or tracing stack of its own. It relies on Frappe's built-in facilities.
 
-Do not use `print()` for diagnostics: `debug-statements` is enforced by pre-commit.
+- **`frappe.log_error(...)`** writes to the Error Log doctype and is the main way to record failures. There are about 15 call sites, mostly in patches and in background or notification paths such as appointment confirmation messages and unavailability calendar events. Pass a clear, translatable title: `frappe.log_error(frappe.get_traceback(), _("<What failed>"))` or `frappe.log_error(title=...)`.
+- **`frappe.logger()`** is used sparingly, about 9 times, for informational or parse warnings, for example `frappe.logger().error(f"Could not parse appointment time: {appt_time_str}")`.
+- **Realtime events** go through `frappe.publish_realtime` (for example in sample collection). Long work goes through `frappe.enqueue`, and those jobs show up in Frappe's RQ job views.
+- Scheduled jobs are declared in `scheduler_events` in `hooks.py` and appear in the Scheduled Job Log.
+- Do not use `print()` or leftover debug statements. The pre-commit `debug-statements` hook rejects them.
