@@ -10,10 +10,12 @@ evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/package.json
   - patient_portal/vite.config.js
-  - patient_portal/src/components/PractitionerSelector.vue
-  - healthcare/public/js/observation_widget.js
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
 ---
 
-- **Desk UI:** use Frappe desk's built-in components (`frappe.ui.form`, `frappe.ui.Dialog` with `primary_action_label`, list and calendar views). There is no custom token layer, and app CSS is not included (`app_include_css` is commented out).
-- **Patient Portal:** the component library is **frappe-ui** (`Button`, `Card`, `createResource`/cached resources, etc.). Styling uses **Tailwind 3.4** with the `frappe-ui/tailwind` preset as the design-token source. `tailwind.config.js` only adds legacy colour aliases (lightBlue, warmGray, …). Icons are feather-icons or Lucide (`lucideIcons: true` in the frappe-ui vite plugin).
-- Use frappe-ui button variants and sizes (`variant="subtle"`, `size="sm"`) instead of custom-styled buttons.
+# Design system
+
+- **Desk UI** uses the stock Frappe Desk components: forms, list/tree views, `frm.add_custom_button(__('Label'), fn, __('Group'))`, page indicators (`frm.page.set_indicator(__('Not Saved'), 'orange')`), dialogs, and Jinja print formats. Shared Desk widgets live in `healthcare/public/js/` (observation widget, healthcare notes/orders HTML templates). Don't add custom CSS frameworks to Desk.
+- **Patient Portal** uses the **frappe-ui** component library (Button, Dialog, ErrorMessage, toast, createResource, etc.) and the **frappe-ui Tailwind preset** as the design-token source (colors, spacing, typography). `patient_portal/tailwind.config.js` extends it only with Tailwind legacy color aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). Use lucide or feather icons through frappe-ui.
+- Style with Tailwind utility classes such as `text-lg font-semibold text-gray-700`. Do not add bespoke CSS files beyond `src/index.css`.
