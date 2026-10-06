@@ -4,23 +4,22 @@ category: performance
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
-  - healthcare/hooks.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/hooks.py
   - healthcare/healthcare/api/patient_portal.py
 ---
 
-Paths that are likely to be performance-sensitive:
+Likely hot paths:
 
-- **Patient Appointment** (`patient_appointment.py`, about 2.2k lines). Slot availability, overlap and capacity checks, recurring and block appointments, and calendar events all run on every booking. The `all` scheduler also runs `send_appointment_reminder`, so keep that job cheap.
-- **Wildcard `doc_events["*"]`.** Every submit, cancel and update-after-submit of *any* DocType calls the patient-history medical-record hooks. Any added cost multiplies across the whole system.
-- **Billing hooks** on Sales Invoice and Payment Entry (`healthcare/healthcare/utils.py`, about 1.9k lines) run during ERPNext accounting flows.
-- **Daily schedulers:** appointment status updates, fee validity, inpatient occupied-unit billables, expiring medication requests. These are batch jobs over large tables.
-- **Portal API** (`api/patient_portal.py`). Multi-join `frappe.qb` queries for each logged-in patient.
-- **Reports** such as Patient Appointment Analytics and Diagnosis Trends.
+- **Patient Appointment** (`patient_appointment.py`, roughly 1,800+ lines) handles slot availability, overlap and capacity checks, practitioner schedules, holidays, and fee validity on every booking and validate. Recurring and block appointments multiply this work, and `recuring_appointment_handler.py` already pushes it to `frappe.enqueue`.
+- **Scheduler jobs:** `send_appointment_reminder` runs on `all` (every few minutes). Daily jobs cover appointment status, fee validity, inpatient billables, and expired medication requests. All of them scan large tables, so filter them in SQL.
+- **Patient Portal API** (`api/patient_portal.py`) is public-facing and serves list endpoints through `frappe.db.get_all`. Always pass `fields`, filters, and limits.
+- **Reports** (`report/` such as patient_appointment_analytics and diagnosis_trends) and dashboard chart sources aggregate over many records.
+- The codebase contains about 91 raw `frappe.db.sql` calls. Prefer parameterised queries and indexed filters.
 
-Existing practice: use a single `frappe.qb` join query instead of per-row `get_doc` calls, and move bulk work to `frappe.enqueue` (recurring appointments, sample collection).
+Conventions: move bulk or slow work (invoice and record creation for many rows, sample collection) to `frappe.enqueue`, use `frappe.db.get_value`/`get_all` with explicit fields over `frappe.get_doc` in loops, and avoid N+1 queries in validate hooks.
