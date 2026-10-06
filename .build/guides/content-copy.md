@@ -1,5 +1,5 @@
 ---
-title: Content & copy
+title: Content and copy
 category: content-copy
 layer: project
 applies_to: []
@@ -8,16 +8,15 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/healthcare_settings/healthcare_settings.py
   - healthcare/healthcare/utils.py
-  - healthcare/public/js/healthcare_practitioner.js
+  - patient_portal/src/components/Payment.vue
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
   - healthcare/locale/main.pot
-  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
-  - README.md
 ---
 
-- **Tone:** short and direct, in Title Case for labels and actions ("Create", "Schedule Admission", "Reason for Cancellation", "Change Item Code").
-- **Messages:** errors are plain sentences, sometimes ending in "!" ("Patient already has an appointment booked for the same day!", "Appointment end must be after start."). Success notices name the record ("Sales Invoice {0} created", "Customer {0} is created.").
-- **Throw titles:** short nouns ("Missing Configuration").
-- **Terminology:** use the domain DocType names exactly as defined, in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Fee Validity, Service Request, Observation, Diagnostic Report, Insurance Payor. The product is branded **Biograph**; patch `rebrand_marley_to_biograph` removed "Marley".
-- **Translation:** every string goes through `_()` (Python) or `__()` (JS), with `{0}` placeholders, and is sent to Crowdin via `healthcare/locale/main.pot`.
-- **Spelling:** the codebase uses British spelling in prose ("organisations"). The PR template follows ERPNext conventions.
+- **Terminology** comes from the healthcare domain, as DocType names: *Patient*, *Healthcare Practitioner* (not "doctor"), *Patient Appointment*, *Patient Encounter*, *Healthcare Service Unit*, *Medical Department*, *Fee Validity*, *Service Request*, *Observation*, *Inpatient Record*, *Therapy Plan*, *Insurance Payor*. The product is "Biograph". The app and module name is "Healthcare".
+- **Error tone** is short, direct sentences in sentence case, often naming the conflicting record: "Appointment end must be after start.", "Patient already has an appointment booked for the same day!", "The practitioner {0} is not available during this time due to an unavailability record {1}", "Registration Fee cannot be negative or zero", "Configure a service Item for {0}". Configuration problems use the dialog title "Missing Configuration". Prefer this direct style over legacy informal strings like "Oops!..".
+- **Error log titles** describe what failed: "Appointment Confirmation Message Not Sent", "Unavailability Calendar Event Error".
+- **Portal copy** is friendly and plain for patients: headings like "Pay Your Bill", labels "Consultation Fee", "Registration Fee", helper text "One-time registration for new patients".
+- **Translation:** every user-facing string goes through `_()` or `__()`, with `{0}` positional placeholders. Translations flow through `locale/main.pot` and Crowdin.
