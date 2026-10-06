@@ -8,16 +8,18 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
+  - AGENTS.md
   - .build/RULES.md
-  - .mergify.yml
-  - .github/CODEOWNERS
   - commitlint.config.js
+  - .github/workflows/semantic-commits.yml
 ---
 
-- **Work tracking:** this repo is connected to **Interactor Build**. Each change is a tracked **Goal**, created in the Build web UI, from an imported GitHub issue, or with `ibuild engine goal-create`. Under each Goal, **EngineTasks** cycle through investigation → execution → review.
-- **Gate:** do not edit files without a Goal. Work on branch `goal/<goalId>` in an isolated worktree, **never on the main branch `biograph-fh`**. Changes ship through the goal's single PR, which must pass review and CI. Small interactive changes may use `ibuild off`, but they still go through their own branch and a hand-opened PR.
-- **Branches:** the fork's integration branch is `biograph-fh`, and goal branches look like `goal/<slug>-<id>`. Upstream (earthians) uses `develop`, `version-1x-hotfix` and stable `version-1x`. Mergify auto-closes PRs against stable branches unless they come from maintainers, and handles backports through `backport <branch>` labels.
-- **Upstream sync:** cherry-pick from `earthians/marley` `version-16` with `git cherry-pick -x`. Fork intent wins in conflicts. Record each commit in `wiki/upstream-sync-version-16.md`.
-- **Commits:** Conventional Commits, checked by commitlint on every PR, with scopes like `fix(tests):` or `docs(wiki):`.
-- **PRs:** follow `.github/PULL_REQUEST_TEMPLATE.md`. Explain the problem, add screenshots for UI changes, put `closes #N`, and keep business logic server-side. Mergify merges after ≥1 approval (squash if labelled `squash`; `dont-merge` blocks it). Default code owners are @akurungadam and @Sajinsr.
-- Standing rules for AI sessions belong in `.build/RULES.md`, which is currently an unfilled template.
+Work is tracked through **Interactor Build**. Read `CLAUDE.md` before editing.
+
+- **Goal first:** every code change needs a tracked **Goal** (the bug, feature or outcome). A GitHub issue maps to a Goal only after an explicit import. EngineTasks under a Goal cycle through investigation → execution → review.
+- **Branching:** work on `goal/<goalId>` in an isolated worktree. **Never commit to the default branch `biograph-fh` (or `main`).** Existing branches follow this pattern, e.g. `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8`.
+- **One PR per Goal.** The engine opens it, and it merges after review and the CI gates.
+- **CLI:** `ibuild engine goal-create "<title>"`, `ibuild engine goal queue <id>`, `ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <id>`. For a small change in an interactive session, `ibuild off` is allowed if the project permits it, but the change still lands on its own branch through a PR.
+- **Commits:** Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Use lower-case types and a non-empty subject. Scopes are used (e.g. `docs(wiki): ...`), and sync-batch commits add a suffix such as `(upstream sync B2)`.
+- **Upstream sync:** cherry-pick from earthians/marley `version-16` with `git cherry-pick -x`. Fork intent wins conflicts. Doctype JSON gets a 3-way union of `fields` and `field_order`, and `patches.txt` gets a union. Log every commit's outcome in `wiki/upstream-sync-version-16.md`.
+- Project rules live in `.build/RULES.md` (currently a template) and `.build/guides/`, rendered into `AGENTS.md`.
