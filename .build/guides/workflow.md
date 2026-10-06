@@ -8,25 +8,23 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
+  - .build/RULES.md
   - .mergify.yml
+  - .github/CODEOWNERS
   - commitlint.config.js
-  - .github/labeler.yml
-  - .github/helper/install.sh
+  - .github/workflows/semantic-commits.yml
 ---
 
-**Work tracking (Interactor Build engine)**
-- Every code change needs a tracked **Goal**: no Goal, no edits. Reading is always fine.
-- Create Goals in the Build web UI or with `ibuild engine goal-create "<title>"` + `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after an explicit import.
-- The engine breaks each Goal into **EngineTasks**. Each task runs investigation → execution → review, driven by `ibuild engine work <task>` / `ibuild engine report --yes`.
-- For small interactive changes, `ibuild off` may be used if the project allows it. The change still goes on its own branch with a hand-opened PR that runs CI.
+Interactor Build's **engine** tracks the work (see `CLAUDE.md`):
+1. **Every code change needs a tracked Goal.** Create it in the Build web UI, or run `ibuild engine goal-create "<title>"` and then `ibuild engine goal queue <goalId>`. GitHub issues map to Goals only after an explicit import.
+2. Work on branch **`goal/<goalId>`** in an isolated worktree. Never commit to the integration branch directly.
+3. Each Goal ships as **one PR**, opened by the engine, into **`biograph-fh`** (the fork's main branch). It merges after review and CI pass.
+4. An EngineTask goes through investigation, then execution, then review. Report progress with `ibuild engine work` / `ibuild engine report --yes`.
 
-**Branching**
-- The default and integration branch is **`biograph-fh`**. Never commit or push directly to it.
-- Work goes on **`goal/<goalId>`** branches (e.g. `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8`) in an isolated worktree. Each goal gets one PR into `biograph-fh`.
-- Upstream branches (`develop`, `version-14/15/16`, `version-*-hotfix`) belong to earthians. Mergify auto-closes PRs to stable `version-*` branches from non-maintainers.
-- Upstream sync is done with `git cherry-pick -x` of `earthians/marley version-16` commits, in batches recorded in `wiki/upstream-sync-version-16.md`. When fork and upstream conflict, the fork's intent wins.
+For a small change, an interactive session may run `ibuild off` (if the project allows it). The change still goes on its own branch through a hand-opened PR.
 
-**Commits and PRs**
-- Conventional commit titles, enforced by commitlint (`feat|fix|docs|test|chore|refactor|perf|style|ci|build|revert`), with optional scopes such as `fix(tests):` or `docs(wiki):`.
-- Merges happen through Mergify after at least 1 approval. Add the `squash` label to squash-merge, or `dont-merge` to hold.
-- Labels: `needs-tests` (added automatically), `skip-release-notes`, and `backport <branch>`.
+**Upstream sync:** pull earthians/marley `version-16` in with `git cherry-pick -x`, in numbered batches (B1, B2, ...). On conflict, fork intent wins. Doctype JSON gets a 3-way union of fields. `patches.txt` gets a union. Log every outcome in `wiki/upstream-sync-version-16.md`.
+
+**Commits:** Conventional Commits, checked by commitlint on PRs. Upstream-sync commits add a suffix such as `(upstream sync B2)`.
+
+**Upstream conventions** (in config inherited from earthians): `version-1x` stable branches don't accept outside PRs (Mergify auto-closes them). Mergify merges after one approval, or squashes when the PR has the `squash` label. CODEOWNERS: @akurungadam @Sajinsr.
