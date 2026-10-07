@@ -1,5 +1,5 @@
 ---
-title: Coding conventions
+title: Coding Conventions
 category: coding-conventions
 layer: project
 applies_to: []
@@ -11,23 +11,28 @@ evidence:
   - .prettierrc.yaml
   - eslint.config.mjs
   - .pre-commit-config.yaml
-  - commitlint.config.js
-  - healthcare/healthcare/api/patient_portal.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - .semgrepignore
+  - healthcare/healthcare/doctype/lab_test/lab_test.py
+  - healthcare/healthcare/doctype/lab_test/lab_test.js
+  - patient_portal/src/components/Payment.vue
 ---
 
-**Python (ruff, configured in `pyproject.toml`):**
-- Indent with **tabs**, use **double quotes**, line length 110 (E501 is ignored). Format with `ruff format`.
-- Lint rule sets: F, E, W, I, UP, B, RUF, with the ignores listed in `pyproject.toml` (e.g. F401 unused imports, B904).
-- Import order: future → stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local. Each group is a separate section.
-- Naming: modules and functions are `snake_case`. Controller classes are `PascalCase` and match the doctype (`class PatientAppointment(Document)`). Doctype folders are snake_case versions of the doctype name.
-- Use full dotted paths for hook targets and imports (`healthcare.healthcare.doctype.<x>.<x>.<fn>`).
-- Mark client-callable functions with `@frappe.whitelist()`. Newer code adds type hints to their arguments (`def get_print_format(doctype: str, name: str)`).
-- Wrap user-facing strings in `_()` (`from frappe import _`).
-- Many legacy files are listed in `.pre-commit-config.yaml`'s `exclude` block. Pre-commit skips them, but do not add new ruff findings to them (the upstream-sync ledger tracks before/after counts).
+# Coding conventions
 
-**JavaScript (desk):** Prettier settings: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. ESLint uses `eslint:recommended` with Frappe globals (`frappe`, `__`, `erpnext`, `$`, …). Wrap strings in `__()`. Form scripts use the `frappe.ui.form.on('<DocType>', {...})` pattern.
+## Python (ruff, `pyproject.toml`)
+- **Indent with tabs.** Use double quotes and a line length of 110 (`ruff format`, `indent-style = "tab"`).
+- Lint rules: `F, E, W, I, UP, B, RUF`, with ignores for legacy patterns. Notably `F401` (unused imports) and `E501` are ignored. Commits still remove unused imports introduced by upstream picks.
+- **Import order** (isort sections): future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate each block with a blank line, as in `lab_test.py`.
+- Use absolute dotted imports for app code: `from healthcare.healthcare.doctype.x.x import ...`. Put deferred imports inside functions to avoid cycles.
+- Name controller classes in PascalCase after the DocType (`class LabTest(Document)`). Use snake_case for methods and the DocType lifecycle names (`validate`, `on_submit`, `on_cancel`, `validate_<thing>`).
+- Mark API methods with `@frappe.whitelist()`. Prefer `frappe.qb` (query builder) for queries. Raw `frappe.db.sql` still appears in about 90 places.
+- Wrap **every user-facing string in `_()`**. Use positional `{0}` formatting via `.format()`, never f-strings inside `_()`.
+- File header: a `# Copyright (c) <year>, <owner> and contributors` comment.
 
-**Vue (patient_portal):** Prettier does not cover it. Components are PascalCase `.vue` files, often named `*Model.vue` for modal dialogs. They use `<script setup>` and frappe-ui `createResource` for data.
+## JavaScript / Vue
+- Prettier settings: `useTabs: true`, `tabWidth: 4`, `printWidth: 88`, `arrowParens: avoid`. ESLint uses a flat config based on `eslint:recommended`, with Frappe globals (`frappe`, `erpnext`, `__`, `$`).
+- Desk scripts: `frappe.ui.form.on("<DocType>", {...})`, `frappe.call({method: "healthcare.healthcare...."})`, and `__()` for strings.
+- Vue SPA files are **excluded from prettier**. They use `<template>` + Tailwind utility classes + frappe-ui components, the `@` alias for `src/`, and tab indentation.
 
-**Commits:** Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Lower-case type, non-empty subject. Scopes are optional, e.g. `docs(wiki): …`, `fix(tests): …`.
+## Legacy exclusions
+`.pre-commit-config.yaml` and `.semgrepignore` exclude roughly 620 pre-existing files from lint. **New files are not excluded**, so they must pass every hook. Do not add new paths to those exclude lists.
