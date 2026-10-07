@@ -9,36 +9,35 @@ source: inferred
 evidence:
   - package.json
   - patient_portal/package.json
-  - README.md
-  - .pre-commit-config.yaml
   - .github/workflows/ci.yml
-  - .github/workflows/linters.yml
+  - .github/workflows/linters.v2.yml
+  - .pre-commit-config.yaml
+  - README.md
   - .github/helper/install.sh
 ---
 
-**Setup (inside a Frappe bench)**
-```sh
-bench get-app https://github.com/Tacten/biograph
-bench --site <site> install-app healthcare
-```
+# Commands
 
-**JavaScript**
-- `yarn install`: root workspace install. A postinstall step runs `cd patient_portal && yarn install --check-files`.
-- `yarn build`: builds the Patient Portal (`vite build --base=/assets/healthcare/patient_portal/`).
-- `cd patient_portal && yarn dev`: Vite dev server, which proxies to Frappe.
+The app runs inside a Frappe **bench**. Run commands from the bench, or from `apps/healthcare` where noted.
 
-**Lint and format** (the same checks CI runs)
-```sh
-pip install pre-commit && pre-commit install
-npm install
-pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
-git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
-semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
-```
+## Install / setup
+- `bench get-app https://github.com/Tacten/biograph`
+- `bench --site <site> install-app healthcare`
+- `bench --site <site> migrate`: runs the patches in `healthcare/patches.txt`.
+- CI bootstrap script: `.github/helper/install.sh`
 
-**Tests** (need a bench with erpnext and payments; CI uses the site `test_site`)
-```sh
-bench --site test_site run-parallel-tests --app healthcare
-bench --site test_site run-tests --app healthcare --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment
-```
-CI also runs `python -m compileall -f .` and greps for merge-conflict markers.
+## Frontend
+- `yarn install`: root workspaces. Postinstall runs `cd patient_portal && yarn install --check-files`.
+- `yarn build`: builds the patient portal (`vite build --base=/assets/healthcare/patient_portal/`).
+- `cd patient_portal && yarn dev`: Vite dev server.
+
+## Tests
+- `bench --site test_site run-parallel-tests --app healthcare`: what CI runs.
+- `bench --site <site> run-tests --app healthcare [--doctype "Patient Appointment"]`: standard Frappe single-run form.
+
+## Lint / format
+- `pre-commit install && pre-commit run --all-files`: ruff (`--fix`), ruff-format, prettier, eslint, pip-audit, detect-secrets and basic hygiene hooks.
+- Semgrep:
+  - `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules`
+  - `semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
+- Commit titles: `npx commitlint --from <base> --to <head>`
