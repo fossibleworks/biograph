@@ -1,5 +1,5 @@
 ---
-title: CI/CD & release
+title: CI/CD and release
 category: cicd-release
 layer: project
 applies_to: []
@@ -7,32 +7,34 @@ inclusion: always
 binding: reference
 source: inferred
 evidence:
+  - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
-  - .github/workflows/semantic-commits.yml
-  - .github/workflows/docs_checker.yml
-  - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
+  - .github/workflows/initiate_release.yml
+  - .github/workflows/release_notes.yml
   - .releaserc
-  - .github/release.yml
-  - .github/workflows/generate-pot-file.yml
-  - codecov.yml
-  - .github/dependabot.yml
+  - .github/helper/install.sh
 ---
 
-**PR checks** (`.github/workflows`):
-- `linters.yml` / `linters.v2.yml`: pre-commit on Python 3.14 and Node 24 (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks), plus Semgrep with Frappe rules and `r/python.lang.correctness`. v2 also runs on push and workflow_dispatch.
-- `semantic-commits.yml`: commitlint over the PR's commit range.
-- `docs_checker.yml`: `feat` PRs need a docs link unless the body says `no-docs` or `backport`.
-- `codeql.yml`: CodeQL security scanning.
-- `labeller.yml` + `.github/labeler.yml`: automatic labels, e.g. `needs-tests`.
-- Codecov is configured (patch 85%), but no server-test workflow exists in this fork, so there is no CI test baseline yet.
-- Dependabot is configured in `.github/dependabot.yml`.
+**PR checks (GitHub Actions):**
+- `ci.yml` (Server Tests):
+  - Runs on PRs, skipping css/js/md/html/csv-only changes and `version-*-beta` branches, and nightly at 00:00 UTC.
+  - Uses Python 3.14, Node 24 and MariaDB 11.8.
+  - Runs `compileall` plus a merge-conflict marker check, then `.github/helper/install.sh` to set up a bench, then `run-parallel-tests`.
+  - On non-PR runs it uploads coverage to Codecov.
+- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus semgrep with the Frappe rules and `r/python.lang.correctness`.
+- `semantic-commits.yml`: commitlint over the PR commit range.
+- `docs_checker.yml`: a docs link is required for `feat` PRs.
+- `codeql.yml`: Python/JS CodeQL on `develop` and weekly.
+- `labeller.yml`: auto-labels PRs.
 
-**Release:**
-- `initiate_release.yml` runs weekly (Tue 09:30 UTC) and opens `chore: release v1x` PRs from `version-1x-hotfix` into `version-1x` for 14, 15 and 16. It targets `earthians/biograph`.
-- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`. Using `.releaserc` (angular preset; breaking changes do not trigger a major release), it bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and publishes a GitHub release.
-- `release_notes.yml` and `.github/release.yml` build the changelog and leave out PRs labelled `skip-release-notes`.
-- `generate-pot-file.yml` regenerates translations weekly on `develop`. Crowdin opens translation PRs.
-- Deployment is by installing the app on a Frappe bench or Frappe Cloud (`bench get-app` / `install-app`, then `bench migrate` to apply `patches.txt`).
+**Release (inherited from upstream earthians):**
+- `initiate_release.yml`: every Tuesday, opens `version-XX-hotfix` → `version-XX` PRs for versions 14, 15 and 16.
+- `on_release.yml`: on push to `version-14/15/16`, runs `semantic-release` (`.releaserc`, angular preset, breaking changes do not trigger major bumps). It writes the version into `healthcare/__init__.py` and commits `chore(release): Bumped to Version x.y.z`.
+- `release_notes.yml`: regenerates GitHub release notes and strips chore/ci/test/docs/style entries.
+- `generate-pot-file.yml`: weekly POT regeneration on `develop`.
 
-Several workflows still point at the `earthians/` org and use the `EARTHIANS_BOT_TOKEN` secret, which are upstream leftovers. Confirm the target before relying on them in the fossibleworks fork. Pushing workflow-file changes needs a credential with `workflow` scope (see sync-ledger item B2 #86).
+**Fork notes:**
+- Several workflows hard-code `earthians/biograph` and earthians bot tokens.
+- On `fossibleworks/biograph`, `ci.yml` has never run, so there is no CI baseline.
+- The current push credential cannot modify `.github/workflows/*`, so workflow changes must be applied by hand.
