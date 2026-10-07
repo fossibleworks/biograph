@@ -11,27 +11,37 @@ evidence:
   - .github/workflows/linters.v2.yml
   - .github/workflows/semantic-commits.yml
   - .github/workflows/docs_checker.yml
+  - .github/workflows/codeql.yml
   - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
   - .releaserc
-  - .github/workflows/release_notes.yml
-  - .github/workflows/codeql.yml
-  - README.md
+  - .github/release.yml
 ---
 
-**On pull requests (GitHub Actions):**
-- `ci.yml` (Server Tests) runs on PRs that touch more than css/js/md/html/csv, and nightly at 00:00 UTC. It runs on Python 3.14, Node 24 and MariaDB 11.8. Steps: compile all Python, fail on merge-conflict markers, set up a bench with `.github/helper/install.sh`, then `bench run-parallel-tests --app healthcare`. Coverage goes to Codecov only on non-PR runs.
-- `linters.yml` and `linters.v2.yml` run pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast/merge-conflict checks) plus semgrep with the Frappe rules and `r/python.lang.correctness`.
-- `semantic-commits.yml` runs commitlint on the PR commit range.
-- `docs_checker.yml` requires a docs link (or `no-docs`) on `feat` PRs.
-- `codeql.yml` (security scan) and `labeller.yml` (path labels via `labeler.yml`). Dependabot is configured in `.github/dependabot.yml`.
+# CI/CD & release
 
-**Release (inherited from upstream earthians and wired to the `version-14/15/16` branches):**
-- `initiate_release.yml` opens weekly `chore: release vNN` PRs every Tuesday, merging `version-NN-hotfix` into `version-NN`.
-- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`, using the angular preset. Breaking changes do not trigger a major bump. It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
-- `release_notes.yml` regenerates release notes and strips chore/ci/test/docs/style entries.
-- `generate-pot-file.yml` refreshes translations, and Crowdin opens `fix: sync translations from crowdin` PRs.
+## On pull requests
+- **CI / Server Tests** (`ci.yml`):
+  - Ubuntu with a MariaDB 11.8 service, Python 3.14 and Node 24.
+  - Runs `compileall` and checks for merge-conflict markers.
+  - Builds a bench via `.github/helper/install.sh` (frappe + payments + erpnext + healthcare), then runs `bench run-parallel-tests --app healthcare`.
+  - Skipped for PRs that only touch css/js/md/html/csv. Also runs nightly at 00:00 UTC.
+  - Coverage is uploaded to Codecov only on non-PR runs.
+- **Linters** (`linters.yml`, `linters.v2.yml`, which also runs on push): pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, file checks) and Semgrep with the Frappe rules + `r/python.lang.correctness`.
+- **Semantic Commits**: commitlint over the PR range.
+- **Documentation Required**: `docs_checker.yml`.
+- **CodeQL**: `codeql.yml`.
+- **Labeller**: `labeller.yml` + `.github/labeler.yml`.
+- Dependabot is configured in `.github/dependabot.yml`.
 
-**Fork caveats:** several workflows hardcode `earthians/biograph` and earthians bot secrets. The `biograph-fh` fork has no `ci.yml` run history. The push credential cannot modify `.github/workflows/*` (workflow scope), so workflow-file changes must be applied by hand.
+## Release (upstream model, inherited)
+- `initiate_release.yml` opens weekly (Tuesday) `chore: release vN` PRs from `version-N-hotfix` → `version-N` for N = 14, 15, 16.
+- `on_release.yml` runs **semantic-release** (`.releaserc`, angular preset; breaking changes do not trigger major bumps) on pushes to `version-14/15/16`. It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z` and creates the GitHub release.
+- `release_notes.yml` + `.github/release.yml` generate notes and exclude PRs labelled `skip-release-notes`.
+- `generate-pot-file.yml` regenerates translations weekly on `develop`. Crowdin opens translation PRs.
 
-**Deployment:** the app is installed into a Frappe bench (`bench get-app`, `bench --site <site> install-app healthcare`, then `bench migrate` to run `patches.txt`). It is also offered on Frappe Cloud.
+## Fork caveats
+- Several workflows still reference `earthians/biograph` and the `EARTHIANS_BOT_TOKEN` secret.
+- The fork's `biograph-fh` branch has no CI history yet.
+- Pushes that modify `.github/workflows/*` need a token with workflow scope (see the B2 #86 note in the sync ledger).
+- Deployment is by `bench get-app` / Frappe Cloud. This repo has no deploy pipeline.
