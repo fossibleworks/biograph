@@ -4,24 +4,19 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - .pre-commit-config.yaml
-  - patient_portal/src/socket.js
 ---
 
-Observability uses Frappe's built-in facilities only. There is no metrics or tracing library.
+This app adds no metrics or tracing. It relies on Frappe's built-in mechanisms:
 
-- **Error Log doctype:** `frappe.log_error(...)` (about 15 call sites) is the main way failures are recorded. Use it with a short, human-readable title, and usually pass `frappe.get_traceback()` as the message:
-  ```python
-  frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
-  frappe.log_error(error_msg, "Unavailability Calendar Event Error")
-  ```
-- **App logger:** `frappe.logger().info(...)` / `.error(...)` (about 9 sites), mainly in setup routines and patches (`setup/patient_duplicate_check.py`).
-- Do not use `print`. The pre-commit `debug-statements` hook also blocks leftover `pdb`/`breakpoint` calls.
-- **Realtime:** the portal opens a socket.io connection (`patient_portal/src/socket.js`) for server push.
-- **CI-side signals:** Codecov coverage, CodeQL, Semgrep and pip-audit.
+- **Error Log doctype** through `frappe.log_error(...)`. This is the main channel, with about 15 call sites. Pass a short human title, often translated, and the traceback: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`. Use it for background, scheduler, integration (SMS, calendar) and patch failures.
+- **The file logger** `frappe.logger().info(...)` / `.error(...)` appears in only a few places: setup and patches (`setup/patient_duplicate_check.py`, `patches/v15_0/setup_patient_duplicate_check_rules.py`) and appointment time parsing.
+- **Integration request logs**: ABDM calls are stored as `ABDM Request` documents, a doctype under `healthcare/healthcare/doctype/abdm_request`.
+- **Coverage** reports go to Codecov from nightly CI.
+- Do not add `print()` debugging. The pre-commit `debug-statements` hook blocks `pdb` and breakpoints.
