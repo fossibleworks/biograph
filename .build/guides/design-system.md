@@ -10,9 +10,10 @@ evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/vite.config.js
   - patient_portal/package.json
-  - patient_portal/src/utils/formatters.js
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/public/js/observation.html
 ---
 
-- **Desk UI** (staff): the stock Frappe desk. Forms, list views, dashboards, number cards and workspaces are defined as metadata (doctype JSON, `workspace/`, `number_card/`, `dashboard_chart/`). Custom widgets (observation widget, healthcare notes and orders) use Frappe's built-in styles and HTML templates in `healthcare/public/js/*.html`. There are no custom design tokens.
-- **Patient Portal:** **frappe-ui** is the component library (`Button`, `ErrorMessage`, dialogs, etc.) and supplies the design tokens through the Tailwind preset (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only extension is legacy colour aliases (lightBlue → sky, warmGray → stone, etc.). Icons are feather and lucide (`lucideIcons: true`). Shared formatting lives in `src/utils/formatters.js` (`formatCurrency`).
-- Use frappe-ui components and Tailwind utility classes. Do not add new CSS frameworks or one-off colour values.
+- **Desk (staff UI):** standard Frappe desk with Frappe form/list/tree/calendar views, defined by DocType JSON and `*.js` form scripts. HTML snippets (`healthcare_note.html`, `observation.html`, `healthcare_orders.html`) render inside forms. Use Frappe UI primitives (`frappe.ui.Dialog`, `frappe.msgprint`, indicators) instead of custom CSS.
+- **Patient Portal:** **frappe-ui** is the component library and design-token source. `tailwind.config.js` uses `presets: [frappeUIPreset]` and only adds legacy color aliases (`lightBlue`, `warmGray`, …). Components such as `createResource`, Button, Dialog, and lists come from `frappe-ui`. Icons come from lucide/feather through the frappe-ui Vite plugin.
+- Portal components live in `patient_portal/src/components` and are named `PascalCase.vue` (`BookAppointmentModel.vue`, `PractitionerSelector.vue`, `Calendar.vue`). Styling uses Tailwind utility classes. Global CSS is limited to `src/index.css`.
