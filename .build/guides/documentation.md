@@ -8,19 +8,15 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **README.md** covers the product overview, installation through bench, development (pre-commit and semgrep), and links. End-user documentation is hosted externally on DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **`wiki/`** holds in-repo markdown for fork-specific features and engineering records:
-  - Design docs, in UPPER-KEBAB file names: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`
-  - Usage guides: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
-  - Plans and reports: `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`
-  - The upstream sync ledger `upstream-sync-version-16.md`. It records every cherry-picked upstream commit with an outcome (picked-clean / picked-with-conflict-resolution / already-present / skipped) and notes. Commits that update it use `docs(wiki): …`.
-- **PR-level docs gate** (upstream workflow `docs_checker.yml`): a PR whose title starts with `feat` must link a docs page (a `/wiki` path on an allowed docs host), or say `no-docs` or `backport` in its body.
-- The PR template asks contributors to "Update necessary Documentation" and to follow the ERPNext docs page format.
-- Code comments are sparse. Docstrings are uncommon except in newer modules such as the `setup/` and duplicate-check code.
+- **End-user documentation is hosted outside the repo.** The README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The `docs_checker.yml` workflow makes PRs whose titles start with `feat` include a docs link to `biograph.frappe.cloud` or `biograph.io` under `/wiki`. To skip the check, put `no-docs` or `backport` in the PR body.
+- **In-repo design and usage docs live in `wiki/`** as Markdown. File names are UPPER-KEBAB-CASE: `DESIGN-<FEATURE>.md` for designs and `<FEATURE>-USAGE[-DOC].md` for usage guides. Screenshots sit next to the docs as `.png`. Some longer plans use free-form titles ("FHIR Terminology Service Parity — Implementation Plan.md").
+- **Ledgers:** `wiki/upstream-sync-version-16.md` records every upstream sync batch: method, outcome vocabulary (picked-clean, picked-with-conflict-resolution, already-present, skipped), baselines and lint counts. Update it in `docs(wiki): …` commits.
+- `patient_portal/README.md` covers the SPA.
+- PR descriptions follow `.github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md`: explain the problem being solved, add screenshots/GIFs for UI changes, and use `closes #XXXX`.
