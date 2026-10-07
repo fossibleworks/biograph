@@ -4,20 +4,21 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - patient_portal/src/socket.js
   - .pre-commit-config.yaml
 ---
 
-Biograph relies entirely on **Frappe's built-in facilities**. It has no external metrics or tracing (no Sentry/OpenTelemetry/statsd in the app).
+There is no metrics or tracing stack. Observability uses Frappe's built-ins:
 
-- **`frappe.log_error(message, title)`** is the main failure record. It creates an *Error Log* document visible in Desk. It is used in about 15 places, usually with `frappe.get_traceback()` as the message and a short human title such as `"Appointment Confirmation Message Not Sent"` or `"Populate Appointment End Fields Patch"`. Prefer the keyword form `frappe.log_error(title=..., message=...)` for clarity.
-- **`frappe.logger()`** (`.info` / `.error`) writes to bench log files. It is used sparingly in setup and patches (`healthcare/setup/patient_duplicate_check.py`) and for parse failures. There are about 9 calls and no `logging.getLogger`.
-- **User-visible signals:** `frappe.msgprint(..., indicator="orange")` or `alert=True` for soft failures and confirmations.
-- **Realtime:** `frappe.publish_realtime` pushes UI updates, e.g. after sample collection.
-- **Audit trail:** Frappe document versioning, plus Patient Medical Record entries created by the wildcard `doc_events` hooks (`patient_history_settings`).
-- Do not add `print()` debugging. pre-commit's `debug-statements` hook rejects `pdb`/`breakpoint`.
+- **Error Log doctype:** `frappe.log_error(frappe.get_traceback(), _("Short Title"))` or `frappe.log_error(title=...)` for caught, non-fatal failures (about 15 call sites). Titles are short, human-readable and translated.
+- **Logger:** `frappe.logger().info(...)` / `.error(...)` for setup and patch progress and parse failures (about 9 call sites), e.g. the patient duplicate-check setup.
+- **Realtime and background:** background jobs go through `frappe.enqueue`, and their failures surface in the RQ job and Error Log.
+- **Patient portal:** uses `socket.js` for realtime updates. There is no client telemetry.
+
+Follow these patterns. Do not add `print()` (the pre-commit `debug-statements` hook blocks debugger statements) or third-party telemetry SDKs.
