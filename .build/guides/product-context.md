@@ -8,25 +8,24 @@ binding: reference
 source: inferred
 evidence:
   - README.md
+  - healthcare/hooks.py
   - pyproject.toml
   - healthcare/www/patient_portal.py
 ---
 
-**Biograph (by Tacten / FossibleWorks)** is an open-source Hospital Information System (HIS). It is a fork of earthians' Marley Health with further changes. It ships as the Frappe app `healthcare` and adds the health domain to ERPNext.
+**Biograph by Tacten** is an open-source hospital information system (HIS) for healthcare organisations of any size. It is a fork of Marley Health (earthians) with added features. It is a Frappe app (Python package `healthcare`, app title `Biograph`) that adds the healthcare domain to ERPNext, and ERPNext is a required app. Much of the design follows HL7 FHIR.
 
-**Who uses it:** clinics, hospitals and healthcare practitioners. Patients also use it through a self-service **Patient Portal** at `/patient-portal`, a Vue SPA where they book appointments, view orders and diagnostics, and pay bills.
+**Users:** healthcare practitioners, clinics and hospitals. They work in the Frappe desk at `/desk/healthcare`. Patients use a separate Vue patient portal served at `/patient-portal`.
 
-**Core capabilities** (README and the 139 doctypes under `healthcare/healthcare/doctype`):
-- Patient management, patient duplicate checking, patient history and medical records
-- Outpatient/Inpatient management: Patient Appointment (recurring, block-based therapy booking, practitioner unavailability), Inpatient Record, service units
-- Clinical Procedures, Rehabilitation/Physiotherapy (therapy plans and sessions), Nursing tasks
-- Laboratory: lab tests, sample collection, observations, diagnostic reports
-- Medication requests, Service Requests (orders), Treatment plans
-- Insurance: payors, contracts, policies, coverage, claims
-- Medical coding: Code System / Code Value, following HL7 FHIR concepts (terminology-service parity is planned)
-- Regional: India ABDM integration (`healthcare/regional/india`)
-- Billing goes through ERPNext Sales Invoice and Payment Entry hooks
+**Main feature areas:**
+- Patient management and patient duplicate checking
+- Outpatient and inpatient management: appointments, encounters, admissions, service units
+- Clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions)
+- Laboratory work: lab tests, sample collection, observations and diagnostic reports
+- Medical code standards (code systems and code values) and FHIR terminology
+- Insurance: payors, contracts, policies and coverage
+- Indian regional features (ABDM)
 
-Pharmacy, purchasing, HR, accounts and assets come from ERPNext itself. Domain vocabulary such as "Healthcare Practitioner", "Service Unit", "Medical Department" and "Fee Validity" comes from the doctype names, and new work should reuse those names.
+Pharmacy, purchasing, HR, accounts and assets come from ERPNext. The product is installed with `bench get-app` and `bench --site <site> install-app healthcare`.
 
-The working branch here is `biograph-fh` (the fossibleHIS fork, `fossibleworks/biograph`). It is periodically synced with upstream `earthians/marley` `version-16` (see `wiki/upstream-sync-version-16.md`).
+**Fork context:** this repo (`fossibleworks/biograph`, default branch `biograph-fh`) is periodically synced with upstream `earthians/marley` `version-16`. When fork behaviour conflicts with an upstream change, fork behaviour wins (see `wiki/upstream-sync-version-16.md`).
