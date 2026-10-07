@@ -4,21 +4,19 @@ category: performance
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
-  - healthcare/healthcare/api/patient_portal.py
-  - healthcare/hooks.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
+  - healthcare/hooks.py
+  - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
 ---
 
-These paths are likely to be performance-sensitive:
+These paths are likely to be hot or performance-sensitive:
 
-- **Patient Portal API** (`healthcare/healthcare/api/patient_portal.py`). This is the densest query module. It runs `frappe.qb` joins across Patient Appointment, Patient Encounter, observations and the patient's relations on every portal page load. Keep queries set-based, select only the fields needed, and avoid per-row `get_doc` calls.
-- **Appointment scheduling and validation** (`patient_appointment.py`). It checks overlaps, capacity and practitioner availability on every booking. The `send_appointment_reminder` scheduler job runs on the `all` (every-tick) schedule, so keep it cheap and incremental.
-- **Daily scheduler jobs:** appointment status updates, fee validity, inpatient billables for occupied service units and expired medication requests. These walk potentially large tables, so batch them and filter by indexed fields.
-- **Inpatient records:** billing and service-unit occupancy across long stays.
-- **Reports** in `healthcare/healthcare/report/` (diagnosis trends, appointment analytics, medication sales) run aggregate queries over large date ranges.
-- **`doc_events` on `'*'` and on Sales Invoice/Payment Entry** in `hooks.py` run on hot ERPNext transaction paths. Keep those handlers lightweight.
-- Use `frappe.enqueue` for long-running work instead of blocking request handlers.
+- **Appointment scheduling**: `patient_appointment.py` (about 1800+ lines). It includes `get_availability_data` (slot computation per practitioner and service unit), `get_events` (calendar feed) and the overlap and capacity checks run on every validate. Avoid per-slot queries. Batch through `frappe.qb` or `frappe.get_all` with filters.
+- **The global `doc_events["*"]` hooks** (`on_submit`/`on_cancel` → patient medical record) run for every submittable doctype in the site, so keep them cheap and return early.
+- **`scheduler_events["all"]` → `send_appointment_reminder`** runs every scheduler tick (a few minutes) and must use indexed filters.
+- **Bulk work** already goes through `frappe.enqueue` (recurring appointments, sample collection). Follow that pattern for anything that loops over many documents.
+- **Reports** (`healthcare/healthcare/report/*`, for example patient_appointment_analytics and diagnosis_trends) aggregate over large clinical tables. Use SQL or query-builder aggregation, not Python loops.
+- **Patient portal** endpoints (`api/patient_portal.py`) are public-facing. Paginate and limit fields.
