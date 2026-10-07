@@ -10,15 +10,16 @@ evidence:
   - healthcare/hooks.py
   - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
   - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - patient_portal/src/socket.js
+  - healthcare/healthcare/api/patient_portal.py
 ---
 
-# Performance-sensitive areas
+Paths that are likely to be performance-sensitive, based on the codebase:
 
-- **Wildcard doc_events:** `hooks.py` registers `on_submit`, `on_cancel` and `on_update_after_submit` on `*`, which create, update or delete Patient Medical Records. These run on **every submittable doctype in the whole ERPNext site**, so keep them cheap: return early when the doctype isn't configured in Patient History Settings.
-- **Sales Invoice / Payment Entry hooks:** `manage_invoice_validate` and `manage_invoice_submit_cancel` sit on core accounting paths. Avoid per-row queries.
-- **Scheduler:** `send_appointment_reminder` runs on **`all`**, every tick. The daily jobs (appointment status, fee validity, IP occupancy billing, medication-request expiry) scan large tables. Use filtered bulk queries.
-- **Appointment scheduling:** slot availability, overlap and capacity checks in `patient_appointment.py` (an approximately 1900-line module, plus `recuring_appointment_handler.py`) and the block-based therapy booking. These back interactive calendar and portal requests.
-- **Heavy work:** move it off the request with `frappe.enqueue(..., queue="long", enqueue_after_commit=True)`, as recurring appointments and sample collection do.
-- **Reports:** `healthcare/healthcare/report/*` (diagnosis trends, appointment analytics, medication item-wise sales). About 91 raw `frappe.db.sql` calls exist. Keep them parameterised and indexed, and prefer `frappe.qb` or `get_all` with fields and filters.
-- **Portal:** whitelisted endpoints in `api/patient_portal.py`, and the portal uses cached frappe-ui resources (`getCachedListResource`).
+- **`doc_events["*"]` on_submit/on_cancel/on_update_after_submit** (`patient_history_settings.create_medical_record`) runs on **every submittable document in the site**, including ERPNext ones. Keep it cheap and exit early for irrelevant doctypes.
+- **Sales Invoice and Payment Entry hooks** (`manage_invoice_validate`, `manage_invoice_submit_cancel`, `set_paid_amount_in_healthcare_docs`) sit in the ERPNext billing hot path.
+- **Scheduler jobs:** `send_appointment_reminder` runs on the `all` scheduler (every few minutes). The daily jobs `update_appointment_status`, `update_validity_status`, inpatient occupancy billing and `update_expired_medication_requests` scan large tables. Use bulk queries and filters, not per-row `get_doc` loops.
+- **Appointment availability and slot calculation** (`patient_appointment.py`, practitioner schedules, block-based therapy booking, recurring appointments). Heavy work there is already moved to `frappe.enqueue` (`recuring_appointment_handler.py`, `sample_collection.py`).
+- **Reports** (`healthcare/healthcare/report`) and dashboard charts and number cards aggregate clinical data. There are about 91 raw `frappe.db.sql` or cache call sites. Prefer `frappe.qb` or `get_all` with indexed filters.
+- **Patient Portal API** (`api/patient_portal.py`) is called by external patients. Keep it paginated and limited to the logged-in patient.
+
+Recommendations that follow the existing code: use `frappe.enqueue` for long-running or bulk work, `frappe.db.get_value` or `pluck` instead of loading full docs, and batch inserts in patches.
