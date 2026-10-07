@@ -9,10 +9,13 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/vite.config.js
-  - patient_portal/package.json
-  - patient_portal/src/PatientPortal.vue
+  - patient_portal/src/components/Payment.vue
+  - healthcare/public/js/healthcare_note.js
+  - healthcare/hooks.py
 ---
 
-- **Desk UI** uses Frappe's built-in form, list and calendar views and `frappe.ui` dialogs. There are no custom tokens. Styling comes from Frappe/ERPNext, and doctype layout is defined in the doctype JSON.
-- **Patient portal** uses **frappe-ui** as its component library and design tokens. Tailwind uses `presets: [frappeUIPreset]` from `frappe-ui/tailwind`, and only adds legacy color aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). Icons come from feather-icons and lucide (`lucideIcons: true` in the Vite frappe-ui plugin).
-- Use frappe-ui components (`Button`, `Dialog`, `createResource`, …) and Tailwind utility classes. Do not add another UI kit or hard-coded CSS. The global stylesheet is `patient_portal/src/index.css`.
+# Design system
+
+- **Desk UI:** use the standard Frappe desk components: `frappe.ui.form`, `frappe.ui.Dialog` with `primary_action_label`, list views, and the tree view (`healthcare_service_unit_tree.js`). Shared widgets live in `healthcare/public/js` (`healthcare_note.js`, `observation_widget.js`, plus `.html` templates). Don't introduce another UI library in desk.
+- **Patient portal:** use **frappe-ui** as the component library (`Card`, `Button`, `ErrorMessage`, `toast`, resources) and **Tailwind 3** with the `frappe-ui/tailwind` preset as the token source. `tailwind.config.js` only adds legacy colour aliases (`lightBlue`, `warmGray`, ...). Use Tailwind utility classes such as `text-gray-700`, `text-sm` and `font-semibold`. Icons come from feather / lucide through frappe-ui (`lucideIcons: true`).
+- Brand assets live in `healthcare/public/images` (the `healthcare.svg` app logo).
