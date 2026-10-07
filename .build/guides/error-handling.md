@@ -7,18 +7,15 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/utils.py
-  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
+  - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
 ---
 
-- **Validation errors:** raise with `frappe.throw(_("Message"), [ExceptionClass], title=_("Title"))`. There are about 181 calls in the codebase.
-  - Messages are translated and use `{0}` placeholders with `.format()`.
-  - Row-level errors are prefixed `Row #{0}:`.
-  - Typed exceptions are used where callers need to catch them (e.g. `OverlapError` for appointment overlaps).
-  - Configuration gaps use `title=_("Missing Configuration")` (see `healthcare/healthcare/utils.py`).
-- **Validation placement:** validations go in doctype controller hooks (`validate`, `before_submit`, …) on the server, never only in JS.
-- **Non-fatal background failures** (notifications, calendar events, patches): catch them and record with `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)`, so they land in the Error Log doctype and the main transaction still proceeds.
-- **Informational feedback:** `frappe.msgprint` on the server; `frappe.show_alert` / `frappe.throw(__())` on the client.
-- **Broad excepts:** `except Exception` appears about 31 times. Limit it to best-effort side effects and always log inside it. Note that `B904` (raise without from) is ignored in ruff.
+- **Validation failures:** call `frappe.throw(_("Message {0}").format(...), title=_(...))`. There are ~224 call sites. Messages are translated and short, e.g. `title=_("Missing Configuration")` in `utils.py`.
+- **Typed errors:** subclass `frappe.ValidationError` at module level when callers or tests need to distinguish a case. Examples: `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`. Pass the class as `exc=` to `frappe.throw`.
+- **Non-fatal background failures** (notifications, calendar events, patches): wrap in `try/except Exception` and record with `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)` instead of failing the transaction, e.g. "Appointment Confirmation Message Not Sent".
+- **Informational messages:** `frappe.msgprint` server-side. Client-side, use `frappe.show_alert` for toasts and `frappe.throw`/`frappe.msgprint` in desk JS. The portal uses `console.error` in a few catch blocks.
+- **API responses:** whitelisted endpoints return plain data and raise via `frappe.throw`. Frappe serialises exceptions to the client, so there is no custom error envelope.
+- Where `frappe.throw` is intentionally used in patches, it is marked `# nosemgrep`.
