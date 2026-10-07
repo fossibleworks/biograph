@@ -1,5 +1,5 @@
 ---
-title: Design system
+title: Design System
 category: design-system
 layer: project
 applies_to: []
@@ -9,22 +9,10 @@ source: inferred
 evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/vite.config.js
-  - patient_portal/package.json
-  - healthcare/public/js/healthcare.bundle.js
+  - patient_portal/src/components/Payment.vue
+  - healthcare/public/js/form.js
 ---
 
-# Design system
-
-The two UIs follow different conventions.
-
-## Desk UI (staff)
-- Standard **Frappe Desk** components, generated from DocType JSON: forms, list, calendar and tree views, workspaces, number cards and dashboard charts.
-- Custom widgets in `healthcare/public/js` (observation widget, healthcare notes, orders) use Frappe's `frappe.ui` APIs and Jinja/HTML micro-templates (`*.html` imported in `healthcare.bundle.js`).
-- Do not bring in other CSS frameworks.
-
-## Patient portal
-- **frappe-ui** is the component library (`Card`, `ErrorMessage`, `createResource`, `getCachedResource`, etc.).
-- **Tailwind CSS** uses the `frappe-ui/tailwind` preset as the design-token source.
-- `tailwind.config.js` only adds legacy colour aliases: `lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`.
-- Icons: lucide (through the frappe-ui vite plugin) and feather-icons.
-- Build new portal UI from frappe-ui components and preset tokens, not hard-coded colours.
+- **Desk UI** uses Frappe's built-in form, list, and dialog components: `frm.add_custom_button`, `frm.page.set_primary_action`, `frappe.ui.Dialog`, and indicators such as `set_indicator(__("Not Saved"), "orange")`. Don't introduce custom CSS frameworks in desk.
+- **Patient portal** uses **frappe-ui** as its component library (`Card`, `ErrorMessage`, and others) and **Tailwind** with `frappeUIPreset` as the token source (`patient_portal/tailwind.config.js` only adds legacy color aliases). Icons come from feather and lucide through the frappe-ui Vite plugin.
+- Styling uses Tailwind utilities such as `text-gray-900`, `rounded-xl`, and `shadow-sm`. Global CSS lives in `patient_portal/src/index.css`.
