@@ -8,17 +8,16 @@ binding: reference
 source: inferred
 evidence:
   - healthcare/hooks.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
-  - healthcare/healthcare/api/patient_portal.py
+  - patient_portal/src/socket.js
 ---
 
-# Performance-sensitive areas
+Likely hot paths:
+- **Wildcard `doc_events["*"]`:** `on_submit`/`on_cancel`/`on_update_after_submit` call `patient_history_settings.create/delete/update_medical_record` for *every* submitted document on the site. Keep these handlers cheap and exit early for irrelevant doctypes.
+- **Sales Invoice / Payment Entry hooks** (`manage_invoice_validate`, `manage_invoice_submit_cancel`, `set_paid_amount_in_healthcare_docs`) run inside ERPNext billing transactions.
+- **Scheduler:** `send_appointment_reminder` runs on `all`, which is every few minutes. The daily status updates for appointments, fee validity, inpatient billables and expired medication requests scan large tables, so they need indexed filters and batched updates.
+- **Appointment booking:** slot and availability calculation, overlap and capacity checks, practitioner schedules, and recurring appointments. Recurring creation is already sent to the `long` queue with `frappe.enqueue`.
+- **Patient Portal API** (`api/patient_portal.py`) and the portal's cached resources (`socket.js` uses `getCachedListResource`).
+- **Reports** in `healthcare/healthcare/report` (appointment analytics, diagnosis trends, lab test report).
 
-- **Global `doc_events["*"]`.** `on_submit`/`on_cancel`/`on_update_after_submit` run `patient_history_settings` medical-record hooks on **every submitted document in the site**, including ERPNext ones. Keep them cheap and return early.
-- **Sales Invoice hooks** (`manage_invoice_validate`/`submit_cancel`) run on every invoice.
-- **The `"all"` scheduler** runs `send_appointment_reminder` every few minutes. The daily jobs scan appointments, fee validity, inpatient records and medication requests, so query them in bulk with filters and not row by row.
-- **Appointment booking and availability** (`patient_appointment.py`, about 1900 lines; `practitioner_availability`). Slot, overlap and capacity checks run on every booking. Prefer `frappe.qb` aggregate queries (e.g. `Max(position_in_queue)`) over loops of `get_doc`.
-- **Patient portal API** (`api/patient_portal.py`) is called on every portal page load, for appointments and patient relations.
-- **Long-running work** goes to the background with `frappe.enqueue`, e.g. recurring appointment creation and sample collection.
-- Patches should be idempotent and batch-friendly. They run during `bench migrate` on large production datasets.
+The codebase has about 40 raw `frappe.db.sql` calls outside tests and about 80 `frappe.qb` usages. Prefer `frappe.qb` or `get_all` with explicit `fields`, and avoid querying per row inside loops.
