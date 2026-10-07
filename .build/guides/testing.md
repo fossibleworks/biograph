@@ -8,16 +8,20 @@ binding: required
 source: inferred
 evidence:
   - healthcare/tests/utils.py
-  - healthcare/healthcare/doctype/lab_test_sample/test_lab_test_sample.py
-  - healthcare/healthcare/doctype/nursing_task/test_nursing_task.py
-  - codecov.yml
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
   - .github/workflows/ci.yml
+  - codecov.yml
 ---
 
-- **Framework:** Frappe and ERPNext integration tests run against a real MariaDB site through `bench run-tests` / `run-parallel-tests`.
-- **Layout:** each doctype has a co-located `doctype/<name>/test_<name>.py`, about 85 test files in total. Shared fixtures live in `healthcare/tests/utils.py`.
-- **Base class:** test classes extend **`HealthcareTestSuite`** from `healthcare.tests.utils`. It subclasses ERPNext's `ERPNextTestSuite`. Fork tests were migrated to this base class, so use it in new tests too. `BootStrapTestData` creates master data such as the company, items, practitioners, patients, and templates. Test records use the `_Test ...` naming.
-- **Assertions:** standard unittest. Validation failures are checked with `self.assertRaises(frappe.ValidationError, doc.save)`.
-- **Coverage:** Codecov requires an **85% patch target** on PRs (to develop) and allows a 0.5% project threshold. Coverage is captured on scheduled and non-PR runs.
-- CI skips server tests for PRs that only touch `.js`, `.css`, `.md`, `.html`, or `.csv`.
-- No JS or Vue unit test setup exists.
+**Framework:** Frappe's unittest-based test runner (`bench run-tests` / `run-parallel-tests`), run against a real MariaDB site with ERPNext installed. There are no JS unit tests (no `*.test.js`), and Cypress paths appear only in exclude lists.
+
+**Layout**
+- Tests sit next to their DocType: `healthcare/healthcare/doctype/<name>/test_<name>.py`. There are about 85 test files, and reports follow the same pattern.
+- Test classes are named `Test<DocType>` and subclass **`HealthcareTestSuite`** from `healthcare.tests.utils`. That class builds on ERPNext's `ERPNextTestSuite`, and `BootStrapTestData` creates master data (company, items, patients, practitioners, service units, templates, ...).
+- Shared helpers live in `healthcare/tests/utils.py` and `healthcare/tests/test_utils.py`. Doctype tests often expose `create_<thing>()` factory functions that other tests import, for example `create_appointment` in `test_patient_appointment.py`.
+- `setUp` calls `super().setUp()`, then clears relevant tables with `frappe.db.sql("delete from \`tab...\`")` and toggles settings with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+
+**CI and coverage**
+- `ci.yml` runs the server tests on PRs that touch non-JS/CSS/MD/HTML files, and nightly. Coverage is captured only on non-PR runs and uploaded to Codecov.
+- `codecov.yml`: project status threshold is 0.5%, and **patch coverage target is 85%** on PRs.
+- This fork has **no CI baseline history**. The first CI run on a goal PR becomes the baseline (`wiki/upstream-sync-version-16.md`).
