@@ -9,15 +9,34 @@ source: inferred
 evidence:
   - healthcare/tests/utils.py
   - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
-  - healthcare/tests/test_utils.py
   - codecov.yml
+  - .github/labeler.yml
   - .github/workflows/ci.yml
 ---
 
-- **Framework:** Frappe/ERPNext integration tests, which are unittest-style and run against a real MariaDB site. The shared base class is `healthcare.tests.utils.HealthcareTestSuite`, which extends `erpnext.tests.utils.ERPNextTestSuite`. `BootStrapTestData` creates the master data: company, items, departments, patients, practitioners, service units, templates and insurance payors. Records are prefixed `_Test ...`.
-- **Layout:** `test_<doctype>.py` sits next to its DocType, in `healthcare/healthcare/doctype/<name>/`, and there are about 110 of these files. Shared tests live in `healthcare/tests/`. Tests subclass `HealthcareTestSuite`, call `super().setUp()`, and often clear tables with `frappe.db.sql("delete from `tab...`")`. Module-level `create_*` helpers build fixtures.
-- New tests must use `HealthcareTestSuite`. Recent work moved all fork tests onto it.
-- **Running:** CI uses `bench --site test_site run-parallel-tests --app healthcare`.
-- **Coverage:** Codecov expects **85% patch coverage** on PRs to `develop`, and the project coverage threshold allows a 0.5% drop. Coverage is collected only on non-PR (scheduled) runs.
-- **Frontend:** there are no JS or Vue unit tests.
-- **Fork note:** `biograph-fh` has no CI baseline, so record known baseline failures in the wiki ledger.
+## Framework
+
+- Frappe's unittest-based runner (`bench run-tests` / `run-parallel-tests`), run against a real MariaDB site.
+- Test classes subclass **`HealthcareTestSuite`** from `healthcare/tests/utils.py`, which subclasses ERPNext's `ERPNextTestSuite`. Recent work moved all fork tests onto this base.
+- `BootStrapTestData` in the same file builds master data: company, items, departments, users, patients, practitioners, service units, templates, medications, insurance payors and more. Use its `_Test ...` records instead of creating ad-hoc masters.
+
+## Layout
+
+- Put `test_<doctype>.py` next to its doctype in `healthcare/healthcare/doctype/<name>/`. There are about 85 such files.
+- Shared helpers go in `healthcare/tests/`.
+
+## Conventions
+
+- Always call `super().setUp()`.
+- Clean up with `frappe.db.sql("delete from `tabX`")` or by targeting `_Test %` names.
+- Look up existing records with `frappe.get_list(..., pluck="name")`.
+- Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+- Keep tests deterministic. Many recent commits fix non-deterministic patient and appointment tests.
+- Expose module-level `create_*` helpers that other tests can import, e.g. `create_appointment` and `create_encounter`.
+
+## Coverage expectations
+
+- Codecov: project target `auto`, threshold 0.5%. **Patch target 85%** on PRs to `develop`.
+- Coverage is collected only on non-PR (scheduled) runs.
+- The labeler adds `needs-tests` when a PR changes `healthcare/**/*.py` without touching any `test*.py`.
+- Note: the fork branch `biograph-fh` has no CI test baseline yet, per the wiki ledger.
