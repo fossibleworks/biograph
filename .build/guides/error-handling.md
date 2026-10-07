@@ -1,23 +1,25 @@
 ---
-title: Error handling
+title: Error Handling
 category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
-  - healthcare/healthcare/api/patient_portal.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/healthcare/doctype/patient_encounter/patient_encounter.js
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - patient_portal/src/components/BookAppointmentModel.vue
 ---
 
-- **Validation errors:** raise them with `frappe.throw(_("Message"), [ExceptionClass])`. There are about 180 call sites. Frappe rolls back the transaction and shows the message to the user.
-- **Typed errors:** define a module-level subclass of `frappe.ValidationError` when callers or tests need to tell errors apart. Examples: `OverlapError` and `MaximumCapacityError` in `patient_appointment.py`, and `OverlapError` in `insurance_payor_contract.py`. Pass the class as the second argument to `frappe.throw`.
-- **Permissions:** whitelisted APIs check access and throw `frappe.PermissionError`, e.g. `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)` in `api/patient_portal.py`.
-- **Best-effort side effects** (notifications, calendar events, patches): wrap them in `try/except Exception` and record the failure with `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(message=..., title=...)`, so the main transaction is not aborted.
-- **Messages:** short, sentence-case, translated, and they end with a period. Use `{0}` placeholders with `.format()`.
-- **Client side:** use `frappe.msgprint(__("..."))` for blocking notices and `frappe.show_alert({message, indicator})` for transient ones.
+# Error handling
+
+- **Validation errors:** use `frappe.throw(_("message {0}").format(...), title=_("Title"))` (about 180 uses). Pass an exception class for domain errors, e.g. `frappe.throw(msg, OverlapError)`. Use a title for configuration problems (`title=_("Missing Configuration")`, `_("Customer Not Found")`).
+- **Custom exceptions:** subclass `frappe.ValidationError` at the top of the controller module (`MaximumCapacityError`, `OverlapError`). Tests assert on these classes.
+- **Bold and links in messages:** `frappe.bold(value)` and `get_link_to_form(doctype, name)`.
+- **Non-blocking notices:** `frappe.msgprint(_(...), alert=True)`, e.g. "Sales Invoice {0} created".
+- **Best-effort side effects** (notifications, calendar events, patches): wrap them in `try/except` and record the failure with `frappe.log_error(frappe.get_traceback(), _("Short Title"))` or `frappe.log_error(title=...)`, so the main transaction can continue. Examples: "Appointment Confirmation Message Not Sent", "Unavailability Calendar Event Error".
+- **Whitelisted APIs** raise through `frappe.throw` and Frappe turns that into the JSON error response. The Vue portal shows it with `toast.error(err.messages?.[0] || err)`.
+- Do not swallow exceptions silently. Do not raise bare `Exception`.
