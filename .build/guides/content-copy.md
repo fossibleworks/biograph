@@ -8,19 +8,30 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
   - healthcare/locale/main.pot
   - crowdin.yml
 ---
 
-**Tone:** short, plain and clinical-administrative. Messages state the problem directly and usually as a full sentence ending in a period. Exclamation marks show up only for warnings about blocked actions ("Patient already has an appointment booked for the same day!").
+# Content & copy
 
-**Terminology:** use the domain DocType names in Title Case exactly as they are defined: *Patient*, *Healthcare Practitioner*, *Patient Appointment*, *Patient Encounter*, *Clinical Procedure*, *Nursing Task*, *Healthcare Service Unit*, *Medical Department*, *Fee Validity*, *Code Value*, *Insurance Payor*. Workflow status values are quoted in messages ("Not Allowed to 'Complete' Nursing Task without linking Task Document").
+## Tone
+- Plain, short and clinical-administrative.
+- Error messages state the problem and often the reason, e.g.:
+  - "Appointment end must be after start."
+  - "Cannot Submit, not all samples are marked as 'Collected'."
+  - "Patient Insurance Policy is required to create Insurance Coverage"
+- Occasional exclamation for conflicts ("Patient already has an appointment booked for the same day!").
 
-**Patterns:**
-- Errors: `_("Appointment end must be after start.")`, `_("Invalid Code Value: {0}")`, `_("{0} is a holiday")`. Titles name the category, for example `"Missing Configuration"`.
-- Buttons and actions: short Title Case verbs or verb phrases, such as `__("Book")`, `__("Check In")`, `__("Create Nursing Tasks")`, `__("Cancel Admission")`, `__("Confirm")`.
-- Confirmations are phrased as questions ("Are you sure you want to book this time block appointment?"). Progress text uses an ellipsis ("Checking for conflicts...").
-- Portal headings are Title Case ("Book an Appointment", "Available Slots", "Pay Your Bill", "Payment Successful"). The empty state is "No Records Found".
+## Terminology and casing
+- Use DocType names in **Title Case** exactly as defined: Patient Appointment, Healthcare Practitioner, Inpatient Record, Insurance Payor, Fee Validity, Healthcare Service Unit, Medical Department, Sales Invoice.
+- Use "Practitioner" (not "doctor"), "Payor" (not "payer") and "Service Unit" (not "room"/"bed") to match the FHIR-flavoured model.
+- Interpolate with `{0}`/`{1}` placeholders inside `_()` so strings stay translatable. Never build strings by concatenation. Wrap names in `frappe.bold()`.
+- Error dialog titles are short noun phrases ("Missing Insurance Policy").
 
-All copy must be translatable: `_()` in Python and `__()` in JS, with positional `{0}` placeholders. Translations flow through `healthcare/locale/main.pot` and Crowdin.
+## Patient portal (patient-facing)
+- Friendly, Title-Case headings and buttons: "Book an Appointment", "Available Slots", "Select a Department", "Select a Practitioner", "Pay Your Bill", "Payment Successful", "Consultation Fee".
+- Empty states are conversational: "Looks like you don't have any appointments yet." and "No Records Found".
+
+## Translation
+All strings flow into `healthcare/locale/main.pot`, which Crowdin translates. Every new string must be wrapped in `_()` / `__()`.
