@@ -11,20 +11,24 @@ evidence:
   - .prettierrc.yaml
   - eslint.config.mjs
   - .pre-commit-config.yaml
+  - commitlint.config.js
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
-  - .git-blame-ignore-revs
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
 ---
 
-**Python (ruff, config in pyproject.toml):**
-- **Tabs** for indentation, **double quotes**, line length 110 (E501 is ignored, so long lines are tolerated).
-- Lint rules F, E, W, I, UP, B, RUF are enabled, with a long ignore list (F401 unused imports, E402, B904 and others).
-- isort section order: stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party. Imports use the full dotted path, e.g. `from healthcare.healthcare.doctype.fee_validity.fee_validity import ...`.
-- Doctype controllers subclass `frappe.model.document.Document` and are named in PascalCase after the doctype. Files and folders use snake_case of the doctype name.
-- Wrap user-facing strings in `_()` (`from frappe import _`). Client-callable functions use `@frappe.whitelist()`.
-- Put business logic and validations **on the server side** (PR template rule).
-- Note: about 620 legacy files are listed in the pre-commit global `exclude`, so they are not linted. Do not reformat them wholesale. Reformat commits belong in `.git-blame-ignore-revs`.
+**Python (ruff, config in `pyproject.toml`):**
+- Indent with **tabs**, use double quotes, line length 110, target py310. Run `ruff format` with `docstring-code-format`.
+- Lint rules `F, E, W, I, UP, B, RUF`, with a documented ignore list. Unused imports (F401) are ignored, and line length (E501) is not enforced.
+- isort section order: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Each group is separated by a blank line (see `test_patient_appointment.py`).
+- Many legacy files are listed in the `.pre-commit-config.yaml` `exclude` block. Don't mass-reformat them, because that inflates diffs and breaks upstream cherry-picks.
+- Naming: DocType folders and modules are `snake_case` versions of the DocType name (`patient_appointment/patient_appointment.py`). Controller classes are CamelCase (`PatientAppointment(Document)`). Custom exceptions subclass `frappe.ValidationError` (`OverlapError`, `MaximumCapacityError`).
+- Wrap user-facing strings in `_()`. Use `.format()` placeholders inside the translated string, e.g. `_("Please set {0}").format(...)`.
+- Expose API methods with `@frappe.whitelist()`.
 
-**JavaScript (desk):** Prettier with tabs, tabWidth 4, printWidth 88 and `arrowParens: avoid`. ESLint uses `eslint:recommended` with the Frappe globals (`frappe`, `cur_frm`, `__`, `erpnext`, …). Translate UI strings with `__()`.
+**JavaScript (ESLint flat config + Prettier):**
+- Indent with tabs (tabWidth 4), printWidth 88, `arrowParens: avoid`.
+- `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `__`, `$`, `moment` …). Wrap desk strings in `__()`.
+- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})`.
+- The Patient Portal (Vue SFCs) is excluded from Prettier and follows its existing style (frappe-ui components, `createResource`).
 
-**Vue portal:** Composition API (`ref`, `computed`), `@/` alias to `patient_portal/src`, frappe-ui components and Tailwind classes. `patient_portal/` is excluded from Prettier.
+**Commits:** Conventional Commits, enforced by commitlint: types `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, lower-case type, non-empty subject. Upstream-sync work uses `git cherry-pick -x`.
