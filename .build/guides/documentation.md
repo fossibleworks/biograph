@@ -8,13 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
+  - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **Public docs** live outside the repo: the README points to DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **In-repo design and usage docs** are in `wiki/` as UPPER-KEBAB or descriptive Markdown files. Examples: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` (design), `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (usage), `insurance-parity-report.md`, the FHIR terminology implementation plan, and the running ledger `upstream-sync-version-16.md`. Images sit next to their docs.
-- **Ledger docs are living records.** Upstream-sync work appends outcomes (picked-clean / picked-with-conflict-resolution / already-present / skipped) and commits them as `docs(wiki): ...`.
-- **PR docs check:** `docs_checker.yml` fails `feat` PRs unless the body links to a `/wiki` URL on biograph.frappe.cloud or biograph.io, or contains `no-docs` or `backport`.
-- Doctype field descriptions in the JSON schemas act as inline user docs.
+- **User/product docs** are external. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`), and the inherited docs checker expects a wiki link on `biograph.frappe.cloud` or `biograph.io`.
+- **`docs_checker.yml`** fails a PR whose title starts with `feat` unless the body links a `/wiki` doc on an allowed host, or contains `no-docs` or `backport`. (Note: the helper queries the upstream `earthians/biograph` repo.)
+- **In-repo `wiki/`** holds fork-specific design and usage docs as UPPER-KEBAB or title-case Markdown files (e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`) and parity/sync ledgers (`upstream-sync-version-16.md`, `insurance-parity-report.md`). Upstream-sync batches log every outcome in the ledger with `docs(wiki): ...` commits.
+- **PR template** asks for: the target branch, a conventional title, passing tests, server-side validations, updated documentation, and `closes #XXXX`, plus details and screenshots.
+- Code comments are sparse and explain *why*, e.g. the `on_login` comment in `hooks.py`.
