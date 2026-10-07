@@ -4,16 +4,16 @@ category: commands
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - README.md
   - package.json
   - patient_portal/package.json
-  - .github/workflows/ci.yml
-  - .github/workflows/linters.v2.yml
   - .pre-commit-config.yaml
-  - .github/helper/update_pot_file.sh
+  - .github/workflows/linters.v2.yml
+  - .github/helper/install.sh
+  - .github/workflows/semantic-commits.yml
 ---
 
 **Install (in a bench):**
@@ -22,33 +22,29 @@ bench get-app https://github.com/Tacten/biograph
 bench --site <site> install-app healthcare
 ```
 
-**Server tests** (the same command CI uses):
+**Lint and format (the same checks CI runs):**
 ```sh
-bench --site test_site run-parallel-tests --app healthcare
-# or for a single doctype/module
-bench --site test_site run-tests --app healthcare --doctype "Patient Appointment"
-```
-CI sets up the bench with `.github/helper/install.sh`.
-
-**Lint / format** (pre-commit runs ruff `--fix`, ruff-format, prettier, eslint, pip-audit and detect-secrets):
-```sh
-pip install pre-commit && pre-commit install && npm install
-pre-commit run --all-files
+pip install pre-commit && pre-commit install
+npm install   # eslint deps
+pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
 ```
 
-**Semgrep** (Frappe rules, the same as CI):
+**Semgrep (Frappe rules):**
 ```sh
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
+pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-**Patient Portal:**
+**Patient portal:**
 ```sh
 yarn install        # postinstall installs patient_portal
 yarn build          # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
 cd patient_portal && yarn dev
 ```
 
-**Commit titles** are checked with `npx commitlint` (conventional types).
+**Tests:** these run inside a bench site, for example `bench --site test_site run-tests --app healthcare`. `.github/helper/install.sh` shows how to set up the CI bench.
 
-**Translations:** `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`.
+**Commit-message check:** `npx commitlint --from <base> --to <head>`.
+
+**Ruff on excluded files:** many legacy paths are excluded from pre-commit, so run `ruff check <file>` on them directly.
