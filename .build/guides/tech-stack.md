@@ -10,20 +10,27 @@ evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
+  - yarn.lock
   - .github/workflows/ci.yml
   - .github/helper/install.sh
-  - crowdin.yml
+  - healthcare/hooks.py
 ---
 
 **Backend**
-- Python `>=3.10`. Ruff targets `py310`, and CI runs Python **3.14**.
-- **Frappe Framework** with **ERPNext**. The `payments` app is installed in CI. Each Frappe/ERPNext branch is matched to the repo branch, and fork branches fall back to `version-16`.
-- Database: **MariaDB** (CI uses `mariadb:11.8`). Redis comes with bench.
-- Packaging: `flit_core` (`pyproject.toml`). Runtime dependencies: `responses`, `python-barcode`.
+- Python 3.10 or newer (`requires-python >=3.10`, ruff `target-version py310`). CI runs Python **3.14**.
+- **Frappe Framework** with **ERPNext** as a required app. The fork's CI tests against Frappe/ERPNext `version-16`.
+- Database: **MariaDB**. CI uses the `mariadb:11.8` image. Redis is installed by the CI install script.
+- Packaging: `flit_core`. Runtime dependencies are pinned in `pyproject.toml`: `responses`, `python-barcode`.
+- Server logic lives in DocType controllers (`frappe.model.document.Document`), whitelisted methods, `frappe.qb` query builder, and doc_events and scheduler hooks in `hooks.py`.
 
-**Frontend**
-- Desk UI: plain JavaScript form scripts per doctype (`<doctype>.js`), plus `healthcare/public/js/*` bundled through `healthcare.bundle.js` (`app_include_js`).
-- Patient Portal: **Vue 3**, **vue-router**, **frappe-ui** (^0.1.176), **Vite 4.4.9**, **TailwindCSS 3.4.15** with the frappe-ui preset, and feather-icons.
-- Node 24 in CI. Yarn workspaces (`patient_portal`, `frappe-ui`) with `yarn.lock`.
+**Desk frontend**
+- Plain Frappe desk JavaScript: form scripts `<doctype>.js`, `*_list.js` and `*_tree.js`, bundled through `healthcare/public/js/healthcare.bundle.js`. Uses jQuery and Frappe globals.
 
-**Tooling:** ruff (lint + format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), pip-audit, detect-secrets, commitlint, semantic-release, Codecov, CodeQL, Mergify, Crowdin (translations).
+**Patient Portal SPA** (`patient_portal/`)
+- **Vue 3**, vue-router 4, **frappe-ui**, **Vite 4.4.9**, **Tailwind CSS 3.4.15** (frappe-ui preset), PostCSS/autoprefixer, feather and lucide icons.
+- Yarn workspaces at the root (`yarn.lock`). `postinstall` installs the portal's dependencies.
+
+**Tooling**
+- Node 24 in CI
+- ruff, ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), pip-audit, detect-secrets, CodeQL
+- commitlint (conventional commits), semantic-release, Crowdin for translations
