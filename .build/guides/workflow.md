@@ -8,33 +8,35 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
-  - AGENTS.md
   - .build/RULES.md
   - commitlint.config.js
   - .mergify.yml
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - .github/CODEOWNERS
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-This repo is driven by **Interactor Build's engine** (see `CLAUDE.md`):
+**Work tracking (Interactor Build engine, see `CLAUDE.md`):**
+- Every code change needs a tracked **Goal** first. Create it in the Build web UI or with `ibuild engine goal-create "<title>"`, then admit it with `ibuild engine goal queue <goalId>`.
+- Work happens on branch **`goal/<goalId>`** in an isolated worktree, **never on the default branch**.
+- The engine splits a Goal into EngineTasks. Each task cycles through investigation, execution and review.
+- Each goal ships through a **single PR** that must pass review and CI. Only an interactive session the project allows may bypass this with `ibuild off`, and even then it needs its own branch and a hand-opened PR.
+- Standing rules live in `.build/RULES.md`. It is currently an unfilled template.
 
-1. **A Goal must exist before any code edit.** Create it in the Build web UI or with `ibuild engine goal-create "<title>"`, then admit it with `ibuild engine goal queue <goalId>`. GitHub issues become Goals only after an explicit import.
-2. Work on the goal branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch **`biograph-fh`** directly. Existing remote branches follow this, e.g. `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-…`.
-3. Each Goal ships as **one PR**. EngineTasks under the Goal go through investigation → execution → review (`ibuild engine work` / `report --yes`, then `goal accept`).
-4. Interactive sessions may use `ibuild off` for small changes. Those still go on their own branch with a hand-opened PR.
+**Branches:**
+- The fork's default/integration branch is **`biograph-fh`**. The upstream is `earthians/marley` `version-16`, added as the `upstream` remote.
+- Inherited upstream config still refers to `develop`, `version-14/15/16` and `version-*-hotfix`. Mergify auto-closes PRs against stable `version-*` branches from non-maintainers.
 
-**Commits:** Conventional Commits, enforced by commitlint on PRs.
-- During upstream syncs, suffix the subject with the batch, e.g. `(upstream sync B2)`.
-- Cherry-pick with `git cherry-pick -x`.
-- Resolve conflicts with *fork intent wins*.
+**Commits:**
+- Use Conventional Commits, checked by commitlint. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, lower-case, with a non-empty subject.
+- Recent history adds a scope or context suffix, for example `fix: drop unused imports left by upstream aeca803f (upstream sync B2)` and `docs(wiki): ...`.
 
-**PRs:** follow `.github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md`:
-- Explain the problem.
-- Tests pass.
-- Server-side validations.
-- Update docs.
-- `closes #N`.
+**Upstream sync:**
+- Use `git cherry-pick -x` so every pick records its upstream sha.
+- Conflict policy is **fork intent wins**: keep biograph-fh behaviour and add upstream's fix on top.
+- DocType JSON gets a 3-way union. `patches.txt` gets a union. Keep the fork's `.releaserc`.
+- Record every pick in `wiki/upstream-sync-version-16.md`.
 
-`feat` PRs need a docs link or `no-docs`. Mergify auto-merges after one approval (add the `squash` label to squash; `dont-merge` blocks) and closes PRs aimed at stable `version-*` branches from non-maintainers. CODEOWNERS: @akurungadam, @Sajinsr.
-
-Project standing rules live in `.build/RULES.md` (currently unfilled) and are mirrored to `.claude/rules/build-rules.md` and `.github/instructions/`. Edit the source, not the mirrors.
+**Review:**
+- CODEOWNERS is `@akurungadam @Sajinsr`.
+- Mergify auto-merges after 1 approval and CI success; the `squash` label squashes and `dont-merge` blocks.
+- The PR template asks for: target branch, conventional title, passing tests, server-side business logic, docs, and `closes #XXXX`.
