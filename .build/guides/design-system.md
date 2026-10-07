@@ -10,10 +10,9 @@ evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/package.json
   - patient_portal/vite.config.js
-  - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/public/js/observation_widget.js
+  - patient_portal/src/utils/formatters.js
 ---
 
-- **Desk UI** (most of the product) uses the standard Frappe Desk form, list, report and workspace components, defined through DocType JSON, `workspace/`, `number_card/` and `dashboard_chart/`. Custom widgets live in `healthcare/public/js` (`observation_widget.js`, `healthcare_note.js` with `.html` micro-templates). Don't add a separate CSS framework to Desk.
-- **Patient Portal** uses **frappe-ui** as its component library and token source. The Tailwind preset is `frappe-ui/tailwind` (in `patient_portal/tailwind.config.js`), with only legacy color aliases added (`lightBlue`→sky, `warmGray`→stone, and so on). Components in use: `Button`, `Dialog`, `Badge`, `Card`, `FeatherIcon` (feather/lucide icons), `FormControl`, `ErrorMessage`.
-- Style with Tailwind utility classes from the frappe-ui preset. Don't add custom CSS variables or a new component library.
+- **Desk UI** (most of the product) uses Frappe's standard form, list, tree and dialog widgets and indicators (`indicator: "warning"|"error"`), plus Jinja print formats. There are no custom design tokens. Use `frappe.ui.Dialog`, form `add_custom_button(__("Create"), ...)` groups and existing HTML templates in `healthcare/public/js/*.html`, e.g. `healthcare_orders.html` and `observation.html`.
+- **Patient Portal** uses **frappe-ui** as its component library: buttons, dialogs, `createResource` and `createDocumentResource`, and `ErrorMessage`. Styling is **Tailwind CSS 3** with `frappe-ui/tailwind` as the preset, which is the design-token source. The local theme only adds legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Icons are feather-icons and lucide (`lucideIcons: true`).
+- Portal components are PascalCase SFCs in `patient_portal/src/components`, such as `BookAppointmentModel.vue`, `PractitionerSelector.vue` and `Payment.vue`. Formatting helpers live in `src/utils/formatters.js`, e.g. `formatCurrency`, which uses `Intl` with an en-IN locale for India.
