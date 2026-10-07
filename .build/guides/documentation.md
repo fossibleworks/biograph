@@ -9,13 +9,21 @@ source: inferred
 evidence:
   - README.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/helper/documentation.py
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - .github/workflows/docs_checker.yml
 ---
 
-- **README.md** covers installation (bench), development setup (pre-commit, semgrep) and links to the external docs at DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **`wiki/`** holds in-repo design and usage docs. Files use UPPER-KEBAB-CASE names: `DESIGN-<FEATURE>.md` for designs, `<FEATURE>-USAGE[-DOC].md` for usage guides, and images sit beside them. It also holds plans and reports (`FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`) and the upstream sync ledger `upstream-sync-version-16.md`. Commits to the wiki use `docs(wiki): ...`.
-- **PR docs check**: `docs_checker.yml` fails a `feat` PR unless its body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs`. Backports are exempt.
-- The PR template asks for an explanation of the change, screenshots or GIFs, and `closes #XXXX`.
-- Code comments are sparse. Doctype descriptions live in the doctype JSON.
+# Documentation
+
+- **User docs** are external: the README links to DeepWiki (`deepwiki.com/Tacten/biograph`). The inherited `docs_checker` workflow requires `feat` PRs to link to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, unless the PR body contains `no-docs` or `backport`.
+- **In-repo design and usage docs** live in `wiki/` as Markdown:
+  - feature design docs: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`
+  - usage docs: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
+  - implementation plans and parity reports: `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`
+  - the upstream-sync ledger: `upstream-sync-version-16.md`
+  
+  Most files use UPPER-KEBAB names. Images sit next to the docs that use them.
+- The **upstream-sync ledger** is a running log. Each sync batch updates it with `docs(wiki): ...` commits. It uses a fixed outcome vocabulary (picked-clean, picked-with-conflict-resolution, already-present, skipped) and records lint baselines.
+- `patient_portal/README.md` covers the portal.
+- Code comments are sparse and explain why rather than what. Doctype descriptions live in the doctype JSON.
