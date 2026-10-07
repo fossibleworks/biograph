@@ -8,17 +8,17 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - .github/workflows/docs_checker.yml
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - .github/workflows/docs_checker.yml
 ---
 
-- **User and developer docs** live outside the repo. The README points to [DeepWiki](https://deepwiki.com/Tacten/biograph), and the Telegram group is the community channel.
-- **In-repo design and usage docs** are in `wiki/` as standalone Markdown files.
-  - Names are UPPER-KEBAB, for example `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`.
-  - Some files are descriptive, such as `FHIR Terminology Service Parity — Implementation Plan.md` and `insurance-parity-report.md`.
-  - Convention: a DESIGN doc plus a USAGE doc per larger feature. Images (thumbnails) sit next to the doc.
-- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` records each cherry-picked upstream commit and its outcome (`picked-clean`, `picked-with-conflict-resolution`, `already-present`, `skipped`). It also records lint baselines. Doc updates are committed as `docs(wiki): …`.
-- **PR docs gate:** `docs_checker.yml` runs `.github/helper/documentation.py`, which requires `feat` PRs to link a `/wiki` page on `biograph.frappe.cloud` or `biograph.io` unless the body contains `no-docs` or `backport`. The script queries the upstream `earthians/biograph` repo.
-- The PR template asks contributors to "Update necessary Documentation" and add `closes #XXXX`.
-- Python code uses short docstrings on helpers and inline `#` comments for intent. Legacy files carry copyright headers.
+# Documentation
+
+- End-user documentation lives externally on **DeepWiki** (linked from the README). The upstream docs host is `biograph.frappe.cloud/wiki`.
+- In-repo design and usage docs go in **`wiki/`** as Markdown files.
+  - Naming is UPPER-KEBAB for feature docs, e.g. `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`.
+  - The folder also holds plans and reports (`FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`).
+- Long-running efforts keep a **ledger** in `wiki/`. `upstream-sync-version-16.md` records method, outcomes per commit and lint baselines. Update it as the work progresses, with `docs(wiki): ...` commits.
+- The `docs_checker.yml` CI (`.github/helper/documentation.py`) requires `feat` PRs to link a docs URL (`biograph.frappe.cloud` / `biograph.io` with `/wiki`). To opt out, put `no-docs` in the PR body.
+- The PR template asks contributors to update the relevant docs.
