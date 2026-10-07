@@ -2,8 +2,8 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from healthcare.tests.utils import HealthcareTestSuite
 
 
-class TestDoctorAdviceTemplate(FrappeTestCase):
+class TestDoctorAdviceTemplate(HealthcareTestSuite):
 	pass

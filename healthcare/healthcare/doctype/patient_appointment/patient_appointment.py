@@ -1220,6 +1220,7 @@ def get_availability_data(
 
 	check_employee_wise_availability(date, practitioner_doc)
 
+	slot_details = []
 	if practitioner_doc.practitioner_schedules:
 		slot_details = get_available_slots(practitioner_doc, date)
 	else:

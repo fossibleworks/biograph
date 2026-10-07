@@ -3,7 +3,6 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import unittest
 
 import frappe
 from frappe.utils import getdate, nowtime
@@ -17,37 +16,27 @@ from healthcare.healthcare.doctype.healthcare_settings.healthcare_settings impor
 	get_income_account,
 	get_receivable_account,
 )
-from healthcare.healthcare.doctype.lab_test.test_lab_test import (
-	create_lab_test,
-	create_lab_test_template,
-)
-from healthcare.healthcare.doctype.observation_template.test_observation_template import (
-	create_observation_template,
-)
-from healthcare.healthcare.doctype.patient_appointment.test_patient_appointment import (
-	create_appointment_type,
-	create_clinical_procedure_template,
-	create_healthcare_docs,
-	create_patient,
-	create_practitioner,
-)
+from healthcare.healthcare.doctype.lab_test.test_lab_test import create_lab_test
 from healthcare.healthcare.doctype.patient_encounter.patient_encounter import (
 	create_patient_referral,
 )
 from healthcare.healthcare.doctype.service_request.service_request import make_clinical_procedure
+from healthcare.tests.utils import HealthcareTestSuite
 
 
-class TestServiceRequest(unittest.TestCase):
-	def test_creation_on_encounter_submission(self):
-		patient, practitioner = create_healthcare_docs()
-		insulin_resistance_template = create_lab_test_template()
-		procedure_template = create_clinical_procedure_template()
+class TestServiceRequest(HealthcareTestSuite):
+	def test_service_request_creation_on_encounter_submission(self):
+		patient = frappe.get_list("Patient", pluck="name")[0]
+		practitioner = frappe.get_list("Healthcare Practitioner", pluck="name")[0]
+		lab_test_template = frappe.get_doc("Lab Test Template", "_Test Lab Test - Sensitivity")
+		cpt = frappe.get_list("Clinical Procedure Template", pluck="name")[0]
+		procedure_template = frappe.get_doc("Clinical Procedure Template", cpt)
 		procedure_template.allow_stock_consumption = 1
 		encounter = create_encounter(
 			patient,
 			practitioner,
 			"lab_test_prescription",
-			insulin_resistance_template,
+			lab_test_template,
 			procedure_template,
 			submit=True,
 		)
@@ -61,7 +50,7 @@ class TestServiceRequest(unittest.TestCase):
 				service_request_doc.submit()
 				if serv.get("name"):
 					if serv.get("template_dt") == "Lab Test Template":
-						template = insulin_resistance_template
+						template = lab_test_template
 						type = "lab_test_prescription"
 						doc = "Lab Test"
 						test = create_lab_test(template)
@@ -89,11 +78,10 @@ class TestServiceRequest(unittest.TestCase):
 					self.assertTrue(frappe.db.get_value(doc, test.name, "invoiced"))
 
 	def test_creation_on_encounter_with_create_order_on_save_checked(self):
-		patient, practitioner = create_healthcare_docs()
-		insulin_resistance_template = create_lab_test_template()
-		encounter = create_encounter(
-			patient, practitioner, "lab_test_prescription", insulin_resistance_template
-		)
+		patient = frappe.get_list("Patient", pluck="name")[0]
+		practitioner = frappe.get_list("Healthcare Practitioner", pluck="name")[0]
+		lab_test_template = frappe.get_doc("Lab Test Template", "_Test Lab Test - with Sample")
+		encounter = create_encounter(patient, practitioner, "lab_test_prescription", lab_test_template)
 		encounter.submit_orders_on_save = True
 		encounter.save()
 		self.assertTrue(frappe.db.exists("Service Request", {"order_group": encounter.name}))
@@ -109,8 +97,9 @@ class TestServiceRequest(unittest.TestCase):
 		)
 
 	def test_mark_observation_as_invoiced(self):
-		obs_template = create_observation_template("Total Cholesterol")
-		patient, practitioner = create_healthcare_docs()
+		obs_template = frappe.get_doc("Observation Template", "_Test Observation without Sample")
+		patient = frappe.get_list("Patient", pluck="name")[0]
+		practitioner = frappe.get_list("Healthcare Practitioner", pluck="name")[0]
 		encounter = create_encounter(
 			patient, practitioner, "lab_test_prescription", obs_template, submit=True, obs=True
 		)
@@ -122,15 +111,14 @@ class TestServiceRequest(unittest.TestCase):
 			self.assertEqual(frappe.db.get_value("Observation", observation.name, "invoiced"), 1)
 
 	def test_patient_referral(self):
-		patient = create_patient()
-		practitioner_1 = create_practitioner(id=1)
-		practitioner_2 = create_practitioner(id=2)
-		obs_template = create_observation_template("Total Cholesterol")
+		patient = frappe.get_list("Patient", pluck="name")[0]
+		practitioner_1 = frappe.get_list("Healthcare Practitioner", pluck="name")[0]
+		practitioner_2 = frappe.get_list("Healthcare Practitioner", pluck="name")[1]
+		obs_template = frappe.get_doc("Observation Template", "_Test Observation without Sample")
 		encounter = create_encounter(
 			patient, practitioner_1, "lab_test_prescription", obs_template, submit=True, obs=True
 		)
-
-		appointment_type = create_appointment_type()
+		appointment_type = frappe.get_doc("Appointment Type", "_Test Appointment Type with Items")
 		refer_to_practitioner(encounter, practitioner_2, appointment_type.name)
 
 		self.assertTrue(
@@ -166,6 +154,7 @@ def create_encounter(
 	patient_encounter.practitioner = practitioner
 	patient_encounter.encounter_date = getdate()
 	patient_encounter.encounter_time = nowtime()
+	patient_encounter.company = "_Test Company"
 	if not obs:
 		if type == "lab_test_prescription":
 			patient_encounter.append(
@@ -263,6 +252,7 @@ def create_observation(patient, service_request, obs_template):
 	observation.patient = patient
 	observation.service_request = service_request
 	observation.observation_template = obs_template
+	observation.company = "_Test Company"
 	observation.insert()
 	return observation
 

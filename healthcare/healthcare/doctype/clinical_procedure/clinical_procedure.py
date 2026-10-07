@@ -36,14 +36,14 @@ class ClinicalProcedure(Document):
 
 	def before_insert(self):
 		if self.service_request:
-			therapy_session = frappe.db.exists(
+			existing_procedure = frappe.db.exists(
 				"Clinical Procedure",
 				{"service_request": self.service_request, "docstatus": ["!=", 2]},
 			)
-			if therapy_session:
+			if existing_procedure:
 				frappe.throw(
 					_("Clinical Procedure {0} already created from service request {1}").format(
-						frappe.bold(get_link_to_form("Clinical Procedure", therapy_session)),
+						frappe.bold(get_link_to_form("Clinical Procedure", existing_procedure)),
 						frappe.bold(get_link_to_form("Service Request", self.service_request)),
 					),
 				title=_("Already Exist"),

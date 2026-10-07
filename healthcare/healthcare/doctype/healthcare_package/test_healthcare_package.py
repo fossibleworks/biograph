@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 
 from healthcare.healthcare.doctype.observation_template.test_observation_template import (
 	create_observation_template,
@@ -15,9 +14,10 @@ from healthcare.healthcare.doctype.patient_appointment.test_patient_appointment 
 	create_patient,
 )
 from healthcare.healthcare.doctype.therapy_type.test_therapy_type import create_therapy_type
+from healthcare.tests.utils import HealthcareTestSuite
 
 
-class TestHealthcarePackage(FrappeTestCase):
+class TestHealthcarePackage(HealthcareTestSuite):
 	def test_healthcare_package(self):
 		frappe.delete_doc_if_exists("Healthcare Package", "Package - 1")
 		obs_name = "Total Cholesterol"

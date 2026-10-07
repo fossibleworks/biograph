@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, getdate
 
 import erpnext
@@ -21,9 +20,10 @@ from healthcare.healthcare.doctype.patient_appointment.test_patient_appointment 
 	create_patient,
 )
 from healthcare.healthcare.doctype.therapy_type.test_therapy_type import create_therapy_type
+from healthcare.tests.utils import HealthcareTestSuite
 
 
-class TestPackageSubscription(FrappeTestCase):
+class TestPackageSubscription(HealthcareTestSuite):
 	def test_package_subscription(self):
 		frappe.delete_doc_if_exists("Healthcare Package", "Package - 1")
 		obs_name = "Total Cholesterol"
