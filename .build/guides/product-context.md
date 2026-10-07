@@ -11,10 +11,26 @@ evidence:
   - healthcare/hooks.py
 ---
 
-**Biograph** (by Tacten; deployed under the name *fossibleHIS*) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians **Marley Health**, with additional features. It ships as a Frappe app named `healthcare`, depends on ERPNext (`required_apps = ['frappe/erpnext']`), and much of its data model follows **HL7 FHIR**.
+## What Biograph is
 
-**Users:** healthcare practitioners, clinics, hospitals, and lab, nursing and billing staff, all working in the Frappe desk. Patients use a separate Vue **Patient Portal** (`/patient-portal`) to view and book appointments, see diagnostics and make payments.
+Biograph, by Tacten, is an open-source **hospital information system (HIS)**. It is a fork of earthians' Marley Health, with additions. It ships as a Frappe app named `healthcare` (app_title "Biograph") that adds a health domain to **ERPNext**. Much of the data model follows **HL7 FHIR**.
 
-**Main feature areas:** patient management, outpatient appointments and encounters, inpatient records and medication, clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions, block-based therapy booking), laboratory (lab tests, observations, diagnostic reports), medical code standards, service units and medical departments, insurance (payors, contracts, policies, coverage), patient duplicate detection, and India ABDM regional integration. ERPNext covers pharmacy, purchasing, HR, accounts and assets.
+## Who uses it
 
-The app title in `hooks.py` is `Biograph` and the desk home is `/desk/healthcare`.
+- Clinics, hospitals and healthcare practitioners use the Frappe desk at `/desk/healthcare`.
+- Patients use the **Patient Portal** at `/patient-portal`. It is a Vue SPA that patients use to book and view appointments, view diagnostic reports and pay.
+
+## Feature areas (by doctype / module)
+
+- Patient management, including a patient duplicate checker (see `wiki/PATIENT-DUPLICATE*.md`).
+- Outpatient and inpatient care, Patient Appointment (with recurring and block-based therapy booking) and Patient Encounter.
+- Clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions).
+- Laboratory: lab tests, sample collection, observations and diagnostic reports.
+- Medical code standards, service units and medical departments.
+- Insurance and billing, built on ERPNext Sales Invoice (overridden as `HealthcareSalesInvoice`) and Payment Entry.
+
+Pharmacy, purchasing, HR, accounts and assets come from ERPNext itself. Do not re-implement them in this app.
+
+## Fork context
+
+This repo is `fossibleworks/biograph`. Its integration branch is `biograph-fh`. It is kept in sync with upstream `earthians/marley` `version-16` by cherry-picking, and the ledger is in `wiki/upstream-sync-version-16.md`. When syncing, the policy is **fork intent wins**.
