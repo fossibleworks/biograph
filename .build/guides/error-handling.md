@@ -7,18 +7,17 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
   - healthcare/healthcare/api/patient_portal.py
-  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
   - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
 ---
 
-- **User-facing validation:** `frappe.throw(_("Message {0}").format(value), [ExceptionClass], title=_("..."))`. There are about 180 call sites. Use positional `{0}` placeholders inside `_()` and call `.format` outside it.
-- **Typed errors:** define module-level subclasses of `frappe.ValidationError` for conditions that tests or callers need to catch, for example `MaximumCapacityError` and `OverlapError` in `patient_appointment.py`. Raise them with `frappe.throw(msg, OverlapError)`.
-- **Permissions:** in whitelisted APIs, raise `frappe.throw(_("Not allowed ..."), frappe.PermissionError)` (see `get_print_format` in the portal API).
-- **Missing setup:** use `title=_("Missing Configuration")` when a required setting or item is not configured (see `utils.py`).
-- **Non-fatal failures** (SMS, calendar events, background jobs, patches): catch the exception, then call `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)`. Optionally tell the user with `frappe.msgprint`. Don't swallow exceptions silently.
-- **Patches** that must abort an incompatible upgrade use `frappe.throw(message)  # nosemgrep`.
-- **JS:** `frappe.throw(__("..."))` and `frappe.msgprint(__("..."))` in form scripts. On the portal, `createResource`/`call` errors show through frappe-ui `<ErrorMessage>`.
+- **Validation errors:** raise with `frappe.throw(_("Message {0}").format(value), title=_("Short Title"))`. There are about 180 throws, and titles are common, e.g. "Missing Configuration", "Not Available", "Customer Not Found". Pass an exception class when it matters, e.g. `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)`.
+- **Custom exceptions:** subclass `frappe.ValidationError` at the top of the controller module, e.g. `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`. Pass them via `exc=` so tests can `assertRaises` them.
+- **Non-blocking notices:** `frappe.msgprint(..., indicator="warning"|"error", title=...)` (about 38 uses).
+- **Background or side-effect failures** (notifications, calendar events, patches): catch the error, then call `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)` so the main transaction can continue. Example: appointment confirmation messages in `patient_appointment.py`.
+- **Translation:** format after translating: `_("{0} is a holiday").format(date)`. Do not use `_("...".format())`; one existing instance does this wrong.
+- **Portal API:** whitelisted methods raise through `frappe.throw`. The frappe-ui resources surface the message, and `ErrorMessage`-style components render `error`.
+- Patches that must abort deliberately use `frappe.throw(message)  # nosemgrep`.
