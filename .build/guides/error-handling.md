@@ -7,17 +7,18 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
-  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/healthcare/api/patient_portal.py
+  - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
   - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
 ---
 
-- **Validation errors:** raise with `frappe.throw(_("Message {0}").format(value), title=_("Short Title"))`. There are about 180 throws, and titles are common, e.g. "Missing Configuration", "Not Available", "Customer Not Found". Pass an exception class when it matters, e.g. `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)`.
-- **Custom exceptions:** subclass `frappe.ValidationError` at the top of the controller module, e.g. `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`. Pass them via `exc=` so tests can `assertRaises` them.
-- **Non-blocking notices:** `frappe.msgprint(..., indicator="warning"|"error", title=...)` (about 38 uses).
-- **Background or side-effect failures** (notifications, calendar events, patches): catch the error, then call `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)` so the main transaction can continue. Example: appointment confirmation messages in `patient_appointment.py`.
-- **Translation:** format after translating: `_("{0} is a holiday").format(date)`. Do not use `_("...".format())`; one existing instance does this wrong.
-- **Portal API:** whitelisted methods raise through `frappe.throw`. The frappe-ui resources surface the message, and `ErrorMessage`-style components render `error`.
-- Patches that must abort deliberately use `frappe.throw(message)  # nosemgrep`.
+- **Validation errors:** Raise with `frappe.throw(_("message"), [ExcClass], title=_("..."))`. There are about 181 call sites. Use `frappe.bold()` for emphasis and `get_link_to_form()` for record links in messages.
+- **Typed errors:** Define module-level subclasses of `frappe.ValidationError` (e.g. `OverlapError`, `MaximumCapacityError` in `patient_appointment.py`, `OverlapError` in `insurance_payor_contract.py`). Pass them as the second argument to `frappe.throw` so tests can assert on them.
+- **Misconfiguration:** Use `frappe.throw(msg, title=_("Missing Configuration"))` with a link to the settings form (`healthcare/healthcare/utils.py`).
+- **Non-fatal side effects (SMS, calendar events, notifications):**
+  - Wrap them in `try/except`.
+  - Log with `frappe.log_error(frappe.get_traceback(), _("Title"))`.
+  - Tell the user with `frappe.msgprint(..., indicator="orange")` or `alert=True` instead of failing the transaction.
+- **Client side:** Use `frappe.throw(__("..."))` in form scripts only for UX. The authoritative check must also exist server-side.
+- When intentionally throwing in patches, add `# nosemgrep` where Semgrep flags it.
