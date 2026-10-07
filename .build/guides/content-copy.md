@@ -8,26 +8,27 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/sales_invoice.js
   - healthcare/healthcare/utils.py
-  - crowdin.yml
+  - healthcare/public/js/healthcare_note.js
+  - patient_portal/src/components/Payment.vue
   - healthcare/locale/main.pot
+  - crowdin.yml
 ---
 
-## Tone
+# Content / copy
 
-Copy is short, direct and imperative. It uses sentence case and ends with a period or exclamation mark.
-
-- Prompts: "Please select Healthcare Service", "Please enter {0}".
-- Refusals start with "Not allowed, …": "Not allowed, cannot overlap appointment {}", "Not allowed, {} cannot exceed maximum capacity {}".
-- Explanations name the record: "The practitioner {0} is not available during this time due to an unavailability record {1}", "Patient already has an appointment booked for the same day!".
-- Escalations: "..., please contact System Manager".
-- Error titles are Title Case nouns: "Missing Configuration", "Appointment Confirmation Message Not Sent".
-
-## Terminology
-
-Use the DocType names in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Fee Validity, Healthcare Settings, Practitioner Availability. Say "Practitioner", not "Doctor".
-
-## Translation
-
-Wrap every user-facing string, in Python with `_()` and in JS with `__()`. Use positional placeholders through `.format()`. Avoid f-strings inside `_()` because the extractor can't capture them. One existing case in `patient_appointment.py` should not be copied. Strings are collected into `healthcare/locale/main.pot` and translated via Crowdin.
+- **Tone:** short, direct and clinical-administrative. Validation messages are plain statements:
+  - "Appointment end must be after start."
+  - "Registration Fee cannot be negative or zero"
+  - "Start Date should be before End Date"
+  - "Configure a service Item for {0}"
+  
+  A few use `!` for conflicts ("Patient already has an appointment booked for the same day!"); don't add more.
+- **Titles:** Title Case ("Missing Configuration", "Not Available", "Add Clinical Note", "Create Service Request").
+- **Buttons:** single verbs ("Add", "Done", "Create", "Book").
+- **Terminology:**
+  - Use Frappe DocType names verbatim and in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Fee Validity, Service Request, Medication Request, Observation, Diagnostic Report, Inpatient Record.
+  - Write "Practitioner", not "Doctor", and "Service Unit", not "room".
+- **Translation:**
+  - Wrap every string in `_()` (Python) or `__()` (JS) with positional `{0}` placeholders. The strings feed `healthcare/locale/main.pot` and Crowdin (`crowdin.yml`).
+  - Many portal Vue strings are still hard-coded English ("Details of fees", "Total", "Result", "Reference").
