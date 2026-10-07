@@ -10,13 +10,16 @@ evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
-  - .github/workflows/ci.yml
   - healthcare/hooks.py
+  - .github/helper/install.sh
   - crowdin.yml
+  - yarn.lock
 ---
 
-- **Backend:** Python ≥3.10 (CI runs 3.14), packaged with `flit_core`, built as a **Frappe framework app** that depends on **ERPNext** (`required_apps = ["frappe/erpnext"]`). Data lives in **MariaDB** (CI uses `mariadb:11.8`). Runtime Python dependencies: `responses`, `python-barcode`.
-- **Desk UI:** plain JavaScript Frappe form scripts and jQuery (`frappe`, `erpnext`, `$` globals). They are bundled through `healthcare/public/js/healthcare.bundle.js` and wired up with `doctype_js` in hooks.
-- **Patient Portal SPA:** Vue 3, vue-router, **frappe-ui**, Tailwind CSS 3.4 with the frappe-ui preset, and Vite 4. It lives in `patient_portal/`.
-- **Tooling:** Node 24 in CI, yarn workspaces (root `package.json` and `yarn.lock`), ruff, prettier, ESLint 10 (flat config), pre-commit, semgrep (Frappe rules), pip-audit, detect-secrets, commitlint, and semantic-release.
-- **i18n:** gettext `.pot`/`.po` under `healthcare/locale`, synced through Crowdin.
+- **Backend:** Python >= 3.10 (ruff targets py310; CI uses Python 3.14). It is a **Frappe Framework** app and depends on **ERPNext** (`required_apps = ["frappe/erpnext"]`). Packaged with `flit_core`. Runtime pip dependencies: `responses` and `python-barcode`.
+- **Database:** MariaDB through the Frappe ORM and query builder (`frappe.qb`). Redis is used for the queue and cache.
+- **Desk UI:** plain JavaScript form scripts per doctype (`<doctype>.js`, `<doctype>_list.js`, `<doctype>_tree.js`) and a `healthcare.bundle.js` included via `app_include_js`. Uses Frappe globals (`frappe`, `erpnext`, jQuery, moment).
+- **Patient portal:** Vue 3, vue-router 4, **frappe-ui**, Tailwind CSS 3.4 (frappe-ui preset) and Vite 4.4.9. It is a yarn workspace (`patient_portal`, `frappe-ui`).
+- **Server-side templates:** Jinja (`healthcare/templates`, `www/`, print formats).
+- **Tooling:** pre-commit with ruff and ruff-format, prettier, ESLint 10 (flat config), pip-audit, detect-secrets and Frappe semgrep rules. Commit messages are checked by commitlint. Releases use semantic-release.
+- **i18n:** a gettext POT file (`healthcare/locale/main.pot`) synced to Crowdin.
