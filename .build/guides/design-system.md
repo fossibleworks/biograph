@@ -10,14 +10,14 @@ evidence:
   - patient_portal/tailwind.config.js
   - patient_portal/package.json
   - patient_portal/vite.config.js
-  - patient_portal/components.d.ts
-  - healthcare/public/js/healthcare_note.js
-  - healthcare/hooks.py
 ---
 
-- **Desk UI** (most screens) uses Frappe's standard form, list, calendar and dialog widgets. Build UI from `frappe.ui.Dialog`, `frappe.ui.form.on`, field definitions in DocType JSON, HTML templates in `healthcare/public/js/*.html` (`healthcare_note.html`, `observation.html`, `healthcare_orders.html`), and Frappe indicators (`indicator: "warning"` / green / red). Do not add a separate CSS framework to Desk.
-- **Patient Portal** uses **frappe-ui** as its component library and **TailwindCSS** through the `frappe-ui/tailwind` preset. Design tokens come from that preset.
-  - `tailwind.config.js` adds only legacy colour aliases (`lightBlue` → sky, `warmGray` → stone, `trueGray` → neutral, `coolGray` → gray, `blueGray` → slate).
-  - Icons are feather-icons, plus lucide through the frappe-ui Vite plugin.
-  - Prefer frappe-ui components (`Button`, `Dialog`, `FormControl`, …), which are auto-imported per `components.d.ts`, over hand-rolled ones.
-- **Brand assets:** `healthcare/public/images/healthcare.svg`, `biograph-app-icon.svg` and `healthcare.png`.
+# Design system
+
+- **Desk UI** (most of the product) uses Frappe Desk's native components: forms, list views, dialogs (`frappe.ui.Dialog`), `frappe.ui.form` controls and indicators. Don't add custom CSS frameworks there. Reuse the widgets in `healthcare/public/js` (observation widget, healthcare notes/orders HTML templates).
+- **Patient Portal** uses **frappe-ui** as the component library and design-token source.
+  - Tailwind is configured with `presets: [frappeUIPreset]` from `frappe-ui/tailwind`.
+  - It adds legacy colour aliases (lightBlue→sky, warmGray→stone, etc.).
+  - Icons come from feather-icons/lucide through the frappe-ui vite plugin (`lucideIcons: true`).
+  - Global styles are in `patient_portal/src/index.css`.
+  - Build new portal UI from frappe-ui components and Tailwind utility classes, not bespoke CSS.
