@@ -9,32 +9,30 @@ source: inferred
 evidence:
   - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
+  - .github/workflows/semantic-commits.yml
+  - .github/workflows/docs_checker.yml
   - .github/workflows/codeql.yml
-  - .github/workflows/on_release.yml
   - .github/workflows/initiate_release.yml
-  - .github/workflows/release_notes.yml
+  - .github/workflows/on_release.yml
   - .releaserc
-  - .github/helper/install.sh
-  - .github/dependabot.yml
+  - .github/workflows/release_notes.yml
+  - .mergify.yml
 ---
 
-**On PRs:**
-- `ci.yml` runs the server tests. It sets up MariaDB 11.8, Python 3.14, and Node 24, runs `.github/helper/install.sh` to build a frappe-bench with erpnext, and runs `run-parallel-tests`. It is skipped for PRs that change only css/js/md/html/csv and for `version-*-beta` branches. It also runs nightly at 00:00 UTC, uploading coverage to Codecov on non-PR runs.
-- `linters.yml` and `linters.v2.yml` run pre-commit and Semgrep (Frappe rules plus python correctness). v2 also runs on push.
-- `semantic-commits.yml` lints commit messages.
-- `docs_checker.yml` requires a docs link for `feat` PRs.
+**On pull requests:**
+- `ci.yml` (Server Tests) runs on PRs, skipping changes that touch only css/js/md/html/csv, and nightly at 00:00 UTC. It uses Ubuntu, MariaDB 11.8, Python 3.14 and Node 24. It runs `python -m compileall`, fails on merge-conflict markers, installs a bench through `.github/helper/install.sh`, and runs `bench run-parallel-tests --app healthcare` with a 30-minute timeout. Coverage is uploaded to Codecov only on non-PR runs.
+- `linters.yml` / `linters.v2.yml` run pre-commit (ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit, file checks) and semgrep with the Frappe rules plus `r/python.lang.correctness`.
+- `semantic-commits.yml` runs commitlint over the PR's commits.
+- `docs_checker.yml` requires a wiki docs link on `feat` PRs.
 - `labeller.yml` applies labels such as `needs-tests`.
-- `codeql.yml` runs CodeQL for python and javascript on `develop` and weekly.
+- `codeql.yml` runs CodeQL for Python and JS on `develop` and weekly.
 
-**Release (inherited from upstream earthians and aimed at earthians/biograph):**
-- `initiate_release.yml` opens weekly `version-N-hotfix` → `version-N` PRs for 14, 15, and 16.
-- `on_release.yml` runs `npx semantic-release` on pushes to `version-14/15/16`. `.releaserc` uses the angular preset with breaking changes set to not trigger releases, bumps `healthcare/__init__.py`, and commits `chore(release): Bumped to Version x`.
-- `release_notes.yml` strips chore/ci/test/docs/style entries from the GitHub release notes.
-- `generate-pot-file.yml` regenerates the POT file weekly.
-- Dependabot is configured.
+**Merge:** Mergify merges after one approval (merge commit, or squash with the `squash` label).
 
-**Notes for the fork:**
-- Many workflows hard-code `earthians/biograph` and earthians secrets.
-- `fossibleworks/biograph` has never run `ci.yml` on `biograph-fh`.
-- Deployment is via bench / Frappe Cloud, not a CD pipeline in this repo.
-- Editing workflow files needs a credential with `workflow` scope (the ledger records upstream #86 as skipped for this reason).
+**Release** (upstream-style, on stable branches):
+- `initiate_release.yml` opens weekly `version-1x-hotfix` → `version-1x` release PRs for 14, 15 and 16 (Tuesdays).
+- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`. `.releaserc` uses the angular preset with breaking changes set to *not* trigger a major. It bumps the version in `healthcare/__init__.py` with the commit `chore(release): Bumped to Version x.y.z`.
+- `release_notes.yml` regenerates GitHub release notes, stripping chore/ci/test/docs/style entries.
+- `generate-pot-file.yml` regenerates translations weekly. Crowdin opens `fix: sync translations from crowdin` PRs.
+
+**Fork caveats:** many workflows still point at `earthians/biograph` and its secrets. The ledger notes that `ci.yml` had never run on `fossibleworks/biograph` `biograph-fh`, so the first goal-PR run is the baseline. Changes to workflow files need a credential with `workflow` scope.
