@@ -8,21 +8,26 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
+  - AGENTS.md
   - .build/RULES.md
   - .mergify.yml
   - .github/CODEOWNERS
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - commitlint.config.js
 ---
 
-**Interactor Build engine (this fork's contract, from CLAUDE.md)**
-- Every code change needs a tracked **Goal**. You can create one in the Build web UI, by importing a GitHub issue, or with `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`.
-- Work happens on the branch **`goal/<goalId>`** in an isolated worktree. Never commit to the main branch directly. Existing branches follow this pattern, e.g. `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8`.
-- Each Goal ships through **one PR** opened by the engine. Its EngineTasks cycle through investigation → execution → review. `ibuild off` is an escape hatch for small interactive changes, but those still go through a hand-opened PR with CI.
-- The integration (default) branch is **`biograph-fh`**.
+**Interactor Build engine (this fork, `fossibleworks/biograph`)**
+- Every code change needs a tracked **Goal**. The engine generates **EngineTasks** under it, and each task cycles through investigation → execution → review.
+- Work on branch `goal/<goalId>` in an isolated worktree. **Never commit to `biograph-fh`**, the default and main branch.
+- All changes ship through the Goal's single PR, which must pass review and CI before merge.
+- CLI: `ibuild engine goal-create "<title>"`, `ibuild engine goal queue <id>`, `ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <id>`. Goals can also be managed in the Build web UI, or created by importing a GitHub issue.
+- An interactive session can switch the gate off for a small change with `ibuild off`, but the change still goes through its own branch and a hand-opened PR.
 
-**Commits and PRs**
-- Use Conventional Commits, enforced by commitlint. For upstream sync work, suffix the subject with the batch, e.g. `fix: ... (upstream sync B2)`. Upstream picks use `git cherry-pick -x`, and fork behaviour wins conflicts.
-- The PR template asks you to pick the target branch, follow the commit convention, pass tests locally, keep logic server-side, update docs, and add `closes #XXXX`.
-- Inherited upstream rules: Mergify auto-closes PRs to stable `version-14/15/16` from non-maintainers (use a hotfix branch or develop). It auto-merges after CI plus at least one approval. CODEOWNERS is `@akurungadam @Sajinsr`.
-- Project rules: `.build/RULES.md` (currently placeholders) is the source for the generated mirrors.
+**Commit conventions:** Conventional Commits, enforced by commitlint in CI. Upstream sync work tags commits with a suffix such as `(upstream sync B2)` and records each batch in `wiki/upstream-sync-version-16.md`.
+
+**Upstream sync policy:** cherry-pick with `git cherry-pick -x`. Fork intent wins on conflicts. DocType JSON gets a 3-way union of `fields` and `field_order`; `patches.txt` gets a union; keep the fork's `.releaserc`.
+
+**Inherited upstream rules:**
+- Mergify auto-closes PRs from non-maintainers that target `version-14/15/16`.
+- PRs auto-merge after 1 approval; the `squash` label switches to squash merge.
+- `backport <branch>` labels trigger backports.
+- CODEOWNERS: @akurungadam @Sajinsr.
