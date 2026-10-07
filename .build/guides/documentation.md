@@ -8,14 +8,20 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - .github/helper/documentation.py
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/workflows/docs_checker.yml
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
+  - .github/helper/documentation.py
   - AGENTS.md
 ---
 
-- **User docs** are external: the README links DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream `docs_checker.yml` workflow fails `feat:` PRs that don't link to a `/wiki` page on `biograph.frappe.cloud` / `biograph.io`. Opt out with `no-docs` in the PR body. Backports skip the check.
-- **In-repo `wiki/`** holds Markdown design and usage docs with SCREAMING-KEBAB names (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`) plus reports and ledgers (`insurance-parity-report.md`, `upstream-sync-version-16.md`). Usage docs follow this structure: a table of contents, then Overview, Configuration (UI navigation in **bold** like **Healthcare → Setup → Healthcare Settings**), User Experience, Examples.
-- **Ledgers:** long multi-batch work such as the upstream sync keeps a running Markdown table (upstream sha, subject, outcome, notes) and is committed as `docs(wiki): ...`.
-- **Agent guides:** `AGENTS.md` renders guides from `.build/guides/` and `.build/RULES.md`. Edit the sources, not the managed block.
-- **Docstrings:** sparse. Add one where intent isn't obvious.
+- **README.md** covers the overview, installation through bench, development setup (pre-commit, semgrep) and links. Full user docs are external, on DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **`wiki/`** holds the fork's in-repo design and usage docs. They are Markdown files with UPPER-KEBAB or descriptive names:
+  - design docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`)
+  - usage guides (`*-USAGE.md`)
+  - parity reports and plans
+  - the upstream sync ledger (`upstream-sync-version-16.md`, which records each upstream commit's outcome)
+  
+  Add new feature designs and usage docs here, and update the sync ledger alongside sync work.
+- **`docs_checker.yml`:** PRs whose title starts with `feat` must link a docs page (`biograph.frappe.cloud` or `biograph.io` with `/wiki` in the path). Otherwise the PR body must contain `no-docs`, or `backport` for backports.
+- **AI and agent guides:** `CLAUDE.md`, `AGENTS.md`, `.build/RULES.md`, and mirrors in `.claude/rules/`, `.cursor/` and `.github/instructions/`. The block in AGENTS.md is managed by Build; edit `.build/` sources, not the mirrors.
+- Inline docs are light: short comments, plus the commented template sections in `hooks.py`.
