@@ -8,12 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/package.json
   - patient_portal/vite.config.js
-  - patient_portal/src/index.css
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/public/images/biograph-app-icon.svg
 ---
 
-- **Desk UI** (practitioner and admin screens) uses the standard **Frappe desk** components: forms, list views, `frappe.ui.Dialog`, and HTML templates in `healthcare/public/js/*.html` (healthcare_note, observation, healthcare_orders). Do not invent new widget styling. Extend the existing JS controllers such as `observation_widget.js` and `healthcare_note.js`.
-- **Patient Portal** uses **frappe-ui** (^0.1.176) as its component library and design-token source. Tailwind is configured with `presets: [frappeUIPreset]` (from `frappe-ui/tailwind`) and only adds legacy color aliases (lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate). Icons come from feather-icons/lucide (the `lucideIcons: true` plugin option).
-- Styles go in Tailwind utility classes inside SFCs. Global CSS is limited to `patient_portal/src/index.css`.
-- Shared formatting helpers live in `patient_portal/src/utils/formatters.js`.
+- **Desk UI** uses the standard Frappe desk components: form scripts, `frappe.ui.Dialog`, `frappe.msgprint`, list and calendar views. Do not introduce custom CSS frameworks there.
+- **Patient portal** uses **frappe-ui**:
+  - Components: `Dialog`, `Progress`, and others.
+  - Styling: Tailwind 3 with `frappeUIPreset` (`patient_portal/tailwind.config.js`). Token classes include `text-ink-gray-8`.
+  - Icons: Lucide/feather, enabled through the frappe-ui vite plugin.
+  - Tailwind's legacy color aliases are mapped in `tailwind.config.js`: lightBlue, warmGray, trueGray, coolGray, blueGray.
+- Portal components live in `patient_portal/src/components/` as PascalCase `.vue` files (`BookAppointmentModel.vue`, `PractitionerSelector.vue`). Shared formatters are in `src/utils/formatters.js`.
+- App branding assets are in `healthcare/public/images/` (`biograph-app-icon.svg`, `healthcare.svg`).
