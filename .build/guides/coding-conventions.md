@@ -12,24 +12,27 @@ evidence:
   - eslint.config.mjs
   - .pre-commit-config.yaml
   - commitlint.config.js
-  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
+  - healthcare/healthcare/api/patient_portal.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-**Python** (ruff, `pyproject.toml`):
-- Indent with **tabs**, use **double quotes**, and keep lines to 110 characters (E501 is ignored). Target is py310.
-- Lint selects `F,E,W,I,UP,B,RUF`, with a documented ignore list (F401 unused imports, E402, B904 and others).
-- isort section order: future, stdlib, third-party, **frappe, erpnext, healthcare**, first-party, local. Separate the frappe, erpnext and healthcare import groups with blank lines.
-- `typing-modules = ["frappe.types.DF"]`.
-- Naming follows Frappe: doctype folders and modules are `snake_case` versions of the DocType name (`patient_appointment/patient_appointment.py`). The controller class is the CamelCase doctype name. Custom exceptions end in `Error` and subclass `frappe.ValidationError`.
-- Wrap user-facing strings in `_()`. Use Frappe APIs (`frappe.get_doc`, `frappe.db.get_value`, `frappe.qb`, `frappe.get_list(..., pluck="name")`) instead of raw SQL where practical.
-- Expose client-callable functions with `@frappe.whitelist()`.
-- A long list of legacy files is excluded from pre-commit. Do not mass-reformat them, because that churns upstream merges.
+**Python (ruff, configured in `pyproject.toml`)**
+- Format with **tabs**, double quotes and line length 110 (E501 is ignored).
+- Lint rule sets: F, E, W, I, UP, B, RUF. Some rules are ignored, notably F401 (unused imports), B904, E402 and W191.
+- **Import order:** future, stdlib, third-party, `frappe`, `erpnext`, `healthcare`, first-party, local. Each group is separated by a blank line, as in the test and api files.
+- Absolute imports from the `healthcare.healthcare.doctype.<x>.<x>` path.
+- Controllers are classes named after the DocType in PascalCase (`class PatientAppointment(Document)`). Modules and folders use snake_case. Each file starts with a copyright header.
+- Data access: `frappe.qb` and `frappe.get_all`/`get_list` are preferred over raw SQL. Raw `frappe.db.sql` still appears in older code and tests.
+- Mark endpoints with `@frappe.whitelist()`. Keep business logic and validation on the server, as the PR template asks.
+- Wrap user-facing strings in `_()` (Python) or `__()` (JS).
+- The long `exclude:` list in `.pre-commit-config.yaml` covers legacy files that are not ruff-clean. Do not add new ruff findings to them, and do not mass-reformat them, because that inflates upstream-sync diffs.
 
-**JavaScript** (prettier and ESLint flat config):
-- **Tabs**, `tabWidth: 4`, `printWidth: 88`, `arrowParens: avoid`.
-- `eslint:recommended`, with Frappe globals (`frappe`, `erpnext`, `__`, `$`, ...).
-- Wrap translatable strings in `__()`.
-- `patient_portal/` is excluded from prettier and keeps its own Vue SFC style (`<script setup>`-style imports from `frappe-ui`, Tailwind classes).
+**JavaScript**
+- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. The patient_portal and a few large form scripts are excluded.
+- ESLint uses `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `$`, `moment`, …).
+- Desk form scripts use `frappe.ui.form.on('<DocType>', {...})` in `<doctype>.js`.
 
-**Commits:** follow Conventional Commits. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, all lower-case. Upstream sync picks use `git cherry-pick -x`.
+**Vue (patient_portal):** single-file components in PascalCase (`BookAppointmentModel.vue`), frappe-ui components and resources, Tailwind utility classes and the `@/` alias for `src`.
+
+**Commits:** Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. The type is lower-case and the subject is required. Upstream cherry-picks use `git cherry-pick -x`.
