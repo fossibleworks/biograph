@@ -1,5 +1,5 @@
 ---
-title: Coding conventions
+title: Coding Conventions
 category: coding-conventions
 layer: project
 applies_to: []
@@ -10,35 +10,30 @@ evidence:
   - pyproject.toml
   - .prettierrc.yaml
   - eslint.config.mjs
-  - .pre-commit-config.yaml
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - .git-blame-ignore-revs
+  - commitlint.config.js
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - patient_portal/src/components/DepartmentSelector.vue
 ---
 
-# Coding conventions
+**Python** (ruff, `pyproject.toml`)
+- Indent with **tabs** (`indent-style = "tab"`). Use double quotes. Line length is 110 (E501 is ignored).
+- Lint set: `F, E, W, I, UP, B, RUF`, with the ignores listed in pyproject (e.g. F401 unused imports, B904, E402).
+- Imports are sorted into sections in this order: future → stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local. Each section is separated by a blank line (see `test_patient_appointment.py`).
+- `frappe.types.DF` is registered as a typing module.
+- Naming:
+  - Doctype folders and modules use snake_case of the DocType name (`patient_appointment/patient_appointment.py`).
+  - Controller classes are PascalCase and extend `Document`.
+  - Whitelisted functions are snake_case and decorated with `@frappe.whitelist()`.
+- Wrap user-facing strings in `_()` from `frappe`.
+- Use the Frappe ORM (`frappe.get_doc`, `frappe.db.get_value/get_all`, `frappe.get_list(..., pluck=...)`). Raw `frappe.db.sql` exists (~91 uses) but prefer the ORM for new code.
+- Many files start with the header `# Copyright (c) <year>, <owner> and contributors` / `# See license.txt`.
 
-## Python (ruff, `pyproject.toml`)
-- **Indent with tabs.** Use **double quotes**. Line length is 110, but E501 is ignored.
-- Lint rule sets: `F,E,W,I,UP,B,RUF`. The ignore list matches Frappe's (F401 unused imports, E402, B904, etc.).
-- Import order uses custom isort sections: future → stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local.
-- Naming follows Frappe:
-  - Doctype folders and modules are snake_case (`patient_appointment/patient_appointment.py`).
-  - Controller classes are CamelCase subclasses of `Document` (`class PatientAppointment(Document)`).
-  - Lifecycle methods are `validate`, `on_submit`, `on_cancel`, etc.
-  - Module-level helpers are snake_case. Client-callable functions are decorated with `@frappe.whitelist()`.
-- Wrap user-facing strings in `_()`. Use `.format()` with `{0}` placeholders and `frappe.bold()` for emphasis.
-- Type hints are being added in places (`fix: add type hints`). Typing uses `frappe.types.DF`.
-- Database access mixes `frappe.db.*`, `frappe.get_all/get_list` and `frappe.qb`. Raw `frappe.db.sql` must be parameterised, which the Frappe semgrep rules check.
+**JavaScript** (Prettier + ESLint)
+- Prettier: tabs, `tabWidth: 4`, `printWidth: 88`, `arrowParens: "avoid"`.
+- ESLint uses the flat config with `eslint:recommended` and the globals `frappe`, `erpnext`, `$`, `jQuery`, `Vue`.
+- Prettier skips `patient_portal/` and a few large form scripts.
+- Desk form scripts follow the `frappe.ui.form.on("DocType", {...})` pattern.
 
-## JavaScript
-- Prettier: tabs, `tabWidth 4`, `printWidth 88`, `arrowParens: avoid`.
-- ESLint flat config extends `eslint:recommended` and declares Frappe desk globals (`frappe`, `cur_frm`, `__`, `$`, etc.).
-- Desk form scripts use `frappe.ui.form.on('<DocType>', {...})` and translate strings with `__()`.
-- The portal (Vue SFCs) is excluded from Prettier and keeps its existing 2-space style.
+**Vue (portal):** Single File Components named in PascalCase. Components end in `Model.vue` for dialogs (e.g. `BookAppointmentModel.vue`). Import from `frappe-ui` (`Button`, `Dialog`, `Card`). The `@` alias points to `patient_portal/src`.
 
-## Legacy exemptions
-`.pre-commit-config.yaml` excludes about 620 legacy files (most existing doctype files, inherited from upstream) from all hooks. When you touch one of them:
-- Do not introduce new lint findings.
-- Do not mass-reformat it. That would wreck upstream-sync diffs.
-
-`.git-blame-ignore-revs` lists formatting commits.
+**Commits:** Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Types must be lowercase.
