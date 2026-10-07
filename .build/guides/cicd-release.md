@@ -10,32 +10,24 @@ evidence:
   - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
   - .github/workflows/semantic-commits.yml
-  - .github/workflows/codeql.yml
+  - .github/workflows/docs_checker.yml
   - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
   - .releaserc
-  - .github/helper/install.sh
+  - .github/release.yml
 ---
 
-## On pull requests
+**PR checks** (GitHub Actions)
+- `ci.yml` (Server Tests) runs on PRs except those touching only css/js/md/html/csv, and every night at 00:00 UTC. It runs on Python 3.14, Node 24 and MariaDB 11.8, compiles all Python, checks for leftover merge-conflict markers, sets up a bench with `.github/helper/install.sh`, and runs `bench run-parallel-tests --app healthcare`. On runs that are not PRs, coverage goes to Codecov.
+- `linters.yml` and `linters.v2.yml` run pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets and others) and Semgrep with the Frappe rules plus `r/python.lang.correctness`.
+- `semantic-commits.yml` runs commitlint on the PR's commit range.
+- `docs_checker.yml` fails `feat` PRs that have no wiki docs link.
+- `labeller.yml` applies labels (`needs-tests`). `codeql.yml` runs CodeQL for Python and JS on `develop` and every week.
 
-- **CI / Server Tests** (`ci.yml`)
-  - Skips PRs that only touch css/js/md/html/csv, and skips `version-*-beta` branches. Also runs nightly at 00:00 UTC.
-  - Runs on Python 3.14 and Node 24, with a mariadb:11.8 service.
-  - Steps: `compileall` plus a merge-conflict-marker check, then `install.sh` (bench, with Frappe/ERPNext on the matching branch or `version-16` for fork branches), then `bench run-parallel-tests --app healthcare`.
-  - On non-PR runs, coverage is uploaded to Codecov.
-- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus Semgrep (frappe rules and `r/python.lang.correctness`).
-- **Semantic Commits:** commitlint over the PR commit range.
-- **Documentation Required:** `feat` PRs need a wiki link.
-- **Labeler:** adds `needs-tests`.
-- **CodeQL:** Python and JS, on `develop` and weekly.
+**Release** (built for upstream earthians)
+- `initiate_release.yml` opens a PR every Tuesday from `version-NN-hotfix` to `version-NN` for versions 14, 15 and 16.
+- `on_release.yml` runs **semantic-release** (`.releaserc`, Angular preset; breaking changes do not trigger a release) on pushes to `version-14/15/16`. It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
+- `release_notes.yml` regenerates the notes, leaving out PRs labelled `skip-release-notes` (see `.github/release.yml`).
+- `generate-pot-file.yml` regenerates translations every week. Crowdin opens `fix: sync translations from crowdin` PRs.
 
-## Release (inherited from upstream earthians)
-
-- `initiate_release.yml` opens weekly `version-N-hotfix` → `version-N` release PRs for 14, 15 and 16.
-- `on_release.yml` runs `semantic-release` on pushes to `version-14/15/16`. Per `.releaserc`, it uses the angular preset, sets breaking changes to not release, bumps `healthcare/__init__.py`, and commits `chore(release): Bumped to Version x`.
-- `release_notes.yml` regenerates release notes. `generate-pot-file.yml` refreshes translations weekly.
-
-## Fork caveat
-
-Release and bot workflows reference `earthians/biograph` and its secrets, so they don't apply to `fossibleworks/biograph`. Here, the fork version (e.g. `chore: bump version to 16.0.8`) is bumped manually. The ledger notes that `ci.yml` has never run on `biograph-fh`. The push credential cannot modify `.github/workflows/*`, so workflow changes must be applied by hand.
+**Fork caveats:** the wiki ledger notes that the fork has never run `ci.yml` on `biograph-fh`, so there is no CI baseline. The release workflows still point at `earthians/biograph` and use earthians bot tokens. The push credential cannot change files under `.github/workflows/`, so workflow changes must be applied by hand.
