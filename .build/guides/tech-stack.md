@@ -10,16 +10,15 @@ evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
+  - yarn.lock
   - .github/workflows/ci.yml
   - .github/helper/install.sh
-  - healthcare/hooks.py
+  - crowdin.yml
 ---
 
-- **Backend:** Python 3.10 or later (`requires-python >=3.10`, ruff `target-version = py310`). CI runs on **Python 3.14**. Packaged with `flit_core`.
-- **Framework:** **Frappe** with the required app **ERPNext**. CI tests against the `version-16` branches of frappe, erpnext and payments. The code follows Frappe's metadata-driven model: DocType JSON, a Python controller and a JS form script.
-- **Database:** MariaDB (CI uses `mariadb:11.8`) and Redis, via `bench`.
-- **Desk frontend:** plain JS form scripts that use the `frappe`, `erpnext` and `$` globals. They are bundled through `healthcare/public/js/healthcare.bundle.js` (`app_include_js`).
-- **Patient Portal:** **Vue 3**, vue-router 4, **frappe-ui** (^0.1.176), Vite 4.4.9 and Tailwind CSS 3.4.15. It lives in the `patient_portal/` yarn workspace.
-- **Node:** Node 24 in CI. Yarn workspaces (`yarn.lock`) at the repo root.
-- **Python dependencies:** `responses`, `python-barcode`. Everything else comes from frappe and erpnext.
-- **Tooling:** ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep with the Frappe rules, detect-secrets, pip-audit, commitlint, semantic-release, Codecov, Mergify and Crowdin.
+- **Backend:** Python 3.10+ (`requires-python >=3.10`; CI uses 3.14). It is a **Frappe Framework** app that depends on **ERPNext** and **payments**. Built with flit (`flit_core`). Runtime dependencies are `responses` and `python-barcode`.
+- **Database:** MariaDB (CI uses `mariadb:11.8`, utf8mb4). Queries use `frappe.db.*`, `frappe.qb` and raw `frappe.db.sql`.
+- **Desk UI:** plain Frappe form, list and tree scripts in JavaScript (`<doctype>.js`, `<doctype>_list.js`, `<doctype>_tree.js`), plus shared desk JS in `healthcare/public/js`, bundled through `healthcare.bundle.js`. Server-rendered Jinja templates and print formats.
+- **Patient Portal:** Vue 3, vue-router 4, **frappe-ui** (^0.1.176), Vite 4.4.9, Tailwind CSS 3.4.15 with the frappe-ui preset, and feather/lucide icons. Managed as a yarn workspace (`yarn.lock`).
+- **Tooling:** ruff 0.15.18 (lint and format), Prettier, ESLint 10 (flat config), pre-commit, Semgrep with the Frappe rules, pip-audit, detect-secrets, commitlint, semantic-release, CodeQL, Codecov, Mergify, and Crowdin for translations.
+- **Supported Frappe lines:** version-14, version-15 and version-16. The fork tracks upstream `version-16`.
