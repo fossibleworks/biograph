@@ -8,27 +8,32 @@ binding: reference
 source: inferred
 evidence:
   - README.md
-  - healthcare/hooks.py
+  - pyproject.toml
+  - healthcare/www/patient_portal.py
 ---
 
-# Product context
+**Biograph (fossibleHIS) by Tacten/FossibleWorks** is an open-source Hospital Information System (HIS). It is a fork of earthians' Marley Health with extra features. It ships as the Frappe app `healthcare` and adds the health domain to ERPNext.
 
-**Biograph** (by Tacten; the internal name is *fossibleHIS*) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' **Marley Health** with extra features. It ships as a Frappe app named `healthcare` that adds the health domain to **ERPNext**. Most of its data design follows **HL7 FHIR**.
+**Users:** healthcare practitioners, clinics, hospitals, and their patients, through the patient portal.
 
-## Who uses it
-- **Clinical staff** (practitioners, nurses, lab technicians) and **front-desk/billing staff** at clinics and hospitals. They work in the Frappe Desk at `/desk/healthcare`.
-- **Patients**, through a self-service **Patient Portal** (a Vue SPA at `/patient-portal`). Patients can book appointments, see lab/diagnostic results and pay bills.
+**Feature areas:**
+- Patient management
+- Outpatient and inpatient management
+- Patient appointments, including block-based therapy booking and recurring appointments
+- Clinical procedures
+- Rehabilitation and physiotherapy (therapy plans and sessions)
+- Laboratory and diagnostics (lab tests, observations, sample collection)
+- Medication requests
+- Service requests
+- Insurance (payors, contracts, policies, coverage, claims)
+- Patient duplicate checking
+- Multiple medical code standards
 
-## Main feature areas
-- Patient management: Patient, duplicate-check rules, Patient Medical Record, Patient History page.
-- Outpatient: Patient Appointment, Practitioner Schedule and Availability, Fee Validity, Patient Encounter, recurring and block-based therapy appointments.
-- Inpatient: Inpatient Record, medication orders and entries, Healthcare Service Units.
-- Clinical procedures, rehabilitation and physiotherapy (Therapy Plan/Type/Session), nursing tasks and checklists.
-- Lab and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report.
-- Medical code standards: Code System, Code Value, Code Value Set (FHIR terminology).
-- Insurance: payor contracts, patient insurance policy and coverage, item eligibility.
-- Billing through ERPNext Sales Invoice and Payment Entry. Pharmacy, HR, accounts and assets come from ERPNext.
-- Regional add-ons: `healthcare/regional/india` (ABDM).
+Much of the data model follows **HL7 FHIR**. Facilities are modelled as Service Units and specialities as Medical Departments. ERPNext supplies pharmacy, supplies, purchasing, HR, accounts, and assets. Healthcare documents integrate with Sales Invoice and Payment Entry.
 
-## Fork context
-- The working trunk is `biograph-fh`. Upstream marley `version-16` is regularly cherry-picked in, under a "fork intent wins" policy (see `wiki/upstream-sync-version-16.md`).
+**Entry points:**
+- Frappe Desk forms, reports, dashboards, and workspaces under `healthcare/healthcare/`
+- A Vue patient portal served at `/patient-portal` (`healthcare/www/`)
+- A regional `india` module (ABDM custom fields)
+
+**Branches:** `biograph-fh` is the fork's main branch. It is kept in sync with upstream `earthians/marley` `version-16` through tracked cherry-pick batches (see `wiki/upstream-sync-version-16.md`).
