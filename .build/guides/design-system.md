@@ -8,16 +8,12 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
+  - patient_portal/package.json
   - patient_portal/vite.config.js
   - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/public/images/biograph-app-icon.svg
+  - healthcare/public/js/observation_widget.js
 ---
 
-- **Desk UI** uses the standard Frappe desk components: form scripts, `frappe.ui.Dialog`, `frappe.msgprint`, list and calendar views. Do not introduce custom CSS frameworks there.
-- **Patient portal** uses **frappe-ui**:
-  - Components: `Dialog`, `Progress`, and others.
-  - Styling: Tailwind 3 with `frappeUIPreset` (`patient_portal/tailwind.config.js`). Token classes include `text-ink-gray-8`.
-  - Icons: Lucide/feather, enabled through the frappe-ui vite plugin.
-  - Tailwind's legacy color aliases are mapped in `tailwind.config.js`: lightBlue, warmGray, trueGray, coolGray, blueGray.
-- Portal components live in `patient_portal/src/components/` as PascalCase `.vue` files (`BookAppointmentModel.vue`, `PractitionerSelector.vue`). Shared formatters are in `src/utils/formatters.js`.
-- App branding assets are in `healthcare/public/images/` (`biograph-app-icon.svg`, `healthcare.svg`).
+- **Desk UI** (most of the product) uses the standard Frappe Desk form, list, report and workspace components, defined through DocType JSON, `workspace/`, `number_card/` and `dashboard_chart/`. Custom widgets live in `healthcare/public/js` (`observation_widget.js`, `healthcare_note.js` with `.html` micro-templates). Don't add a separate CSS framework to Desk.
+- **Patient Portal** uses **frappe-ui** as its component library and token source. The Tailwind preset is `frappe-ui/tailwind` (in `patient_portal/tailwind.config.js`), with only legacy color aliases added (`lightBlue`→sky, `warmGray`→stone, and so on). Components in use: `Button`, `Dialog`, `Badge`, `Card`, `FeatherIcon` (feather/lucide icons), `FormControl`, `ErrorMessage`.
+- Style with Tailwind utility classes from the frappe-ui preset. Don't add custom CSS variables or a new component library.
