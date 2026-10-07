@@ -4,21 +4,21 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/hooks.py
   - patient_portal/src/socket.js
-  - .pre-commit-config.yaml
 ---
 
-The app relies on Frappe's built-in facilities. There is no external metrics or tracing stack.
+Observability here relies on Frappe's built-in facilities. There is no external metrics or tracing SDK.
 
-- **Error Log:** `frappe.log_error(message, title)` (15 call sites) writes to the Error Log doctype. Use a short, descriptive title such as "Unavailability Calendar Event Error", and pass `frappe.get_traceback()` when catching exceptions.
-- **Logger:** `frappe.logger()` (about 9 uses), mainly in patches for info and error lines.
-- **Realtime:** `frappe.publish_realtime` on the server and the socket.io client in `patient_portal/src/socket.js` for live updates.
-- **Background jobs and scheduler** are visible through the standard RQ and Scheduled Job Log views.
-- **Integration request logging:** the ABDM integration keeps request records in the `ABDM Request` doctype.
-- There is no APM or OpenTelemetry instrumentation in the app code. Do not add `print()`; the pre-commit `debug-statements` hook rejects debugger statements.
+- **Error Log doctype:** `frappe.log_error(message_or_traceback, title)` is the main persistent signal, with about 15 call sites. Give it a stable, human-readable title such as "Appointment Confirmation Message Not Sent" or "Populate Appointment End Fields Patch". Include the document name in the message.
+- **App logger:** `frappe.logger().info/error(...)` writes to bench log files, with about 9 call sites. It is used in setup and patches (`healthcare/healthcare/setup/patient_duplicate_check.py`) and when parsing appointment times.
+- **Background work:** `scheduler_events` in `hooks.py` and occasional `frappe.enqueue`. Failures show up in the Scheduled Job Log and Error Log.
+- **Realtime:** `frappe.publish_realtime` (1 use). The portal holds a socket.io connection (`patient_portal/src/socket.js`).
+- **Analytics surfaces:** dashboard charts, chart sources, number cards and reports under `healthcare/healthcare/`.
+- **Avoid** `print()` in server code (about 40 occurrences exist, mostly legacy and debugging). Use `frappe.logger()` or `frappe.log_error` instead.
