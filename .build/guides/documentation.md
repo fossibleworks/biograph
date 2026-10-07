@@ -8,20 +8,12 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
-  - .github/workflows/docs_checker.yml
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
   - .github/helper/documentation.py
-  - AGENTS.md
 ---
 
-- **README.md** covers the overview, installation through bench, development setup (pre-commit, semgrep) and links. Full user docs are external, on DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **`wiki/`** holds the fork's in-repo design and usage docs. They are Markdown files with UPPER-KEBAB or descriptive names:
-  - design docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`)
-  - usage guides (`*-USAGE.md`)
-  - parity reports and plans
-  - the upstream sync ledger (`upstream-sync-version-16.md`, which records each upstream commit's outcome)
-  
-  Add new feature designs and usage docs here, and update the sync ledger alongside sync work.
-- **`docs_checker.yml`:** PRs whose title starts with `feat` must link a docs page (`biograph.frappe.cloud` or `biograph.io` with `/wiki` in the path). Otherwise the PR body must contain `no-docs`, or `backport` for backports.
-- **AI and agent guides:** `CLAUDE.md`, `AGENTS.md`, `.build/RULES.md`, and mirrors in `.claude/rules/`, `.cursor/` and `.github/instructions/`. The block in AGENTS.md is managed by Build; edit `.build/` sources, not the mirrors.
-- Inline docs are light: short comments, plus the commented template sections in `hooks.py`.
+- **User docs:** These are external. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`). There is no in-repo docs site, and `healthcare/docs/current` is gitignored.
+- **Fork design and usage docs:** These go in `wiki/` as Markdown. Use UPPER-KEBAB names for feature docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`) and descriptive names for plans and reports (`insurance-parity-report.md`, `upstream-sync-version-16.md`). Screenshots sit alongside the docs.
+- **Long-running work:** Record it as a ledger in `wiki/`, with method, outcomes vocabulary and baselines. Commit those updates as `docs(wiki): ...`.
+- **PR docs gate:** `docs_checker.yml` fails `feat` PRs unless the PR body links a docs page on `biograph.frappe.cloud` / `biograph.io` under `/wiki`, or contains `no-docs` (or `backport`).
+- The PR template asks contributors to update the necessary documentation and to reference issues with `closes #XXXX`.
