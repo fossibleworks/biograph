@@ -4,19 +4,20 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - healthcare/hooks.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - .pre-commit-config.yaml
 ---
 
-There is no metrics or tracing stack. Observability relies on Frappe's built-in facilities:
+Biograph has no metrics or tracing layer. It relies on Frappe's built-in facilities:
 
-- **`frappe.log_error(...)`** writes to the Error Log DocType, which is the main way failures are surfaced (about 24 call sites, together with logger calls). Use it in `except` blocks for non-fatal failures and give it a human-readable translated title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-- **`frappe.logger().info/error(...)`** is used sparingly, mostly in patches and for parse failures.
-- **User feedback:** `frappe.msgprint` for successes or warnings that the user should see ("Sales Invoice {0} created").
-- **Audit trail:** Frappe document versioning, plus medical-record creation on submit through the wildcard doc_events.
-- Do not log PHI (patient identifiers or clinical details) in error titles. Put context in the message body only when it is needed.
+- **`frappe.log_error(...)`** (about 15 uses) is the main way to record failures. It writes an **Error Log** document in the desk. Use it with `frappe.get_traceback()` and a translated, descriptive title, e.g. `_("Appointment Confirmation Message Not Sent")`, or with `title=` only. Use it for failures that shouldn't block the user's transaction: notifications, calendar events, patches.
+- **`frappe.logger()`** (about 9 uses) does informational or diagnostic logging to the site log files (`.info(...)`, `.error(...)`). It appears mainly in setup and patch code (`healthcare/setup/patient_duplicate_check.py`) and parse fallbacks.
+- **User-visible feedback** goes through `frappe.msgprint` and `frappe.throw`, not logs.
+- Frappe's Scheduled Job Log captures the outcome of scheduled jobs automatically.
+
+Don't add `print()` (pre-commit runs `debug-statements`) or new logging libraries.
