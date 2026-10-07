@@ -1,5 +1,5 @@
 ---
-title: Content & copy
+title: Content & Copy
 category: content-copy
 layer: project
 applies_to: []
@@ -8,30 +8,13 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/locale/main.pot
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
+  - patient_portal/src/components/Payment.vue
   - crowdin.yml
 ---
 
-# Content & copy
-
-## Tone
-- Plain, short and clinical-administrative.
-- Error messages state the problem and often the reason, e.g.:
-  - "Appointment end must be after start."
-  - "Cannot Submit, not all samples are marked as 'Collected'."
-  - "Patient Insurance Policy is required to create Insurance Coverage"
-- Occasional exclamation for conflicts ("Patient already has an appointment booked for the same day!").
-
-## Terminology and casing
-- Use DocType names in **Title Case** exactly as defined: Patient Appointment, Healthcare Practitioner, Inpatient Record, Insurance Payor, Fee Validity, Healthcare Service Unit, Medical Department, Sales Invoice.
-- Use "Practitioner" (not "doctor"), "Payor" (not "payer") and "Service Unit" (not "room"/"bed") to match the FHIR-flavoured model.
-- Interpolate with `{0}`/`{1}` placeholders inside `_()` so strings stay translatable. Never build strings by concatenation. Wrap names in `frappe.bold()`.
-- Error dialog titles are short noun phrases ("Missing Insurance Policy").
-
-## Patient portal (patient-facing)
-- Friendly, Title-Case headings and buttons: "Book an Appointment", "Available Slots", "Select a Department", "Select a Practitioner", "Pay Your Bill", "Payment Successful", "Consultation Fee".
-- Empty states are conversational: "Looks like you don't have any appointments yet." and "No Records Found".
-
-## Translation
-All strings flow into `healthcare/locale/main.pot`, which Crowdin translates. Every new string must be wrapped in `_()` / `__()`.
+- **Translation:** wrap every string with `_()` in Python and `__()` in desk JS. Strings flow into `healthcare/locale/main.pot` and then into Crowdin. Use `{0}` placeholders with `.format()` instead of concatenating text into translated strings.
+- **Tone:** short, direct, sentence-style messages, sometimes ending in `!`. Examples: "Patient already has an appointment booked for the same day!", "Appointment end must be after start.", "Code Value is required". Error titles are short Title Case nouns: "Missing Configuration", "Customer Not Found", "Not Available".
+- **Buttons:** Title Case verbs: "Check In", "Reschedule", "Make Payment", "Repeat Appointments", "Mark Unavailable". Related actions are grouped under a menu such as `__("Status")`.
+- **Terminology:** use the doctype names exactly: Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Inpatient Record, Fee Validity, Insurance Payor.
+- **Portal copy** is friendlier and patient-facing: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients".
