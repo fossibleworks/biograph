@@ -8,14 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/helper/documentation.py
   - .github/workflows/docs_checker.yml
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
+  - AGENTS.md
 ---
 
-- **User and product docs** are external: the README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream docs-checker accepts links on `biograph.frappe.cloud` / `biograph.io` under `/wiki`.
-- **In-repo docs** live in `wiki/` as Markdown. File names are UPPER-KEBAB-CASE, e.g. `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` and `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`. There are also design plans and parity reports (`insurance-parity-report.md`, `upstream-sync-version-16.md`).
-- **Upstream-sync work** must update the ledger in `wiki/upstream-sync-version-16.md`. Commits use the form `docs(wiki): ...`.
-- **Docs check in CI:** `docs_checker.yml` fails `feat` PRs whose body lacks a docs link, unless the body contains `no-docs` or `backport`.
-- **PR template:** asks for an explanation of the change, updated docs, and `closes #XXXX`.
+- **User docs** are external: the README links DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream `docs_checker.yml` workflow fails `feat:` PRs that don't link to a `/wiki` page on `biograph.frappe.cloud` / `biograph.io`. Opt out with `no-docs` in the PR body. Backports skip the check.
+- **In-repo `wiki/`** holds Markdown design and usage docs with SCREAMING-KEBAB names (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`) plus reports and ledgers (`insurance-parity-report.md`, `upstream-sync-version-16.md`). Usage docs follow this structure: a table of contents, then Overview, Configuration (UI navigation in **bold** like **Healthcare → Setup → Healthcare Settings**), User Experience, Examples.
+- **Ledgers:** long multi-batch work such as the upstream sync keeps a running Markdown table (upstream sha, subject, outcome, notes) and is committed as `docs(wiki): ...`.
+- **Agent guides:** `AGENTS.md` renders guides from `.build/guides/` and `.build/RULES.md`. Edit the sources, not the managed block.
+- **Docstrings:** sparse. Add one where intent isn't obvious.
