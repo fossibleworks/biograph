@@ -4,24 +4,23 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - .github/workflows/codeql.yml
+  - .pre-commit-config.yaml
 ---
 
-The app has no metrics or tracing stack. It relies on Frappe's built-in facilities:
+# Observability
 
-- **`frappe.log_error(...)`** is the main tool (about 15 call sites). It writes to the *Error Log* doctype, which admins can see in Desk. Pass a short, human-readable title:
-  - `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`
-  - `frappe.log_error(message=e, title="Failed to mark Collected!")`
-  
-  Use it for failures in notifications, calendar events, payment records and patches.
-- **`frappe.logger()`** is used sparingly (about 9 call sites) for informational and diagnostic lines in setup and patch code, for example `frappe.logger().info("Starting patient duplicate check rules setup")`.
-- **User-visible signals** use `frappe.msgprint(..., alert=True, indicator=...)`.
-- **Avoid `print()`.** About 75 non-test call sites exist, mostly legacy patches and setup code. New code should use the logger or log_error.
-- **CI-side visibility:** Codecov coverage reports, CodeQL (`codeql.yml`), pip-audit and detect-secrets.
+The app adds no metrics or tracing stack of its own. It uses Frappe's built-in facilities:
+
+- **Error Log doctype** via `frappe.log_error(message, title)` or `frappe.log_error(title=...)`. This is the main way to record unexpected failures in background jobs, patches and integrations, with about 15 call sites. Include `frappe.get_traceback()` when catching broad exceptions, and give a descriptive title (e.g. "Unavailability Calendar Event Error").
+- **`frappe.logger()`** for informational logs (e.g. patch success). It is used sparingly.
+- External-integration requests are persisted as documents. For example, `ABDM Request` stores request/response for audit.
+- Scheduler and background-job status is visible through Frappe's RQ Job / Scheduled Job Log.
+- CI security observability: CodeQL (Python and JS, weekly), semgrep, pip-audit, detect-secrets.
+
+Do not use `print()` for diagnostics. The `debug-statements` pre-commit hook blocks leftover debuggers.
