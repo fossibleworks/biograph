@@ -9,23 +9,12 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - patient_portal/src/PatientPortal.vue
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
 ---
 
-Biograph (by Tacten; in this fork, **fossibleHIS** at `fossibleworks/biograph`) is an open source **Hospital Information System (HIS)**. It is a fork of earthians' Marley Health, with enhancements. It ships as a Frappe app named `healthcare` (app title "Biograph") that adds the health domain to **ERPNext**. Much of the data model follows **HL7 FHIR**.
+**Biograph** (packaged as the Frappe app `healthcare`, tracked in Build as *fossibleHIS*) is an open-source hospital information system (HIS) maintained by Tacten/Fossibleworks. It is a fork of earthians' **Marley Health** with extra features added on top.
 
-**Who uses it:** healthcare practitioners, clinics and hospitals working in the Frappe Desk (`/desk/healthcare`), plus patients using the Vue **Patient Portal** at `/patient-portal`.
-
-**Main feature areas** (each is a set of DocTypes under `healthcare/healthcare/doctype/`):
-- Patient management, including the Patient Duplicate Check (see `wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`)
-- Outpatient work: Patient Appointment, Fee Validity, Practitioner Schedules and Availability, recurring and block-based therapy appointments
-- Inpatient work: Inpatient Record, admission and discharge, Inpatient Medication Orders, Nursing Tasks
-- Clinical Procedures, Rehabilitation and Physiotherapy (Therapy Plans and Sessions, Exercises)
-- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
-- Medical coding: Code System, Code Value, configurable Medical Code Standards
-- Insurance: Insurance Payor, Contracts, Claims
-- Service Requests and Medication Requests (FHIR-style orders)
-- Regional: India ABDM integration (`healthcare/regional/india`)
-
-ERPNext supplies billing (Sales Invoice, Payment Entry), stock and pharmacy, HR and accounts. Biograph hooks into those DocTypes and does not reimplement them.
+- **What it does:** adds the healthcare domain to ERPNext. That covers patient management, outpatient and inpatient care (appointments, admissions, inpatient medication orders and entries), clinical procedures, rehabilitation and physiotherapy (therapy plans, exercises), laboratory and diagnostics (lab tests, observations, diagnostic reports), medical code standards (Code System, Code Value), insurance (payors, contracts, policies, claims) and fee validity. Facilities are modelled as **Healthcare Service Units** and specialities as **Medical Departments**. Much of the data design follows **HL7 FHIR**, for example Service Request, Medication Request, Observation and Diagnostic Report.
+- **Who uses it:** practitioners, clinics and hospitals work in the Frappe desk (`app_home = /desk/healthcare`). Patients use a Vue **Patient Portal** to book appointments, view orders and results, and pay bills.
+- **ERPNext integration:** pharmacy and stock, purchasing, HR, accounts and billing (Sales Invoice, Payment Entry hooks), assets and quality all come from ERPNext.
+- **Regional:** India ABDM integration lives in `healthcare/regional/india/abdm` (ABDM Settings and ABDM Request doctypes).
+- **Fork-specific work** is documented in `wiki/`: block-based therapy appointment booking, the patient duplicate checker, FHIR terminology parity, insurance parity, and the upstream sync ledger.
