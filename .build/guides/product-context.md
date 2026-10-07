@@ -1,5 +1,5 @@
 ---
-title: Product context
+title: Product Context
 category: product-context
 layer: project
 applies_to: []
@@ -9,29 +9,14 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - healthcare/healthcare/api/patient_portal.py
 ---
 
-# Product context
+**Biograph (by Tacten)** is an open-source Hospital Information System (HIS) for healthcare organisations of any size. It is a fork of earthians' Marley Health with added features, and it ships as the Frappe app `healthcare` (app title "Biograph"). It brings the health domain into ERPNext. Much of the data model follows **HL7 FHIR** (Service Request, Observation, Diagnostic Report, Code System / Code Value).
 
-**Biograph** (by Tacten / fossibleworks; published as the Frappe app `healthcare`, app title "Biograph") is an open-source **hospital information system (HIS)**. It forks and extends earthians **Marley Health** and is built on **Frappe** and **ERPNext**. Much of the data model follows **HL7 FHIR**.
+**Who uses it:** practitioners, clinics and hospitals. Clinical and front-desk staff work in Frappe Desk at `/desk/healthcare`. Patients use a Vue **Patient Portal** to view appointments, book appointments and pay bills.
 
-## Who uses it
-- Hospitals, clinics and individual practitioners: front desk, practitioners, nurses, lab staff, billing and insurance teams. They work in the Frappe Desk at `/desk/healthcare`.
-- Patients use the **Patient Portal** (Vue SPA served at `/patient-portal`) to view appointments, lab results and prescriptions, book appointments and pay bills.
+**Core feature areas:** patient management, outpatient and inpatient care (Patient Appointment, Patient Encounter, Inpatient Record), clinical procedures, rehabilitation and physiotherapy (Therapy Plan / Session), laboratory (Lab Test, Sample Collection, Observation), medication requests, insurance (payors, contracts, policies, coverage, claims), fee validity, configurable medical code standards, Healthcare Service Units, and Medical Departments. India-specific ABDM integration lives under `regional/india`.
 
-## Main functional areas
-- Patient management, including a patient duplicate checker.
-- Outpatient work: appointments, block-based therapy booking, practitioner availability and encounters.
-- Inpatient work: admissions, service-unit occupancy, inpatient medication orders and discharge.
-- Clinical procedures, rehab and physiotherapy (therapy plans and sessions), lab tests, observations and diagnostic reports.
-- Medical code standards and code systems (FHIR terminology), medication requests and service requests.
-- Insurance: payors, contracts, policies, coverage and claims.
-- Billing through ERPNext Sales Invoice and Payment Entry (hooked via `doc_events` and `override_doctype_class`).
-- India regional support: ABDM integration.
+**Inherited from ERPNext:** pharmacy and stock, purchasing, HR, accounts (Sales Invoice and Payment Entry are hooked), and assets.
 
-ERPNext supplies pharmacy and stock, purchasing, HR, accounts, assets and quality.
-
-## Repo lineage
-- This repo, `fossibleworks/biograph`, works on branch `biograph-fh`. It tracks upstream `earthians/marley` `version-16` through a documented cherry-pick sync ledger.
-- Fork behaviour wins conflicts with upstream.
+This fork's integration branch is `biograph-fh` (repo `fossibleworks/biograph`). Upstream changes from `earthians/marley version-16` are synced in following the ledger in `wiki/upstream-sync-version-16.md`.
