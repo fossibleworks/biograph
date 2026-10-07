@@ -7,32 +7,53 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
+  - README.md
   - package.json
   - patient_portal/package.json
   - .github/workflows/ci.yml
-  - .pre-commit-config.yaml
   - .github/workflows/linters.v2.yml
-  - README.md
-  - .github/helper/install.sh
+  - .pre-commit-config.yaml
+  - .github/workflows/semantic-commits.yml
 ---
 
-**Setup (bench):**
-- `bench get-app <repo>` then `bench --site <site> install-app healthcare`
-- JS deps: `yarn install`. The root `postinstall` also runs `cd patient_portal && yarn install --check-files`.
+## Setup (bench)
 
-**Build:**
-- `yarn build` at the root runs `cd patient_portal && yarn build` (`vite build --base=/assets/healthcare/patient_portal/`).
-- Portal dev server: `cd patient_portal && yarn dev`.
-- Desk assets are built through bench (`bench build --app healthcare`).
+```sh
+bench get-app <repo-url>
+bench --site <site> install-app healthcare
+```
 
-**Test:**
-- `bench --site <site> run-tests --app healthcare` (optionally with `--doctype` or `--module`).
-- CI uses `bench --site test_site run-parallel-tests --app healthcare --total-builds N --build-number K`.
+## Tests
 
-**Lint/format:**
-- One-time setup: `pip install pre-commit && pre-commit install && npm install`.
-- Run: `pre-commit run --all-files`. This runs ruff (`--fix`), ruff-format, prettier, eslint, pip-audit, detect-secrets and the standard hygiene hooks.
-- Semgrep: `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules && semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`.
-- Commit titles: `npx commitlint --from <base> --to <head>`.
+Tests run through bench, inside a site that has erpnext and payments installed:
 
-**Migrations:** `bench --site <site> migrate` runs `patches.txt` and the `after_migrate` hook.
+```sh
+bench --site test_site run-tests --app healthcare            # all
+bench --site test_site run-tests --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment
+bench --site test_site run-parallel-tests --app healthcare --total-builds N --build-number K   # what CI runs
+```
+
+`bench --site <site> migrate` runs the patches listed in `healthcare/patches.txt`.
+
+## Lint and format
+
+```sh
+pip install pre-commit && pre-commit install
+pre-commit run --all-files     # ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml checks
+git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
+semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
+```
+
+## Patient portal
+
+```sh
+yarn install          # root; postinstall installs patient_portal
+yarn build            # root -> cd patient_portal && yarn build
+cd patient_portal && yarn dev   # vite dev server (frappe proxy)
+```
+
+## Commit linting
+
+```sh
+npx commitlint --from <base> --to <head>
+```
