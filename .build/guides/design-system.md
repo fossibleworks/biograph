@@ -8,13 +8,13 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/package.json
-  - patient_portal/src/components/Payment.vue
-  - patient_portal/src/index.css
-  - healthcare/public/images/biograph-app-icon.svg
+  - patient_portal/src/patient_portal.js
+  - patient_portal/vite.config.js
 ---
 
-- **Desk UI:** uses the stock Frappe Desk components (form, list, tree, dialogs, `frm.add_custom_button`, `frm.page.set_indicator`, `frappe.ui.Dialog`). Do not introduce custom CSS frameworks. Shared widgets live in `healthcare/public/js`, e.g. `observation_widget.js`, `healthcare_note.html`, `healthcare_orders.html`.
-- **Patient portal:** the component library is **frappe-ui** (`Card`, `Button`, `Dialog`, `createResource`, ...). Design tokens come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The config only adds legacy color aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). Icons are lucide/feather through frappe-ui.
-- Styling uses Tailwind utility classes with the frappe-ui gray scale: headings `text-gray-900`/`800`, secondary text `text-gray-500`, cards `rounded-xl shadow-sm`, amounts `text-green-600`/`text-blue-600`. Global styles go in `patient_portal/src/index.css`.
-- Brand assets: `healthcare/public/images/biograph-app-icon.svg` and `healthcare.svg`.
+- **Desk UI.** Use Frappe Desk's built-in form, list, tree and calendar views, dialogs (`frappe.ui.Dialog`), and HTML templates (`healthcare/public/js/*.html`, e.g. `observation.html` and `healthcare_orders.html`). Do not add a separate CSS framework to Desk.
+- **Patient Portal.** **frappe-ui** is both the component library and the token source. Tailwind uses `presets: [frappeUIPreset]` from `frappe-ui/tailwind`, and the only extras are legacy color aliases (lightBlue, warmGray, trueGray, coolGray, blueGray).
+  - Globally registered components: `Button`, `Dialog`, `Badge`, `Card`, `Tooltip`, `FeatherIcon`.
+  - Icons come from feather-icons and lucide (`lucideIcons: true` in the Vite plugin).
+  - Style with Tailwind utility classes from the frappe-ui preset, not custom CSS. `src/index.css` holds the Tailwind entry.
+  - Feature components live in `src/components` (e.g. `BookAppointmentModel.vue`, `PractitionerSelector.vue`, `Payment.vue`).
