@@ -4,25 +4,32 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
   - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - healthcare/patches/v15_0/rename_medical_code_standard_and_medical_code.py
+  - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
+  - healthcare/permissions.py
 ---
 
-- **Validation errors go to users through `frappe.throw(_("..."), title=_("..."))`** (about 180 call sites). Pass an error class when the caller or tests need to distinguish the case.
-- **Custom exceptions** subclass `frappe.ValidationError` and are defined at the top of the controller module:
-  - `OverlapError`, `MaximumCapacityError` (patient_appointment)
-  - `CoverageNotFoundError`, `NoActiveContractError` (patient_insurance_coverage)
-  - `CoverageOverlapError`
-- Frappe's built-ins are also used: `frappe.PermissionError`, `DuplicateEntryError`, `MandatoryError`, `DoesNotExistError`.
-- **Non-blocking notices** use `frappe.msgprint(_(...))`.
-- **Background or best-effort failures** are caught and recorded with `frappe.log_error(...)` (Error Log DocType) instead of breaking the user transaction. Examples: notification sending, calendar event cleanup, sample collection, payment records, patch loops.
-  - Include a descriptive title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-- **Patches:** wrap per-record work in `try/except Exception` and call `log_error` so one bad row doesn't abort the migration. Re-raise unexpected DB error codes (e.g. check `e.args[0] != 1054`).
-- Avoid bare `except Exception` in request paths unless you log the error. `# nosemgrep` is used sparingly where `frappe.throw` in patches is intentional.
+# Error handling
+
+## Validation errors (user-facing)
+- Use **`frappe.throw(_("Message {0}").format(value), [ExcClass], title=_("Title"))`**. This pattern appears about 180 times. Do not raise raw Python exceptions from controllers.
+- To give a distinct error type, subclass **`frappe.ValidationError`** in the controller module, for example `OverlapError` and `MaximumCapacityError` in patient_appointment, or `CoverageNotFoundError` and `NoActiveContractError` in patient_insurance_coverage. Pass the class as the second argument to `frappe.throw`, so tests can use `assertRaises(OverlapError, ...)`.
+- Use the `title=` argument for categories such as `_("Missing Configuration")` or `_("Not Available")`.
+- Use `get_link_to_form(doctype, name)` inside messages to point users to the record involved.
+- For non-blocking warnings, use `frappe.msgprint` (about 38 uses).
+
+## Background and integration failures
+- In scheduled jobs, notifications and patches, catch the exception and call **`frappe.log_error(...)`**. This creates an Error Log record and keeps the job going. Prefer `frappe.log_error(title=..., message=frappe.get_traceback())`.
+  - Examples: appointment confirmation SMS failure, calendar event cancellation, sample collection, payment record.
+- Patches that might fail on some sites should catch, log, and continue (`patches/v16_0/rename_time_block_to_practitioner_availability.py`).
+- Version-compatibility patches deliberately use `frappe.throw` with `# nosemgrep`.
+
+## API endpoints
+- `@frappe.whitelist()` methods rely on Frappe's standard error envelope: a thrown ValidationError becomes `exc_type` plus `_server_messages`. Do not build custom error JSON.
+- The portal displays errors with frappe-ui `ErrorMessage`.
