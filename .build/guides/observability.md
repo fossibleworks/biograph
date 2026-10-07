@@ -8,14 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
+  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
   - .pre-commit-config.yaml
 ---
 
-The app has no metrics or tracing stack. It relies on Frappe's built-ins:
+Biograph relies entirely on **Frappe's built-in facilities**. It has no external metrics or tracing (no Sentry/OpenTelemetry/statsd in the app).
 
-- **Error Log doctype.** `frappe.log_error(...)` has about 15 call sites. Pass a traceback or message plus a short human title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(title="Error renaming DocType ...")`. Use it for swallowed exceptions in side effects, patches and setup.
-- **File logger.** Use `frappe.logger().info(...)` / `.error(...)` for progress and diagnostics in setup, patches and parsing fallbacks (e.g. `patient_duplicate_check.py`, patient_appointment time parsing).
-- **User-visible feedback.** Use `frappe.msgprint(..., alert=True)` for success toasts and `indicator="orange"` for degraded outcomes.
-- **Do not use** `print()` or debug statements. The pre-commit `debug-statements` hook blocks `pdb`/`breakpoint`.
+- **`frappe.log_error(message, title)`** is the main failure record. It creates an *Error Log* document visible in Desk. It is used in about 15 places, usually with `frappe.get_traceback()` as the message and a short human title such as `"Appointment Confirmation Message Not Sent"` or `"Populate Appointment End Fields Patch"`. Prefer the keyword form `frappe.log_error(title=..., message=...)` for clarity.
+- **`frappe.logger()`** (`.info` / `.error`) writes to bench log files. It is used sparingly in setup and patches (`healthcare/setup/patient_duplicate_check.py`) and for parse failures. There are about 9 calls and no `logging.getLogger`.
+- **User-visible signals:** `frappe.msgprint(..., indicator="orange")` or `alert=True` for soft failures and confirmations.
+- **Realtime:** `frappe.publish_realtime` pushes UI updates, e.g. after sample collection.
+- **Audit trail:** Frappe document versioning, plus Patient Medical Record entries created by the wildcard `doc_events` hooks (`patient_history_settings`).
+- Do not add `print()` debugging. pre-commit's `debug-statements` hook rejects `pdb`/`breakpoint`.
