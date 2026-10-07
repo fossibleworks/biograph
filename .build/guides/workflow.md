@@ -10,21 +10,16 @@ evidence:
   - CLAUDE.md
   - .build/RULES.md
   - commitlint.config.js
+  - .github/workflows/semantic-commits.yml
   - .mergify.yml
   - .github/CODEOWNERS
 ---
 
-- **Work tracking:** this repo uses Interactor Build's engine.
-  - Every code change needs a tracked **Goal** (created in the Build web UI, by importing a GitHub issue, or with `ibuild engine goal-create`).
-  - Work happens on branch `goal/<goalId>` in an isolated worktree and ships through one PR per goal.
-  - Never commit or push directly to the default branch `biograph-fh`.
-  - EngineTasks under a Goal cycle through investigation → execution → review.
-  - Small interactive changes may use `ibuild off` but still go through a PR.
-- **Rules:** standing rules live in `.build/RULES.md`, currently an unfilled template. The copies in `.github/instructions/` and `.claude/rules/` are generated from it.
-- **Commits:** Conventional Commits, enforced by commitlint. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test. The type must be lower-case and the subject non-empty. Upstream cherry-picks use `git cherry-pick -x`. Fork commits often add a scope suffix such as `(upstream sync B2)`.
-- **Upstream workflow (earthians):**
-  - PRs target `develop` or `version-XX-hotfix`.
-  - Mergify auto-closes PRs against the stable `version-14/15/16` branches unless a maintainer opened them.
-  - Mergify auto-merges with at least one approval, or squashes when labelled `squash`.
-- **Ownership:** CODEOWNERS is `@akurungadam @Sajinsr`.
-- **PRs:** follow the PR template: explain the change, update docs, and add `closes #XXXX`.
+This repo is driven by **Interactor Build** (see `CLAUDE.md`).
+
+- **Gate:** no file edits without a tracked **Goal**. Create one in the Build web UI, from an imported GitHub issue, or with `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`. EngineTasks under a Goal go through investigation, then execution, then review.
+- **Branching:** work on `goal/<goalId>` in an isolated worktree, never on the default branch **`biograph-fh`**. Each Goal ships as one PR into `biograph-fh`. Don't push directly. For an interactive small change, `ibuild off` is allowed, but it still needs its own branch and a hand-opened PR.
+- **Commits:** Conventional Commits, enforced by commitlint (`build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test`, lowercase type, non-empty subject). Recent history adds a context suffix, for example `fix: drop unused imports left by upstream aeca803f (upstream sync B2)` or `docs(wiki): ...`.
+- **Upstream sync:** take earthians/marley fixes with `git cherry-pick -x` and record every commit in `wiki/upstream-sync-version-16.md` with the outcome vocabulary picked-clean / picked-with-conflict-resolution / already-present / skipped. Fork behaviour wins.
+- **Inherited upstream process** (Mergify): PRs to the stable `version-14/15/16` branches are auto-closed unless a maintainer opens them. Target `develop` or a `version-N-hotfix` branch. Merging needs at least 1 approval. The `squash` label squash-merges and `dont-merge` blocks. The `backport develop` label backports. CODEOWNERS: @akurungadam @Sajinsr.
+- **Rules:** `.build/RULES.md` (also in `.claude/rules/` and `.cursor/rules/`) is currently an unfilled template.
