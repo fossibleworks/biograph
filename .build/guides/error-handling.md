@@ -7,17 +7,34 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/api/patient_portal.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/healthcare/doctype/healthcare_settings/healthcare_settings.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
+  - healthcare/healthcare/utils.py
+  - healthcare/patches/v15_0/rename_medical_code_standard_and_medical_code.py
+  - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
 ---
 
-- **Validation errors:** raise them with `frappe.throw(_("Message").format(...), title=_("..."))`, which has about 181 call sites. Pass a typed exception as the second argument when callers need to catch it (e.g. `frappe.throw(msg, OverlapError)`).
-- **Domain exception classes** subclass `frappe.ValidationError`: `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`.
-- **Permission failures:** `frappe.throw(_("Not allowed ..."), frappe.PermissionError)`. This pattern appears in the portal API.
-- **Missing configuration:** throw with `title=_("Missing Configuration")` and include a `get_link_to_form("Healthcare Settings", ...)` link so the user can fix it.
-- **Background or non-fatal failures:** catch the exception and call `frappe.log_error(message_or_traceback, title)` rather than failing the transaction. This is used in patches and in unavailability calendar events. Avoid broad `except Exception` without logging.
-- **Non-blocking info:** use `frappe.msgprint`. In JS, use `frappe.show_alert` for transient notices, `frappe.msgprint` for dialogs, and `frappe.throw(__())` for client-side validation.
-- Frappe turns thrown exceptions into the standard API error response. Do not build custom JSON error envelopes in whitelisted methods.
+## Validation errors
+
+Use `frappe.throw(_("Message {0}").format(value), title=_("..."))`. This is the dominant pattern, with about 180 call sites. Optionally pass a custom exception class.
+
+Domain exceptions subclass `frappe.ValidationError` and live in the controller module. Examples: `OverlapError` and `MaximumCapacityError` in patient_appointment, `CoverageNotFoundError` and `NoActiveContractError` in patient_insurance_coverage, `CoverageOverlapError`.
+
+For configuration gaps, throw with `title=_("Missing Configuration")`, as `healthcare/healthcare/utils.py` does.
+
+## Non-fatal and background failures
+
+Catch the exception and record it with `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)` so it shows up in Error Log. Examples are the appointment confirmation message and the calendar event creation in patient_appointment.
+
+Patches wrap risky renames in `try/except`. They re-raise unless the error is the expected one, e.g. `if e.args[0] != 1054: raise`.
+
+## Messages
+
+- `frappe.msgprint(_(...))` gives non-blocking user feedback (about 38 uses).
+- In Desk JS, use `frappe.throw(__("..."))`, `frappe.msgprint`, or `frappe.show_alert`.
+
+## Avoid
+
+- Bare `except Exception: pass`. One exists in `recuring_appointment_handler.py`; do not copy it.
+- `print()` for errors, as at `patient_appointment.py:351`.
+- Unwrapped strings.
