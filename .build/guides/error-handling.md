@@ -4,31 +4,34 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-This code follows Frappe conventions.
+**Validation errors shown to users**
+- Raise them with `frappe.throw(_("Message {0}").format(value), title=_("..."))`. There are about 180 call sites.
+- Pass a specific exception class where callers or tests need to tell errors apart.
+- Throw from DocType `validate()` and `validate_*` methods. The PR template requires all business logic and validation to run **server-side**.
 
-- **Validation and user errors:** `frappe.throw(_("message"), [ExceptionClass], title=_("..."))` (about 180 call sites). Messages are translated and use positional `{0}` placeholders with `.format(...)`. Record names and values are highlighted with `frappe.bold(...)`.
-  ```python
-  frappe.throw(
-      _("The practitioner {0} is not available during this time due to an unavailability record {1}").format(
-          frappe.bold(self.practitioner), frappe.bold(names)
-      ),
-  )
-  frappe.throw(msg, title=_("Missing Configuration"))
-  ```
-- **Custom exception types** subclass `frappe.ValidationError` and are declared at the top of the controller module, for example `MaximumCapacityError`, `OverlapError`, `CoverageNotFoundError` and `NoActiveContractError`. They are passed as the second argument to `frappe.throw` so tests can `assertRaises` them.
-- **Non-blocking notices** use `frappe.msgprint(...)`.
-- **Background or best-effort failures** (notifications, calendar events, patches) are caught and recorded with `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)`. They are not re-raised, so the main transaction still succeeds. Example: "Appointment Confirmation Message Not Sent".
-- Validation lives in the DocType controller's `validate()` (and `before_submit`/`on_cancel`) methods.
-- Avoid f-strings inside `_()`. Some legacy code does it, but it breaks translation extraction. Use `_("... {0}").format(x)`.
-- Use `# nosemgrep` only where the Frappe semgrep rules flag an intentional pattern, as in the version-compatibility patches.
-- Client side: `frappe.throw(__("..."))` / `frappe.msgprint(__("..."))` in form scripts.
+**Typed errors**
+- Declare small subclasses of `frappe.ValidationError` at module top, for example:
+  - `OverlapError`, `MaximumCapacityError` in `patient_appointment.py`
+  - `CoverageNotFoundError`, `NoActiveContractError` in `patient_insurance_coverage.py`
+  - `OverlapError` in `insurance_payor_contract.py`
+- Raise them with `frappe.throw(msg, title=..., exc=OverlapError)`.
+- Use `title=_("Missing Configuration")` for setup and configuration gaps.
+- Add `# nosemgrep` only where a Frappe semgrep rule is knowingly bypassed.
+
+**Non-fatal or background failures** (patches, messaging, scheduler, calendar sync)
+- Catch the exception and record it with `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)`. This writes to the Error Log doctype.
+- Optionally tell the user with `frappe.msgprint`.
+- Example: SMS failure gives "Appointment Confirmation Message Not Sent".
+- Do not swallow exceptions silently.
+
+**Messages:** use `frappe.msgprint(_(...))` for informational feedback, for example "Sales Invoice {0} created".
