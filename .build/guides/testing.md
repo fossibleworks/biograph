@@ -4,18 +4,22 @@ category: testing
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: required
 source: inferred
 evidence:
   - healthcare/tests/utils.py
-  - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - healthcare/healthcare/doctype/practitioner_availability/test_practitioner_availability.py
+  - .github/workflows/ci.yml
   - codecov.yml
-  - .github/helper/install.sh
+  - .github/labeler.yml
 ---
 
-- **Framework:** Frappe's unittest-based test runner, executed inside a bench site (`bench --site test_site run-tests --app healthcare`). The CI bench is built by `.github/helper/install.sh`, which uses Frappe and ERPNext `version-16` for fork branches such as `biograph-fh` and `goal/*`.
-- **Layout:** tests live next to their DocType as `healthcare/healthcare/doctype/<name>/test_<name>.py` (about 85 files). Shared fixtures and helpers are in `healthcare/tests/utils.py` and `healthcare/tests/test_utils.py`.
-- **Base class:** test classes are named `Test<DocType>` and subclass **`HealthcareTestSuite`** from `healthcare.tests.utils`. `setUp` must call `super().setUp()`.
-- **Fixtures:** reuse the `create_*` helpers exported by sibling tests, for example `create_appointment` from `test_patient_appointment` or ERPNext's `make_pos_profile`. Tests often clear tables in `setUp` and toggle `Healthcare Settings` values.
-- **Coverage:** Codecov requires **85% patch coverage** on pull requests, and project coverage may drop by at most 0.5%.
-- **Baseline caveat:** the fork has no CI test history yet, so the first CI run on a goal PR becomes the baseline. Lint baselines are recorded per batch in the wiki ledger.
+- **Framework:** Frappe's unittest-based test runner. Test classes subclass `HealthcareTestSuite` from `healthcare/tests/utils.py`, which builds on `erpnext.tests.utils.ERPNextTestSuite`. That module also contains `BootStrapTestData`, which seeds master data with `_Test` names: company, items, patients, practitioners, service units, templates, insurance payors and more.
+- **Layout:** each test sits next to its DocType as `doctype/<dt>/test_<dt>.py` (about 85 test files). Shared helpers are in `healthcare/tests/`. Each module defines factory helpers such as `create_appointment(...)` and `create_encounter(...)`, which other tests import.
+- **Style:** use `setUp()` with `super().setUp()`. Clean tables explicitly (`frappe.db.sql("delete from `tabX`")`). Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`. Assert with `self.assertEqual` and check validation with `with self.assertRaises(frappe.ValidationError)`. Re-read state with `frappe.db.get_value` or `doc.reload()`.
+- **Running:** `bench --site test_site run-parallel-tests --app healthcare` in CI, against MariaDB 11.8. The server test job is skipped for PRs that only change `.css/.js/.md/.html/.csv`.
+- **Coverage:** captured on scheduled and push runs (not on PRs) and uploaded to Codecov. `codecov.yml` requires a **patch coverage target of 85%** on PRs to develop, and project coverage may drop by at most 0.5%.
+- The labeler adds a **`needs-tests`** label when `healthcare/**/*.py` changes without any `test*.py` change.
+- **Fork caveat:** `biograph-fh` has no CI baseline yet. The first CI run on a goal PR becomes the baseline, and failures are compared against the ledger in `wiki/upstream-sync-version-16.md`.
+- There are no JS or Vue unit tests in the repo. The `cypress/` path is excluded in pre-commit, but no Cypress suite exists.
