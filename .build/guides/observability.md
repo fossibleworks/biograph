@@ -4,20 +4,21 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/hooks.py
   - .pre-commit-config.yaml
 ---
 
-The app has no dedicated metrics or tracing. It relies on Frappe's built-in facilities:
+Biograph relies on **Frappe's built-in facilities**. There is no separate metrics or tracing stack.
 
-- **`frappe.log_error(...)`** (15 call sites) writes to the **Error Log** doctype. Use it for failures that must not break the transaction, such as notification sending, calendar event creation and patch steps. Give it a clear translated title, for example `_("Appointment Confirmation Message Not Sent")`, and pass `frappe.get_traceback()` as the message.
-- **`frappe.logger()`** (9 call sites) writes `.info`/`.error` lines to bench log files. It is used in patches and for parse failures, for example `frappe.logger().error(f"Could not parse appointment time: ...")`.
-- Background jobs started with `frappe.enqueue` show up in the RQ job and scheduler logs.
-- CI coverage goes to Codecov, and security scanning goes to CodeQL and Semgrep.
-
-Follow the existing pattern: log_error with a title for anything an admin needs to act on, and logger for diagnostics. Do not use `print`; the `debug-statements` pre-commit hook blocks leftover debuggers.
+- **Error Log DocType**: `frappe.log_error(...)` records failures that should not interrupt the user, with about 15 call sites.
+  - Pass the traceback plus a short translated title: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
+  - Or pass a keyword title: `frappe.log_error(title="Error renaming DocType …")`.
+- **Logger**: `frappe.logger().info/error(...)` is used sparingly, about 9 calls, for setup and patch progress (`healthcare/setup/patient_duplicate_check.py`) and for parse failures.
+- **No `print`.** The pre-commit `debug-statements` hook blocks leftover `pdb` / `breakpoint` calls.
+- **Audit trail**: Frappe document versioning, plus Patient Medical Record entries created on submit through the `patient_history_settings` hooks, act as the clinical activity history.
+- **CI-level**: Codecov coverage, CodeQL and Semgrep results.
