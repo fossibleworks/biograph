@@ -4,33 +4,39 @@ category: cicd-release
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
-  - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
   - .github/workflows/semantic-commits.yml
-  - .github/workflows/codeql.yml
+  - .github/workflows/docs_checker.yml
   - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
   - .releaserc
   - .github/workflows/release_notes.yml
+  - .github/workflows/generate-pot-file.yml
+  - codecov.yml
+  - .github/helper/install.sh
   - .github/dependabot.yml
 ---
 
 **On pull requests:**
-- **CI / Server Tests** (`ci.yml`) is skipped for PRs that only touch css/js/md/html/csv, and it also runs nightly. It compiles all Python, fails on merge-conflict markers, builds a bench with `.github/helper/install.sh` (MariaDB 11.8, Python 3.14, Node 24), then runs `bench run-parallel-tests --app healthcare`. Coverage is captured on scheduled runs and uploaded to Codecov.
-- **Linters** (`linters.yml` and `linters.v2.yml`) run pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks) and **semgrep** with the Frappe rules plus `r/python.lang.correctness`.
-- **Semantic Commits** runs commitlint on the commit range.
-- **Documentation Required** applies to `feat` PRs.
-- **Labeler** adds `needs-tests`.
-- **CodeQL** scans Python and JS on `develop` and weekly.
+- `linters.v2.yml` (also on push): runs the pre-commit hooks on Python 3.14 and Node 24, plus a Frappe semgrep job. The older `linters.yml` runs the same checks.
+- `semantic-commits.yml`: commitlint over the PR's commits.
+- `docs_checker.yml`: requires a docs link for `feat` PRs.
+- `labeller.yml`: applies PR labels.
+- CodeQL runs on `develop` and weekly.
+- Codecov gates patch coverage at 85%.
+- Server tests need a bench built by `.github/helper/install.sh`. The `ci.yml` test workflow from upstream is **not present** on the fork yet: the push credential cannot write workflow files, so the fork has no CI test history.
 
-**Release (upstream style):**
-- `initiate_release.yml` opens weekly `version-N-hotfix → version-N` PRs for 14, 15 and 16. Note that it targets `earthians/biograph`.
-- `on_release.yml` runs **semantic-release** on pushes to `version-14/15`. The Angular preset bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release. Breaking changes do not trigger a major bump.
-- `release_notes.yml` regenerates notes and strips chore/style entries.
-- `generate-pot-file.yml` refreshes translation strings weekly.
+**Release (inherited from upstream earthians):**
+- `initiate_release.yml` opens weekly `version-N-hotfix → version-N` release PRs for 14, 15 and 16, on Tuesdays at 09:30 UTC.
+- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`. It uses the Angular preset, and breaking changes do not trigger a major release. It bumps the version string in `healthcare/__init__.py` and commits `chore(release): Bumped to Version x.y.z`.
+- `release_notes.yml` regenerates GitHub release notes and drops chore, ci, test, docs and style entries.
+
+**Housekeeping:**
+- `generate-pot-file.yml` refreshes `main.pot` weekly.
+- Crowdin opens `fix: sync translations from crowdin` PRs.
 - Dependabot is configured.
 
-In this fork (`fossibleworks/biograph`), `ci.yml` has no run history yet, and the push credential cannot write workflow files.
+**Deploy:** install or update with bench on a Frappe site (self-hosted or Frappe Cloud). `after_migrate` and `patches.txt` run on `bench migrate`.
