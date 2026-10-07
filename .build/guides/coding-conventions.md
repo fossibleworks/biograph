@@ -11,29 +11,26 @@ evidence:
   - .prettierrc.yaml
   - eslint.config.mjs
   - commitlint.config.js
-  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
-  - patient_portal/src/components/DepartmentSelector.vue
+  - healthcare/healthcare/doctype/fee_validity/fee_validity.py
+  - healthcare/healthcare/api/patient_portal.py
 ---
 
-**Python** (ruff, `pyproject.toml`)
-- Indent with **tabs** (`indent-style = "tab"`). Use double quotes. Line length is 110 (E501 is ignored).
-- Lint set: `F, E, W, I, UP, B, RUF`, with the ignores listed in pyproject (e.g. F401 unused imports, B904, E402).
-- Imports are sorted into sections in this order: future → stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local. Each section is separated by a blank line (see `test_patient_appointment.py`).
-- `frappe.types.DF` is registered as a typing module.
-- Naming:
-  - Doctype folders and modules use snake_case of the DocType name (`patient_appointment/patient_appointment.py`).
-  - Controller classes are PascalCase and extend `Document`.
-  - Whitelisted functions are snake_case and decorated with `@frappe.whitelist()`.
-- Wrap user-facing strings in `_()` from `frappe`.
-- Use the Frappe ORM (`frappe.get_doc`, `frappe.db.get_value/get_all`, `frappe.get_list(..., pluck=...)`). Raw `frappe.db.sql` exists (~91 uses) but prefer the ORM for new code.
-- Many files start with the header `# Copyright (c) <year>, <owner> and contributors` / `# See license.txt`.
+**Python (ruff, configured in `pyproject.toml`):**
+- Indent with **tabs**, use **double quotes**, line length 110, target py310.
+- Lint selection is F, E, W, I, UP, B, RUF, with ignores for E501, F401, B904, and others.
+- Import sections in order: future, stdlib, third-party, `frappe`, `erpnext`, `healthcare`, then local.
+- Doctype controllers are `class PascalName(Document)` in `doctype/<snake_name>/<snake_name>.py`. Module functions use snake_case.
+- Expose endpoints with `@frappe.whitelist()`.
+- Prefer `frappe.qb` or `frappe.get_all` and `frappe.get_cached_value` over raw SQL.
+- Wrap every user-facing string in `_()`.
+- Files start with the existing copyright header.
+- Many legacy files are listed in the `.pre-commit-config.yaml` exclude list. When you touch them, don't add new ruff findings. The wiki ledger tracks before/after ruff counts.
 
-**JavaScript** (Prettier + ESLint)
-- Prettier: tabs, `tabWidth: 4`, `printWidth: 88`, `arrowParens: "avoid"`.
-- ESLint uses the flat config with `eslint:recommended` and the globals `frappe`, `erpnext`, `$`, `jQuery`, `Vue`.
-- Prettier skips `patient_portal/` and a few large form scripts.
-- Desk form scripts follow the `frappe.ui.form.on("DocType", {...})` pattern.
+**JavaScript (Prettier and ESLint):**
+- Tabs (tabWidth 4), printWidth 88, `arrowParens: avoid`.
+- ESLint uses `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `__`, `$`, ...).
+- Form scripts use `frappe.ui.form.on("DocType", {...})` and wrap strings in `__()`.
 
-**Vue (portal):** Single File Components named in PascalCase. Components end in `Model.vue` for dialogs (e.g. `BookAppointmentModel.vue`). Import from `frappe-ui` (`Button`, `Dialog`, `Card`). The `@` alias points to `patient_portal/src`.
+**Vue (patient_portal):** `<script setup>`, frappe-ui components, Tailwind utility classes, and the `@/` alias for `src`. Prettier excludes `patient_portal/`.
 
-**Commits:** Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Types must be lowercase.
+**Commits:** Conventional Commits with a lowercase type from build, chore, ci, docs, feat, fix, perf, refactor, revert, style, or test. Scopes are allowed, e.g. `fix(tests):` or `docs(wiki):`.
