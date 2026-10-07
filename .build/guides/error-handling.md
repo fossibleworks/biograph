@@ -7,14 +7,16 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/patches/v15_0/check_version_compatibility_with_frappe.py
+  - healthcare/public/js/sales_invoice.js
 ---
 
-- **Validation failures:** use `frappe.throw(_("Message with {0}").format(...))` (about 181 call sites). Messages are translated, use sentence case, and often include `get_link_to_form(...)` or the field value.
-- **Typed errors:** declare domain exceptions at module top as subclasses of `frappe.ValidationError` (`OverlapError`, `MaximumCapacityError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`) and pass them via `frappe.throw(msg, exc=OverlapError)` so tests can assert on them.
-- **Non-fatal background failures** (SMS or confirmation not sent, calendar event errors, patch steps): catch the exception and call `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)` so the main transaction can continue. Do not swallow errors silently.
-- **Patches:** guard risky steps with try/except plus `frappe.log_error` so `bench migrate` does not abort.
-- **API endpoints:** whitelisted functions raise through `frappe.throw` / permission errors. Frappe turns these into HTTP error responses, and the portal shows them via frappe-ui `ErrorMessage`.
+- **User-facing validation errors:** call `frappe.throw(_("...").format(...), title=_("..."))` (about 180 call sites). Messages are translated and often link to the offending record with `get_link_to_form`, e.g. a `title=_("Missing Configuration")` throw that links to Healthcare Settings.
+- **Typed errors:** define module-level subclasses of `frappe.ValidationError` when callers or tests need to tell errors apart (`OverlapError`, `MaximumCapacityError`), and raise them with `frappe.throw(msg, exc=OverlapError)`.
+- **Non-fatal / background failures:** catch the exception and call `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)` so the failure is recorded in Error Log without breaking the user flow (appointment confirmation messages, calendar events, patches).
+- **Desk JS:** use `frappe.throw(__("..."))` to block an action, `frappe.msgprint(__("..."))` for informational prompts, and `frappe.show_alert({...})` for toasts.
+- **Patches:** stay idempotent. Wrap risky steps and log the error instead of aborting the migration where that is safe. A deliberate abort uses `frappe.throw` with `# nosemgrep`.
+- Don't swallow errors silently. Every caught exception in existing code is either logged or re-thrown.
