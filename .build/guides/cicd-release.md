@@ -1,38 +1,42 @@
 ---
-title: CI/CD & release
+title: CI/CD & Release
 category: cicd-release
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: required
 source: inferred
 evidence:
   - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
-  - .github/workflows/semantic-commits.yml
-  - .github/workflows/docs_checker.yml
-  - .github/workflows/codeql.yml
   - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
   - .releaserc
   - .github/workflows/release_notes.yml
-  - .mergify.yml
+  - .github/release.yml
+  - .github/helper/install.sh
 ---
 
-**On pull requests:**
-- `ci.yml` (Server Tests) runs on PRs, skipping changes that touch only css/js/md/html/csv, and nightly at 00:00 UTC. It uses Ubuntu, MariaDB 11.8, Python 3.14 and Node 24. It runs `python -m compileall`, fails on merge-conflict markers, installs a bench through `.github/helper/install.sh`, and runs `bench run-parallel-tests --app healthcare` with a 30-minute timeout. Coverage is uploaded to Codecov only on non-PR runs.
-- `linters.yml` / `linters.v2.yml` run pre-commit (ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit, file checks) and semgrep with the Frappe rules plus `r/python.lang.correctness`.
-- `semantic-commits.yml` runs commitlint over the PR's commits.
-- `docs_checker.yml` requires a wiki docs link on `feat` PRs.
-- `labeller.yml` applies labels such as `needs-tests`.
-- `codeql.yml` runs CodeQL for Python and JS on `develop` and weekly.
+# CI/CD and release
 
-**Merge:** Mergify merges after one approval (merge commit, or squash with the `squash` label).
+## PR checks (GitHub Actions)
+- **`ci.yml` (Server Tests).** Runs on PRs, but skips changes that only touch css/js/md/html/csv. It also runs nightly at 00:00 UTC.
+  - Steps: `compileall` and a merge-marker grep, then `.github/helper/install.sh` (bench init plus Frappe/ERPNext). On fork branches it falls back to `version-16`.
+  - Then: `bench run-parallel-tests --app healthcare` on MariaDB 11.8. Coverage goes to Codecov on non-PR runs.
+- **`linters.v2.yml`** runs on push and PR. It runs pre-commit (ruff, eslint, prettier, detect-secrets, pip-audit, ...) and Semgrep with the frappe rules plus `r/python.lang.correctness`. `linters.yml` is an older PR-only duplicate.
+- **`semantic-commits.yml`**: commitlint over the PR commit range.
+- **`docs_checker.yml`**: requires a docs link for `feat` PRs.
+- **`codeql.yml`**: CodeQL for Python and JS, on `develop` and weekly.
+- **`labeller.yml`**: applies `needs-tests`.
 
-**Release** (upstream-style, on stable branches):
-- `initiate_release.yml` opens weekly `version-1x-hotfix` → `version-1x` release PRs for 14, 15 and 16 (Tuesdays).
-- `on_release.yml` runs **semantic-release** on pushes to `version-14/15/16`. `.releaserc` uses the angular preset with breaking changes set to *not* trigger a major. It bumps the version in `healthcare/__init__.py` with the commit `chore(release): Bumped to Version x.y.z`.
-- `release_notes.yml` regenerates GitHub release notes, stripping chore/ci/test/docs/style entries.
-- `generate-pot-file.yml` regenerates translations weekly. Crowdin opens `fix: sync translations from crowdin` PRs.
+## Release (inherited from upstream earthians)
+- **`initiate_release.yml`** opens weekly `chore: release vN` PRs from `version-N-hotfix` to `version-N` (N = 14/15/16) on `earthians/biograph`.
+- **`on_release.yml`** runs **semantic-release** on pushes to `version-14/15/16`. It uses the angular preset; breaking changes do not trigger a major release.
+  - It rewrites `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates the GitHub release.
+- **`release_notes.yml`** regenerates the notes and drops `chore/ci/test/docs/style` entries. The `skip-release-notes` label excludes a PR.
+- **`generate-pot-file.yml`** regenerates translations weekly.
 
-**Fork caveats:** many workflows still point at `earthians/biograph` and its secrets. The ledger notes that `ci.yml` had never run on `fossibleworks/biograph` `biograph-fh`, so the first goal-PR run is the baseline. Changes to workflow files need a credential with `workflow` scope.
+## Fork specifics
+In this fork, the default branch is `biograph-fh` and changes land through engine Goal PRs. At the time the wiki ledger was written, `ci.yml` had no run history on `biograph-fh`. Release workflows point at the `earthians` repo and secrets, so they do not release this fork. Manual version bumps use `chore: bump version to x.y.z`.
+
+Deployment is to Frappe sites via bench (`bench get-app` + `install-app` / `migrate`). Frappe Cloud is advertised as the hosted option.
