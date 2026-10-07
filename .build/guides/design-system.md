@@ -8,10 +8,23 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
+  - patient_portal/vite.config.js
   - patient_portal/package.json
-  - patient_portal/src/utils/formatters.js
+  - healthcare/public/js/healthcare.bundle.js
 ---
 
-- **Desk UI:** the standard Frappe Desk. Forms, lists, workspaces, number cards and dashboard charts are defined by DocType and workspace JSON plus form scripts (`frappe.ui.form.on`, `frappe.ui.Dialog`). Don't add custom CSS frameworks to Desk screens. The app's icon and logo are in `healthcare/public/images`.
-- **Patient Portal:** uses the **frappe-ui** component library (`frappe-ui ^0.1.176`) with its Tailwind preset (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). That preset is the design-token source. The config only adds legacy Tailwind color aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Icons come from `feather-icons`. Global styles live in `patient_portal/src/index.css`.
-- **Pattern:** build portal UI from frappe-ui components and Tailwind utility classes. Modals and selectors are self-contained SFCs in `patient_portal/src/components/` (`*Model.vue` for modal dialogs, `*Selector.vue` for pickers). Formatting helpers live in `src/utils/formatters.js`.
+# Design system
+
+The two UIs follow different conventions.
+
+## Desk UI (staff)
+- Standard **Frappe Desk** components, generated from DocType JSON: forms, list, calendar and tree views, workspaces, number cards and dashboard charts.
+- Custom widgets in `healthcare/public/js` (observation widget, healthcare notes, orders) use Frappe's `frappe.ui` APIs and Jinja/HTML micro-templates (`*.html` imported in `healthcare.bundle.js`).
+- Do not bring in other CSS frameworks.
+
+## Patient portal
+- **frappe-ui** is the component library (`Card`, `ErrorMessage`, `createResource`, `getCachedResource`, etc.).
+- **Tailwind CSS** uses the `frappe-ui/tailwind` preset as the design-token source.
+- `tailwind.config.js` only adds legacy colour aliases: `lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`.
+- Icons: lucide (through the frappe-ui vite plugin) and feather-icons.
+- Build new portal UI from frappe-ui components and preset tokens, not hard-coded colours.
