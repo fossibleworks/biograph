@@ -8,13 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/src/patient_portal.js
-  - patient_portal/vite.config.js
   - patient_portal/package.json
+  - patient_portal/vite.config.js
 ---
 
-- **Desk UI** (most screens) uses Frappe's standard form, list, calendar and report UI, defined through DocType JSON and form scripts. There are no custom CSS tokens. Desk templates such as `healthcare/public/js/*.html` (observation, healthcare_orders, healthcare_note) follow Frappe desk markup.
-- **Patient Portal** uses **frappe-ui** as its component library. `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `patient_portal.js`.
-- **Design tokens:** Tailwind 3 with the **`frappe-ui/tailwind` preset**, which is the token source for colours, spacing and typography. `tailwind.config.js` only adds legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`).
-- Icons: feather-icons, with Lucide icons enabled through the frappe-ui Vite plugin.
-- Use frappe-ui components and Tailwind utility classes instead of new CSS. Global styles are in `patient_portal/src/index.css`.
+- **Desk UI** (most screens) is standard Frappe desk: DocType forms, list and tree views, workspaces, dashboards and number cards. It is defined through DocType JSON and `frappe.ui.form` scripts.
+  - Do not build custom CSS frameworks for desk.
+  - Shared HTML widgets live in `healthcare/public/js` (`observation.html`, `healthcare_note.html`, `healthcare_orders.html`).
+- **Patient Portal** uses **frappe-ui** (^0.1.176) as its component library, with **Tailwind CSS 3.4.15** set up through `presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`.
+  - The only custom tokens are legacy color aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`) mapped to Tailwind palettes.
+  - Icons are feather-icons, with lucide enabled through the frappe-ui Vite plugin (`lucideIcons: true`).
+  - Use frappe-ui components and Tailwind utility classes rather than new CSS. The global stylesheet is `patient_portal/src/index.css`.
