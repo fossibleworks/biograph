@@ -1,42 +1,36 @@
 ---
-title: CI/CD & Release
+title: CI/CD & release
 category: cicd-release
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
+  - .github/workflows/semantic-commits.yml
+  - .github/workflows/codeql.yml
   - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
   - .releaserc
   - .github/workflows/release_notes.yml
-  - .github/release.yml
-  - .github/helper/install.sh
+  - .github/dependabot.yml
 ---
 
-# CI/CD and release
+**On pull requests:**
+- **CI / Server Tests** (`ci.yml`) is skipped for PRs that only touch css/js/md/html/csv, and it also runs nightly. It compiles all Python, fails on merge-conflict markers, builds a bench with `.github/helper/install.sh` (MariaDB 11.8, Python 3.14, Node 24), then runs `bench run-parallel-tests --app healthcare`. Coverage is captured on scheduled runs and uploaded to Codecov.
+- **Linters** (`linters.yml` and `linters.v2.yml`) run pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks) and **semgrep** with the Frappe rules plus `r/python.lang.correctness`.
+- **Semantic Commits** runs commitlint on the commit range.
+- **Documentation Required** applies to `feat` PRs.
+- **Labeler** adds `needs-tests`.
+- **CodeQL** scans Python and JS on `develop` and weekly.
 
-## PR checks (GitHub Actions)
-- **`ci.yml` (Server Tests).** Runs on PRs, but skips changes that only touch css/js/md/html/csv. It also runs nightly at 00:00 UTC.
-  - Steps: `compileall` and a merge-marker grep, then `.github/helper/install.sh` (bench init plus Frappe/ERPNext). On fork branches it falls back to `version-16`.
-  - Then: `bench run-parallel-tests --app healthcare` on MariaDB 11.8. Coverage goes to Codecov on non-PR runs.
-- **`linters.v2.yml`** runs on push and PR. It runs pre-commit (ruff, eslint, prettier, detect-secrets, pip-audit, ...) and Semgrep with the frappe rules plus `r/python.lang.correctness`. `linters.yml` is an older PR-only duplicate.
-- **`semantic-commits.yml`**: commitlint over the PR commit range.
-- **`docs_checker.yml`**: requires a docs link for `feat` PRs.
-- **`codeql.yml`**: CodeQL for Python and JS, on `develop` and weekly.
-- **`labeller.yml`**: applies `needs-tests`.
+**Release (upstream style):**
+- `initiate_release.yml` opens weekly `version-N-hotfix → version-N` PRs for 14, 15 and 16. Note that it targets `earthians/biograph`.
+- `on_release.yml` runs **semantic-release** on pushes to `version-14/15`. The Angular preset bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release. Breaking changes do not trigger a major bump.
+- `release_notes.yml` regenerates notes and strips chore/style entries.
+- `generate-pot-file.yml` refreshes translation strings weekly.
+- Dependabot is configured.
 
-## Release (inherited from upstream earthians)
-- **`initiate_release.yml`** opens weekly `chore: release vN` PRs from `version-N-hotfix` to `version-N` (N = 14/15/16) on `earthians/biograph`.
-- **`on_release.yml`** runs **semantic-release** on pushes to `version-14/15/16`. It uses the angular preset; breaking changes do not trigger a major release.
-  - It rewrites `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates the GitHub release.
-- **`release_notes.yml`** regenerates the notes and drops `chore/ci/test/docs/style` entries. The `skip-release-notes` label excludes a PR.
-- **`generate-pot-file.yml`** regenerates translations weekly.
-
-## Fork specifics
-In this fork, the default branch is `biograph-fh` and changes land through engine Goal PRs. At the time the wiki ledger was written, `ci.yml` had no run history on `biograph-fh`. Release workflows point at the `earthians` repo and secrets, so they do not release this fork. Manual version bumps use `chore: bump version to x.y.z`.
-
-Deployment is to Frappe sites via bench (`bench get-app` + `install-app` / `migrate`). Frappe Cloud is advertised as the hosted option.
+In this fork (`fossibleworks/biograph`), `ci.yml` has no run history yet, and the push credential cannot write workflow files.
