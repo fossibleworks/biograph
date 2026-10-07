@@ -8,14 +8,19 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - .github/helper/documentation.py
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/workflows/docs_checker.yml
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - AGENTS.md
+  - .github/helper/documentation.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **User and product docs** live outside the repo. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The `docs_checker` workflow requires every `feat…` PR to link a wiki page on `biograph.frappe.cloud` or `biograph.io` (a URL containing `/wiki`), unless the PR body contains `no-docs` or `backport`.
-- **In-repo design docs and ledgers** go in `wiki/` as Markdown. Names are UPPER-KEBAB for feature docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`), with paired design and usage docs per feature, plus reports and plans (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`).
-- **Upstream sync** is recorded in `wiki/upstream-sync-version-16.md`: one table row per upstream commit with an outcome (`picked-clean`, `picked-with-conflict-resolution`, `already-present`, `skipped`) and notes. Commits that change the ledger use `docs(wiki): …`.
-- **Code-level docs:** docstrings are sparse. Hook-wired functions note how they are applied (see `auth.py`). Comments in `hooks.py` explain non-obvious hooks.
-- `AGENTS.md` and `CLAUDE.md` hold Build-managed guide blocks. Edit the source under `.build/`, not the rendered block.
+# Documentation
+
+- **README.md** covers the overview, installation through bench, dev setup (pre-commit, semgrep), and a link to the full docs on **DeepWiki** (`deepwiki.com/Tacten/biograph`).
+- **`wiki/`** holds the in-repo docs for fork features and engineering work. They come in two kinds:
+  - **Usage docs** (`*-USAGE-DOC.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`): numbered sections and a table of contents, with steps written as `Healthcare → Setup → Healthcare Settings`, plus screenshots or demo links.
+  - **Design and plan docs** (`DESIGN-*.md`, `* — Implementation Plan.md`, `insurance-parity-report.md`).
+  - **Upstream sync ledger** (`upstream-sync-version-16.md`). Update it with `docs(wiki): ...` commits as each sync batch progresses.
+- **PR docs gate:** `docs_checker.yml` fails `feat` PRs unless the body links to a docs URL (`/wiki` on biograph.frappe.cloud or biograph.io). To skip it, put `no-docs` or `backport` in the PR body. Note that this helper queries `earthians/biograph`.
+- The PR template asks contributors to "Update necessary Documentation".
+- Code comments are sparse. Use docstrings only for non-obvious logic.
