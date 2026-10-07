@@ -8,35 +8,27 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
+  - AGENTS.md
   - .build/RULES.md
   - commitlint.config.js
+  - .github/workflows/semantic-commits.yml
   - .mergify.yml
   - .github/CODEOWNERS
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-**Work tracking (Interactor Build engine, see `CLAUDE.md`):**
-- Every code change needs a tracked **Goal** first. Create it in the Build web UI or with `ibuild engine goal-create "<title>"`, then admit it with `ibuild engine goal queue <goalId>`.
-- Work happens on branch **`goal/<goalId>`** in an isolated worktree, **never on the default branch**.
-- The engine splits a Goal into EngineTasks. Each task cycles through investigation, execution and review.
-- Each goal ships through a **single PR** that must pass review and CI. Only an interactive session the project allows may bypass this with `ibuild off`, and even then it needs its own branch and a hand-opened PR.
-- Standing rules live in `.build/RULES.md`. It is currently an unfilled template.
+**Engine-tracked work (Interactor Build).** `CLAUDE.md` makes this binding.
+1. Before editing any file there must be a tracked **Goal**. Create one in the Build web UI or with `ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after an explicit import.
+2. Work on branch **`goal/<goalId>`** in an isolated worktree. **Never commit to the default branch** (`biograph-fh` on this fork).
+3. All changes ship through the Goal's single PR, which must pass review and CI. Each EngineTask goes through investigation → execution → review. Interactive sessions may run `ibuild off` for small changes, but the change must still go through its own branch and a hand-opened PR with CI.
 
-**Branches:**
-- The fork's default/integration branch is **`biograph-fh`**. The upstream is `earthians/marley` `version-16`, added as the `upstream` remote.
-- Inherited upstream config still refers to `develop`, `version-14/15/16` and `version-*-hotfix`. Mergify auto-closes PRs against stable `version-*` branches from non-maintainers.
-
-**Commits:**
-- Use Conventional Commits, checked by commitlint. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, lower-case, with a non-empty subject.
-- Recent history adds a scope or context suffix, for example `fix: drop unused imports left by upstream aeca803f (upstream sync B2)` and `docs(wiki): ...`.
-
-**Upstream sync:**
-- Use `git cherry-pick -x` so every pick records its upstream sha.
-- Conflict policy is **fork intent wins**: keep biograph-fh behaviour and add upstream's fix on top.
-- DocType JSON gets a 3-way union. `patches.txt` gets a union. Keep the fork's `.releaserc`.
-- Record every pick in `wiki/upstream-sync-version-16.md`.
-
-**Review:**
-- CODEOWNERS is `@akurungadam @Sajinsr`.
-- Mergify auto-merges after 1 approval and CI success; the `squash` label squashes and `dont-merge` blocks.
-- The PR template asks for: target branch, conventional title, passing tests, server-side business logic, docs, and `closes #XXXX`.
+**Repository conventions**
+- **Commits:** Conventional Commits, checked by commitlint in `semantic-commits.yml`. Add a scope where it helps, for example `fix(tests):`, `docs(wiki):`, `test:`, `chore:`. Upstream cherry-picks use `git cherry-pick -x` and carry the batch tag, for example `(upstream sync B2)`.
+- **PRs:** follow the template. Name the target branch, use a conventional title, make sure tests pass, keep logic server-side, update docs, and include `closes #XXXX`.
+- **Branches:**
+  - Upstream-style branches are `develop` for features, `version-NN-hotfix` for fixes, and `version-14/15/16` for stable.
+  - Mergify auto-closes PRs against stable branches unless the author is a maintainer.
+  - Mergify merges after 1 approval: a merge commit by default, or a squash with the `squash` label. The `dont-merge` label blocks merging.
+- **Code owners:** `@akurungadam` and `@Sajinsr` for `*`.
+- **Upstream sync policy:** fork intent wins. Keep biograph-fh behaviour and add the upstream fix on top. For DocType JSON, take the 3-way union. Record each pick in `wiki/upstream-sync-version-16.md`.
+- `.build/RULES.md` holds the project rules. It is currently an unfilled template.
