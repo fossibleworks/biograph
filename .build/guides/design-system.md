@@ -8,12 +8,13 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
+  - patient_portal/src/patient_portal.js
   - patient_portal/package.json
-  - patient_portal/vite.config.js
 ---
 
-- **Desk UI:** use the standard Frappe/ERPNext desk with DocType forms, list and tree views, workspaces, number cards and dashboard charts. Style comes from Frappe. Custom HTML snippets live in `public/js/*.html` and doctype `.html` templates.
-- **Patient portal:** **frappe-ui** is the component library (`Card`, `ErrorMessage`, `getCachedListResource`/`getCachedResource`, …) and **Tailwind CSS** is configured with the `frappe-ui/tailwind` preset.
-  - The design tokens come from that preset, extended in `patient_portal/tailwind.config.js` with legacy colour aliases: lightBlue, warmGray, trueGray, coolGray, blueGray.
-  - Icons: feather-icons and Lucide (the frappe-ui vite plugin with `lucideIcons: true`).
-- Do not add another CSS framework or component library to the portal.
+The app has two UI surfaces, each with its own source of components and tokens:
+
+1. **Frappe Desk (most of the UI):** DocType forms, lists, reports, workspaces, dashboards and print formats are rendered by Frappe. Build UI with Frappe primitives: DocType JSON fields and layout, `frappe.ui.form.on` scripts, `frappe.ui.Dialog`, `frappe.msgprint` and `frappe.show_alert`. Write no custom CSS framework. The few custom HTML snippets (`healthcare/public/js/*.html`, e.g. `observation.html`, `healthcare_orders.html`) use desk classes and are loaded through `healthcare.bundle.js`.
+2. **Patient Portal (Vue SPA):** the component library is **frappe-ui** (`Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip`, `Card`, registered globally in `patient_portal.js`). Icons come from **feather-icons**. Styling uses **Tailwind CSS 3.4** with `frappe-ui/tailwind` as the **design-token preset**. `tailwind.config.js` only extends the palette with legacy aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Global styles are in `patient_portal/src/index.css`.
+
+Use frappe-ui components and Tailwind utility classes from the preset. Don't introduce another component library or raw hex colours.
