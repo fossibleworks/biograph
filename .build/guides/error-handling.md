@@ -4,28 +4,23 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/utils.py
-  - healthcare/setup.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/public/js/sales_invoice.js
+  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
+  - healthcare/patches/v16_0/check_v16_compatibility_with_frappe.py
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/public/js/healthcare_practitioner.js
 ---
 
-## User-facing validation
+# Error handling
 
-- Raise with `frappe.throw(_("message {0}").format(...))` (about 181 call sites). Add `title=_("Missing Configuration")` for settings problems. Pass a specific exception class when callers need to catch it, for example `frappe.throw(..., OverlapError)` in Patient Appointment.
-- Use `frappe.bold(value)` to highlight field values in messages.
-- Validate in controller hooks (`validate`, `before_submit`, …) on the server, not only in JS.
-
-## Catching
-
-- Catch specific Frappe exceptions where you can, for example `except frappe.DuplicateEntryError:` in `setup.py`.
-- Use broad `except Exception` only in patches, setup and background jobs. In those cases, record the failure with `frappe.log_error(frappe.get_traceback(), _("<Title>"))` (or `frappe.log_error(title=...)`) and keep going. Do not swallow errors silently. Notification side effects work this way, for example "Appointment Confirmation Message Not Sent".
-- Patches that must abort use `frappe.throw(message)  # nosemgrep`.
-
-## Client side
-
-Desk JS reports problems with `frappe.msgprint(__("..."))` or `frappe.throw`. Server errors raised by `frappe.throw` surface automatically to both desk and portal (frappe-ui resources).
+- **User-facing validation:** use `frappe.throw(_("Message {0}").format(x), [ExcClass], title=_("Title"))`. The codebase has about 181 `frappe.throw` calls. Domain errors subclass `frappe.ValidationError` so tests and callers can catch them precisely (`OverlapError`, `MaximumCapacityError`). Use `title=_("Missing Configuration")` for settings or account gaps (see `utils.py`). Add links with `get_link_to_form`.
+- **Non-blocking notices:** `frappe.msgprint(_(...), alert=True)`.
+- **Background or best-effort failures** (SMS/notifications, calendar events, scheduler billing, patches): catch the exception and record it with `frappe.log_error(...)`, giving a short human title such as `"Appointment Confirmation Message Not Sent"` or `"Can't bill Service Unit occupancy"`. Usually pass `frappe.get_traceback()` as the message. Don't re-raise when the main transaction should still succeed.
+- **Patches:** compatibility checks `frappe.throw` to abort a migration (marked `# nosemgrep`).
+- **Desk JS:** `frappe.throw(__('...'))` for client-side validation.
+- **Portal (Vue):** surface API errors with frappe-ui `toast.error(err.messages?.[0] || err)` or `<ErrorMessage>`.
+- Wrap every message in `_()` / `__()`. Some legacy calls pass raw or pre-formatted strings (`_("{0} is a holiday".format(date))`); don't copy that. Format **after** `_()`.
