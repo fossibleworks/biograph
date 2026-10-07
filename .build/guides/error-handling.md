@@ -1,25 +1,23 @@
 ---
-title: Error Handling
+title: Error handling
 category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/utils.py
-  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
   - healthcare/patches/v16_0/populate_appointment_end_fields.py
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/public/js/sales_invoice.js
+  - patient_portal/src/components/Payment.vue
 ---
 
-# Error handling
-
-- **Validation errors:** use `frappe.throw(_("message {0}").format(...), title=_("Title"))` (about 180 uses). Pass an exception class for domain errors, e.g. `frappe.throw(msg, OverlapError)`. Use a title for configuration problems (`title=_("Missing Configuration")`, `_("Customer Not Found")`).
-- **Custom exceptions:** subclass `frappe.ValidationError` at the top of the controller module (`MaximumCapacityError`, `OverlapError`). Tests assert on these classes.
-- **Bold and links in messages:** `frappe.bold(value)` and `get_link_to_form(doctype, name)`.
-- **Non-blocking notices:** `frappe.msgprint(_(...), alert=True)`, e.g. "Sales Invoice {0} created".
-- **Best-effort side effects** (notifications, calendar events, patches): wrap them in `try/except` and record the failure with `frappe.log_error(frappe.get_traceback(), _("Short Title"))` or `frappe.log_error(title=...)`, so the main transaction can continue. Examples: "Appointment Confirmation Message Not Sent", "Unavailability Calendar Event Error".
-- **Whitelisted APIs** raise through `frappe.throw` and Frappe turns that into the JSON error response. The Vue portal shows it with `toast.error(err.messages?.[0] || err)`.
-- Do not swallow exceptions silently. Do not raise bare `Exception`.
+- **Validation errors:** raise them with `frappe.throw(_("Message"), ExcClass, title=_("Title"))`. There are about 181 call sites. Domain exceptions subclass `frappe.ValidationError` and are named `<Something>Error`, for example `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError` and `NoActiveContractError`. Define them at the top of the doctype controller so tests can `assertRaises` them.
+- **Missing setup:** messages link to the settings form with `get_link_to_form("Healthcare Settings", ...)` and use `title=_("Missing Configuration")`.
+- **Background or best-effort work** (calendar events, patches): catch `Exception` and record it with `frappe.log_error(message_or_traceback, "<Short Title>")` so it lands in the Error Log doctype instead of interrupting the user. Use this sparingly; there are about 31 `except Exception` sites.
+- **Desk JS:** show problems with `frappe.msgprint(__("..."))` and quick confirmations with `frappe.show_alert({message, indicator})`.
+- **Patient Portal:** show errors with frappe-ui `ErrorMessage` / `Dialog` components.
+- Avoid `print()` debugging in controllers. Some existing code, such as `patient_appointment.py`, still has `print("DEBUG ...")`. Do not copy that pattern.
