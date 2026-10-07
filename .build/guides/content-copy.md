@@ -8,19 +8,25 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/observation.js
   - healthcare/public/js/sales_invoice.js
-  - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/locale/main.pot
+  - healthcare/public/js/observation_widget.js
+  - patient_portal/src/components/Payment.vue
   - healthcare/patches.txt
+  - healthcare/locale/main.pot
 ---
 
-- **Translation is mandatory:** wrap strings in `_()` in Python and `__()` in Desk JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin. Do not build sentences by string concatenation; use `{0}` placeholders with `.format()`.
-- **Tone:** short, direct and in sentence case, using clinical and ERP terms. Examples:
-  - Errors: "Appointment end must be after start.", "Patient already has an appointment booked for the same day!", "Please select a Patient to be invoiced", "Configure a service Item for {0}", "Not Allowed to cancel Nursing Task with status 'Completed'".
-  - Error titles: "Missing Configuration", "Not Available".
-  - Actions and buttons: "Add Observation", "Edit Observation", "Get Items From", "Prescriptions"; portal: "Previous", "Next", "Book", "Pay".
-  - Empty states: "No slots available".
-- **Terminology:** write DocType names in Title Case as the domain nouns: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Clinical Procedure, Inpatient Record, Fee Validity, Insurance Payor, Service Request. The product name is **Biograph**; the `rebrand_marley_to_biograph` patch removed the "Marley" branding.
-- Existing punctuation is mixed (some messages end with a period, some with "!"). For new copy, prefer one full sentence ending with a period.
-- Portal Vue templates currently hard-code English labels, unlike Desk.
+**Tone**: plain, direct and clinical-administrative. Messages are short sentences in sentence case with a final period or `!`.
+- "Appointment end must be after start."
+- "Patient already has an appointment booked for the same day!"
+- "Please select a Patient to be invoiced"
+
+**Conventions**
+- Refer to records by their DocType name in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Healthcare Service Unit, Lab Test, Sales Invoice. Bold the specific record with `frappe.bold()` or `<b>{0}</b>`.
+- Instructions use "Please select …" or "Please set …".
+- Configuration errors use the dialog title "Missing Configuration".
+- Button and action labels are Title Case verbs: "Get Items From", "Add Observation", "Edit Observation", "Create", "New Service Request".
+- Empty states are short noun phrases, for example "No Observations".
+- Portal copy speaks to the patient in the second person: "Pay Your Bill", "Consultation with {{ practitioner }}", "One-time registration for new patients".
+- Domain terms follow FHIR and HIS vocabulary: Encounter, Observation, Service Request, Diagnostic Report, Practitioner, Service Unit, Fee Validity, Inpatient Record.
+- The product name is **Biograph**. Older "Marley" branding was replaced by the `rebrand_marley_to_biograph` patch.
+- All strings must be translatable (`_()` / `__()`). They flow into `healthcare/locale/main.pot` for Crowdin.
