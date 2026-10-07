@@ -1,5 +1,5 @@
 ---
-title: Performance
+title: Performance-sensitive paths
 category: performance
 layer: project
 applies_to: []
@@ -7,18 +7,18 @@ inclusion: always
 binding: reference
 source: inferred
 evidence:
-  - healthcare/hooks.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/utils.py
-  - healthcare/healthcare/api/patient_portal.py
+  - healthcare/hooks.py
+  - patient_portal/vite.config.js
 ---
 
-Paths likely to be performance-sensitive:
+These paths are likely hot or heavy:
 
-- **Wildcard doc_events.** `hooks.py` registers `"*"` on_submit/on_cancel/on_update_after_submit for Patient Medical Record history, so the hook runs on **every submittable document in the site**, including ERPNext ones. Keep it cheap and return early for doctypes that aren't configured.
-- **Sales Invoice and Payment Entry hooks** run on every invoice and payment submit or cancel: `manage_invoice_submit_cancel`, `manage_invoice_validate` and the payment_entry handlers in `utils.py` / `custom_doctype/`.
-- **Appointment scheduling.** `patient_appointment.py` is about 2.2k lines and covers slot availability, overlap and conflict checks, and block booking. The portal's `get_slots` / `make_appointment` and the Desk calendar call it often.
-- **Scheduler jobs:** `send_appointment_reminder` runs on `all` (every tick). The daily jobs (appointment status, fee validity, inpatient billables, expired medication requests) iterate over large tables.
-- **Reports** in `healthcare/healthcare/report/`, e.g. patient_appointment_analytics and diagnosis_trends, aggregate over large datasets.
+- **Appointment availability and booking.** `get_availability_data` and related whitelisted methods in `patient_appointment.py` (about 2,200 lines, 20+ whitelisted endpoints) compute slots across practitioner schedules, service units, unavailability, block and recurring bookings, and overlap and capacity checks. They are called interactively from Desk and from the portal booking flow.
+- **`doc_events` on `"*"`.** Every submit, cancel and update-after-submit of any doctype calls `patient_history_settings` medical record functions. Keep these fast and exit early when the doctype isn't configured.
+- **Sales Invoice and Payment Entry hooks.** `manage_invoice_validate/submit_cancel` and `set_paid_amount_in_healthcare_docs` run on every invoice and payment, including non-healthcare ones.
+- **Scheduler jobs.** `send_appointment_reminder` runs on `all` (every tick). Daily jobs update appointment status, fee validity, inpatient billables and expired medication requests. They should iterate with filtered `frappe.get_all` and `pluck`, not by loading full documents.
+- **Reports and dashboard chart sources** over Patient Appointment, Inpatient Record and Insurance Claim.
+- **Patient Portal bundle** (`target es2015`). Keep frappe-ui imports selective.
 
-Conventions: there are about 263 `frappe.db.get_value` calls and about 80 `frappe.qb` uses. Prefer a single `get_all` / `qb` query with `fields=[...]` over per-row `get_doc` in loops. Fetch only the fields you need. Long-running work goes through `frappe.enqueue`, which has only 2 uses so far. Avoid N+1 queries in loops over invoice items or appointments.
+For queries, prefer `frappe.qb` or `get_all` with explicit `fields` and filters over per-row `get_doc` in loops.
