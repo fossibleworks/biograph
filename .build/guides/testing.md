@@ -14,20 +14,22 @@ evidence:
   - .github/workflows/ci.yml
 ---
 
-## Framework
+# Testing
 
-Tests are Frappe `unittest`-style integration tests that run against a real MariaDB site via `bench run-tests` / `run-parallel-tests`. There is no JS or portal test suite.
-
-## Layout
-
-- Each doctype has a `test_<doctype>.py` beside its controller (85 test files). Example: `healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py`.
-- Test classes subclass `HealthcareTestSuite` from `healthcare/tests/utils.py`, which builds on ERPNext's `ERPNextTestSuite`. `BootStrapTestData` creates shared masters: company, items, patients, practitioners, service units, templates and so on.
-- `setUp` calls `super().setUp()`, then clears the relevant tables (`frappe.db.sql("delete from `tabX`")`) and fetches fixtures with `frappe.get_list(..., pluck="name")[0]`.
-- Tests build data with module-level helpers such as `create_appointment(...)`, and assert with `self.assertEqual`, `self.assertRaises` and similar.
-
-## Expectations
-
-- Codecov: **patch coverage target 85%** on PRs, and project coverage may drop at most 0.5%.
-- The labeler adds `needs-tests` when `healthcare/**/*.py` changes without any `test*.py` change.
-- CI skips PRs that only touch `.js`, `.css`, `.md`, `.html` or `.csv`.
-- The fork has no CI baseline yet. Pre-existing failures on `biograph-fh` are tracked in the wiki sync ledger.
+- **Framework:** Frappe/ERPNext integration tests (unittest style) that run against a real MariaDB site through bench. There are no frontend tests.
+- **Base class:** `HealthcareTestSuite` from `healthcare.tests.utils`. It extends `erpnext.tests.utils.ERPNextTestSuite`, and `BootStrapTestData` seeds the master data (company, items, patients, practitioners, service units, templates, ...). Recent commits migrated every fork test onto it. New tests must subclass it; don't use `FrappeTestCase` directly.
+- **Layout:** put `test_<doctype>.py` next to the doctype, in `healthcare/healthcare/doctype/<dt>/` (about 85 test files). Helpers such as `create_appointment(...)` live as module-level functions in the test file.
+- **Patterns:**
+  - Call `super().setUp()`.
+  - Clean the tables you touch with `frappe.db.sql("delete from `tabX`")`.
+  - Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+  - Pull fixture records with `frappe.get_list(..., pluck="name")`.
+  - Assert on DB state with `frappe.db.get_value`.
+  - Keep tests deterministic; recent fixes removed order-dependence.
+- **CI:**
+  - `run-parallel-tests` runs on PRs that change Python or JSON. It ignores `.js`, `.css`, `.md`, `.html` and `.csv`.
+  - It also runs nightly, and collects coverage on non-PR runs.
+- **Coverage:**
+  - Codecov's **patch target is 85%**; the project status may drop by at most 0.5%.
+  - The labeler adds `needs-tests` to PRs that change `healthcare/**/*.py` with no `test*.py` change.
+- The fork has no CI baseline yet (see the wiki ledger). The first goal-PR CI run is the baseline, so attribute any failures to the commit that caused them.
