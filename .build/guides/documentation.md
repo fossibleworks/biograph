@@ -9,14 +9,17 @@ source: inferred
 evidence:
   - README.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
-  - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
-  - patient_portal/README.md
+  - .github/workflows/docs_checker.yml
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **README.md** gives the overview, install steps, and pre-commit/semgrep setup. It links to the full user docs on **DeepWiki** (`deepwiki.com/Tacten/biograph`) and to the Telegram community.
-- **`wiki/`** holds design docs, usage guides and engineering ledgers as Markdown with UPPER-KEBAB or descriptive names. Examples: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `insurance-parity-report.md`, and `upstream-sync-version-16.md`, which logs every upstream cherry-pick with its outcome. Images sit next to the docs.
-- `patient_portal/README.md` documents the SPA.
-- Upstream CI (`docs_checker.yml`) fails `feat` PRs unless the body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`.
-- Commit doc-only changes as `docs(...)`, for example `docs(wiki): ...`.
+- **Public documentation:** the README points to DeepWiki (deepwiki.com/Tacten/biograph) and a Telegram group.
+- **In-repo design and usage docs:** these live in `wiki/` as UPPER-KEBAB markdown, for example:
+  - `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`
+  - `BLOCK-APPOINTMENT-BOOKING-USAGE.md`
+  - `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
+  - implementation plans and parity reports
+- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` is a running record of every cherry-picked upstream commit, in tables per batch. Outcomes use a fixed vocabulary: picked-clean, picked-with-conflict-resolution, already-present, skipped. Update it as `docs(wiki): …` commits.
+- **PR docs gate:** `docs_checker.yml` fails any `feat` PR whose body has no docs link (a `/wiki` URL on biograph.frappe.cloud or biograph.io) unless the body says `no-docs` or `backport`.
+- **PR template:** asks for a description, screenshots and `closes #XXXX`.
