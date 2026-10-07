@@ -11,25 +11,26 @@ evidence:
   - .prettierrc.yaml
   - eslint.config.mjs
   - .pre-commit-config.yaml
+  - commitlint.config.js
   - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
+  - healthcare/healthcare/doctype/patient/patient.py
 ---
 
-## Python
-- **ruff** (pinned v0.15.18 in pre-commit). `line-length = 110`, `target-version = py310`. Lint rule sets: `F, E, W, I, UP, B, RUF`, with the ignore list in `pyproject.toml`.
-- **Format:** `ruff format` with **tabs** for indentation and **double quotes**.
-- **Import order** (isort sections): future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Put a blank line between each group, as in `test_fee_validity.py`.
-- File header comment: `# Copyright (c) <year>, ... and Contributors` / `# See license.txt`.
-- Naming: snake_case modules and functions. DocType classes use PascalCase of the DocType name (for example `TestFeeValidity`). DocType names in strings use Title Case with spaces (`"Patient Appointment"`).
-- Mark API methods with `@frappe.whitelist()`. Prefer type hints on whitelisted arguments (upstream practice).
-- Wrap every user-visible string in `_()` (Python) or `__()` (JS) so it is translatable.
-- Use `frappe.db.get_value` / `frappe.get_doc` / `frappe.qb`. Raw `frappe.db.sql` exists (about 90 calls), but new code should prefer the query builder.
-- Use `# nosemgrep` only with a reason. Semgrep runs with the Frappe rules.
+**Python (ruff, configured in `pyproject.toml`)**
+- Indent with **tabs**, use **double quotes**, line length 110 (E501 ignored), target py310.
+- Lint rule sets: F, E, W, I, UP, B, RUF. Many rules are ignored to match Frappe style, including F401, E402, B904 and W191.
+- Import order (isort sections): future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Each group is separated by a blank line, as in the test files.
+- Type hints for doctype fields come from `frappe.types.DF` (typing-modules).
+- Naming: snake_case modules and functions. Doctype controller classes are PascalCase and match the doctype name (`class Patient(Document)`). Doctype folders are the snake_case of the doctype title.
+- Expose client-callable functions with `@frappe.whitelist()` (about 182 uses). Wrap every user-facing string in `_()` (about 494 uses).
+- Files start with a copyright header comment (`# Copyright (c) <year>, <org> and Contributors` / `# See license.txt`).
 
-## JavaScript / Vue
-- **Prettier:** tabs (`useTabs`, `tabWidth 4`), `printWidth 88`, `arrowParens: avoid`. The portal and some large form scripts are excluded.
-- **ESLint** flat config (`eslint:recommended`) with Frappe globals (`frappe`, `erpnext`, `__`, `$`, `moment`, …).
-- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})` in `<doctype>.js`.
-- Portal: Vue SFCs in PascalCase (`BookAppointmentModel.vue`) under `patient_portal/src/components`, with the `@` alias pointing to `src`.
+**JavaScript**
+- Prettier settings: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`.
+- ESLint flat config extends `eslint:recommended`, with globals for `frappe`, `erpnext`, `$`, `jQuery` and `Vue`.
+- Desk scripts use the `frappe.ui.form.on('<DocType>', {...})` style, and translatable strings use `__()`.
+- The portal (`patient_portal/`) is not covered by Prettier. It uses 2-space indented Vite configs and Vue SFCs with the `@` alias pointing to `src`.
 
-## Legacy exclusions
-`.pre-commit-config.yaml` excludes about 600 legacy paths from pre-commit. Many existing files therefore don't follow the formatter. When you touch an excluded file, don't reformat the whole file, and don't add **new** ruff findings (compare the ruff count before and after, as the sync ledger does).
+**Legacy exclusion:** `.pre-commit-config.yaml` holds a top-level `exclude` list of about 620 existing files that skip all hooks. Ruff and Prettier still apply to new files. When you touch an excluded file, follow its local style and do not reformat the whole file.
+
+**Commits:** Conventional Commits, enforced by commitlint. Lower-case type from: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Optional scope, e.g. `fix(appointment): ...`.
