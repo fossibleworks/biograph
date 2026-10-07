@@ -8,15 +8,17 @@ binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - patient_portal/src/socket.js
   - .pre-commit-config.yaml
 ---
 
-Observability relies only on Frappe's built-in facilities. There is no metrics or tracing library.
+The app relies on Frappe's built-in facilities. There is no external metrics or tracing stack.
 
-- **`frappe.log_error`** writes to the Error Log doctype. It is the main way failures in background and side-effect code get recorded (about 15 call sites). Use a human-readable, translated title and include `frappe.get_traceback()` in the message.
-- **`frappe.logger()`** has a few `.info`/`.error` calls in setup and patch code, plus one parse failure in `patient_appointment.py`. It goes to bench log files.
-- **Realtime progress:** `frappe.publish_realtime` for long-running jobs.
-- **Coverage reporting:** Codecov on non-PR CI runs.
-- About 39 stray `print(` calls exist, mostly in setup and patches. The `debug-statements` pre-commit hook guards against debugger leftovers. Prefer `frappe.logger()` over `print` in new code.
+- **Error Log:** `frappe.log_error(message, title)` (15 call sites) writes to the Error Log doctype. Use a short, descriptive title such as "Unavailability Calendar Event Error", and pass `frappe.get_traceback()` when catching exceptions.
+- **Logger:** `frappe.logger()` (about 9 uses), mainly in patches for info and error lines.
+- **Realtime:** `frappe.publish_realtime` on the server and the socket.io client in `patient_portal/src/socket.js` for live updates.
+- **Background jobs and scheduler** are visible through the standard RQ and Scheduled Job Log views.
+- **Integration request logging:** the ABDM integration keeps request records in the `ABDM Request` doctype.
+- There is no APM or OpenTelemetry instrumentation in the app code. Do not add `print()`; the pre-commit `debug-statements` hook rejects debugger statements.
