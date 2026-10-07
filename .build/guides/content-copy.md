@@ -1,5 +1,5 @@
 ---
-title: Content & copy
+title: Content & Copy
 category: content-copy
 layer: project
 applies_to: []
@@ -8,15 +8,18 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/mark_unavailable.js
-  - healthcare/public/js/form.js
-  - healthcare/healthcare/doctype/patient_encounter/patient_encounter.js
+  - healthcare/healthcare/utils.py
+  - patient_portal/src/components/Payment.vue
   - healthcare/locale/main.pot
   - crowdin.yml
 ---
 
-- **Translatable always:** wrap copy in `_()` in Python and `__()` in JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin. Use `{0}` placeholders and never concatenate translated fragments, e.g. `__("Permanently Submit {0}?", [this.docname])`.
-- **Tone:** plain, direct and clinical-administrative. Messages are short sentence-case statements ending in a period: "Appointment Date and Time are required.", "Appointment end must be after start.", "Not allowed to print this document." A few legacy messages end in "!", such as "Patient already has an appointment booked for the same day!". Prefer the period.
-- **Prompts:** use imperative phrasing, e.g. "Please select Patient".
-- **Labels and buttons:** Title Case nouns and verbs: "Create", "Mark Time as Unavailable", "Healthcare Practitioner", "Healthcare Service Unit", "From Time", "Reason for Unavailability".
-- **Terminology:** use the DocType names exactly as the domain terms: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Inpatient Record, Lab Test, Clinical Procedure, Fee Validity, Insurance Payor. Say "Practitioner", not "Doctor", and "Service Unit", not "Room". The portal is called "Patient Portal".
+# Content and copy
+
+- **Tone:** plain and clinical-administrative, in sentence-style messages. Use "Please ..." for required actions: "Please set a Customer linked to the Patient", "Please enter {0}".
+- **Constraint messages** follow the pattern "Not allowed, ...": "Not allowed, cannot overlap appointment {}". Facts are stated directly: "Patient already has an appointment booked for the same day!", "Appointment end must be after start."
+- **Dialog titles** are short Title Case nouns: "Missing Configuration", "Customer Not Found", "Invalid Healthcare Service Unit", "Practitioner Schedule Not Found".
+- **Success alerts** are short past-tense statements: "Sales Invoice {0} created", "Appointment Cancelled."
+- **Terminology** matches the DocType names exactly, in capitalised form: Patient, Healthcare Practitioner, Healthcare Service Unit, Medical Department, Fee Validity, Service Request, Lab Test. Write "Practitioner", not "doctor", in system copy.
+- **Portal copy** is friendlier and patient-facing: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients".
+- All strings must be translatable (`_()` / `__()`). They feed `healthcare/locale/main.pot` and Crowdin.
