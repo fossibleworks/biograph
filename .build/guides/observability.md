@@ -4,18 +4,28 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
+  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
   - .pre-commit-config.yaml
 ---
 
-There is no metrics or tracing stack. Observability uses the Frappe built-ins:
+# Observability
 
-- **`frappe.log_error(...)`** writes to the Error Log doctype and is the primary convention (about 15 sites). Pass the traceback (`frappe.get_traceback()`) and a short, translatable title, for example `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(title="Error renaming DocType ...")`.
-- **`frappe.logger().info/error(...)`** writes to file logs, used sparingly (about 9 sites), mostly in patches and in parsing fallbacks.
-- Do not use `print()` or `debug-statements`. The pre-commit `debug-statements` hook blocks pdb and breakpoints.
-- Background and scheduled jobs show up in Frappe's RQ Job and Scheduled Job Log. CI captures `bench_run_logs.txt`.
+The app has no metrics or tracing; it relies on Frappe's built-in facilities:
+
+- **`frappe.log_error(message, title)`** writes Error Log documents. It is the main mechanism (about 15 call sites), used for:
+  - failed notifications or SMS
+  - calendar-event errors
+  - scheduler billing failures
+  - patch failures
+  
+  Give each entry a short, specific title and include `frappe.get_traceback()` or the exception.
+- **`frappe.logger().info/error(...)`** is used occasionally, in patches and for parse failures.
+- **Background jobs** run through `frappe.enqueue` (RQ) and appear in RQ Job / Scheduled Job Log.
+- **Desk dashboards** come from `dashboard_chart`, `dashboard_chart_source`, `number_card`, `healthcare_dashboard` and the per-doctype `*_dashboard.py`. These are product analytics, not ops telemetry.
+
+Don't add `print()` (the `debug-statements` pre-commit hook guards against leftover debuggers) and don't add third-party telemetry SDKs.
