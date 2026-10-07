@@ -8,14 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - .github/workflows/docs_checker.yml
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/helper/documentation.py
-  - AGENTS.md
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **User/product docs** are external. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`).
-- The docs check helper (`.github/helper/documentation.py`, run by `docs_checker.yml`) wants every `feat` PR to link a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, unless the PR body says `no-docs` or `backport`. Note that the helper currently queries the upstream repo's PR API.
-- **In-repo design and usage docs** live in `wiki/` as UPPER-KEBAB or descriptive Markdown files. There are design docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`), usage guides (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`), parity reports and implementation plans.
-- **Operational ledgers** go in `wiki/` too. `upstream-sync-version-16.md` records each upstream pick with an outcome from a fixed vocabulary: picked-clean, picked-with-conflict-resolution, already-present or skipped. Commits that update it use `docs(wiki): ...`.
-- `patient_portal/README.md` covers the SPA.
-- AI and agent guidance: `CLAUDE.md`, `AGENTS.md` (managed Build guides block), `.build/RULES.md` and `.github/instructions/`.
+- **README.md** covers installation (bench), development setup (pre-commit, semgrep) and links to the external docs at DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **`wiki/`** holds in-repo design and usage docs. Files use UPPER-KEBAB-CASE names: `DESIGN-<FEATURE>.md` for designs, `<FEATURE>-USAGE[-DOC].md` for usage guides, and images sit beside them. It also holds plans and reports (`FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`) and the upstream sync ledger `upstream-sync-version-16.md`. Commits to the wiki use `docs(wiki): ...`.
+- **PR docs check**: `docs_checker.yml` fails a `feat` PR unless its body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs`. Backports are exempt.
+- The PR template asks for an explanation of the change, screenshots or GIFs, and `closes #XXXX`.
+- Code comments are sparse. Doctype descriptions live in the doctype JSON.
