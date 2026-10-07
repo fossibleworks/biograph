@@ -4,23 +4,24 @@ category: tech-stack
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: required
 source: inferred
 evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
-  - .github/workflows/ci.yml
-  - .github/helper/install.sh
+  - patient_portal/vite.config.js
+  - patient_portal/tailwind.config.js
+  - healthcare/tests/utils.py
+  - healthcare/hooks.py
+  - .github/workflows/linters.v2.yml
   - crowdin.yml
-  - yarn.lock
 ---
 
-- **Backend:** Python ≥3.10. Ruff targets py310, and CI runs Python 3.14. It is a **Frappe Framework** app with `required_apps = ["frappe/erpnext"]` and is packaged with `flit_core` (`pyproject.toml`). Runtime dependencies are pinned in pyproject (`responses`, `python-barcode`).
-- **Database:** MariaDB (CI uses `mariadb:11.8`), accessed through the Frappe ORM (`frappe.get_doc`, `frappe.db.*`) and sometimes raw `frappe.db.sql`.
-- **Desk UI:** plain Frappe client scripts (`<doctype>.js` next to each doctype, and `healthcare/public/js/*.js`), bundled as `healthcare.bundle.js`. Globals such as `frappe`, `erpnext`, `$` and `moment` are used directly.
-- **Patient Portal SPA:** Vue 3, vue-router, **frappe-ui** components, Tailwind CSS 3.4 (frappe-ui preset), and Vite 4. The build output goes to `healthcare/public/frontend`.
-- **Package management:** Yarn workspaces (`yarn.lock`; workspaces `patient_portal`, `frappe-ui`). Node 24 in CI.
-- **Tooling:** pre-commit, ruff (lint and format), ESLint 10 (flat config), Prettier, pip-audit, detect-secrets, Semgrep (Frappe rules), CodeQL, commitlint, semantic-release.
-- **i18n:** gettext POT at `healthcare/locale/main.pot`, synced with Crowdin.
-- **Supported versions:** release branches `version-14`, `version-15`, `version-16`. The fork tests against Frappe/ERPNext `version-16`.
+- **Backend:** Python ≥ 3.10 (ruff targets py310; CI uses Python 3.14). It is a **Frappe Framework** app that depends on **ERPNext** (imports `erpnext.*`, and tests extend `ERPNextTestSuite`). It is packaged with `flit_core` from `pyproject.toml`. Runtime pip dependencies are `responses` and `python-barcode`.
+- **Data/model layer:** Frappe DocTypes, each defined as JSON plus a Python controller plus an optional JS form script, under `healthcare/healthcare/doctype/<name>/`. The database is reached through the Frappe ORM (`frappe.get_all`, `frappe.db.get_value`, `frappe.qb`, sometimes `frappe.db.sql`).
+- **Desk UI:** Frappe desk JavaScript (form scripts, `healthcare/public/js/*`, bundled through `healthcare.bundle.js` / `app_include_js`), with globals `frappe`, `erpnext`, `$` and `__`.
+- **Patient Portal SPA:** Vue 3 with vue-router, **frappe-ui** (^0.1.176), Tailwind CSS 3.4 using the frappe-ui preset, Vite 4.4.9 with the `frappe-ui/vite` plugin, and feather/lucide icons. It is a Yarn workspace (`patient_portal`).
+- **Tooling:** Node 24 in CI, Yarn (`yarn.lock`), ESLint 10 (flat config), Prettier, Ruff 0.15.18, pre-commit, Semgrep (Frappe rules), pip-audit, detect-secrets.
+- **i18n:** gettext `.pot`/`.po` files under `healthcare/locale`, synced through Crowdin.
+- **Supported Frappe/ERPNext lines:** versions 14, 15 and 16, released on the `version-1x` branches. Patches exist for v15_0 and v16_0.
