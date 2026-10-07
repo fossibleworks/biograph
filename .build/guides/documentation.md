@@ -8,15 +8,20 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
+  - .github/helper/documentation.py
+  - .github/workflows/docs_checker.yml
   - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - .github/workflows/docs_checker.yml
-  - .github/helper/documentation.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **User and product docs** are external. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`). There is no `docs/` directory, and `healthcare/docs/current` is gitignored.
-- **In-repo docs** live in `wiki/` as upper-case kebab Markdown files. They are either design docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`) or usage guides (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`), with images next to them.
-- **Sync ledgers and reports** are also kept in `wiki/` (`upstream-sync-version-16.md`, `insurance-parity-report.md`). Upstream-sync work records every cherry-picked commit in a table with the outcome vocabulary `picked-clean`, `picked-with-conflict-resolution`, `already-present` and `skipped`, and adds `docs(wiki): ...` commits as batches progress.
-- **The PR docs gate** (`docs_checker.yml` → `.github/helper/documentation.py`): a PR whose title starts with `feat` must link to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, unless the body contains `no-docs` or `backport`. Note that the script queries the `earthians/biograph` API.
-- `patient_portal/README.md` documents the portal frontend.
-- `healthcare/config/docs.py` holds Frappe docs config.
+- **User and product docs** live outside the repo. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **The upstream docs check** (`docs_checker.yml` / `.github/helper/documentation.py`) fails `feat:` PRs unless the PR body links a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`. It queries the upstream `earthians/biograph` repo.
+- **In-repo design and usage docs** go in `wiki/` as Markdown, named with UPPER-KEBAB-CASE titles. Examples:
+  - `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` (design)
+  - `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (usage)
+  - parity reports and plans
+- **The upstream-sync ledger** is `wiki/upstream-sync-version-16.md`. It records each cherry-picked upstream commit in a table with these outcome values: picked-clean, picked-with-conflict-resolution, already-present, skipped. Each row gives a reason. Update it in `docs(wiki): ...` commits.
+- **Code comments** are sparse and explain *why*. `hooks.py` keeps Frappe's commented scaffold sections.
+- The PR template asks you to "Update necessary Documentation" and to add screenshots or GIFs for UI changes.
+- **Agent rules** are in `CLAUDE.md`, `AGENTS.md` (managed by Build) and `.build/RULES.md`, which is still an unfilled template.
