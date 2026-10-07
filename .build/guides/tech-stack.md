@@ -15,10 +15,9 @@ evidence:
   - yarn.lock
 ---
 
-- **Backend:** Python ≥3.10 (CI runs 3.14) on the **Frappe framework**, with **ERPNext** as a required app. Packaged with `flit_core` (`pyproject.toml`). Runtime deps: `responses`, `python-barcode`.
-- **Database:** MariaDB (CI uses `mariadb:11.8`). Queries use `frappe.qb` (query builder) and `frappe.db.sql`.
-- **Desk UI:** plain JavaScript form scripts per DocType, using Frappe globals (`frappe`, `erpnext`, `$`, `moment`), bundled through `healthcare/public/js/healthcare.bundle.js`.
-- **Patient Portal:** Vue 3 + vue-router + **frappe-ui**, built with Vite 4 and styled with Tailwind CSS 3 (frappe-ui preset) and PostCSS. Socket via `engine.io-client`.
-- **JS tooling:** Node 24 in CI. Yarn workspaces (`yarn.lock`, workspaces `patient_portal`, `frappe-ui`). ESLint 10 (flat config) and Prettier.
-- **Python tooling:** ruff (lint + format), pip-audit, detect-secrets, and Frappe semgrep rules.
-- **Deployment:** Frappe `bench` (`bench get-app`, `bench --site … install-app healthcare`), or Frappe Cloud.
+- **Backend:** Python ≥3.10 (CI uses 3.14), packaged with `flit_core`. It is a **Frappe Framework** app that requires **ERPNext** (and `payments` in CI). The database is **MariaDB** (CI uses `mariadb:11.8`). Redis is used for queue and cache.
+- **Desk UI:** plain Frappe desk JavaScript: doctype `.js` controllers, `*_list.js`, `*_tree.js`, and the bundle `healthcare/public/js/healthcare.bundle.js`. It uses jQuery/Frappe globals (`frappe`, `__`, `$`, `moment`).
+- **Patient Portal SPA:** **Vue 3** + **vue-router 4** + **frappe-ui**, built with **Vite 4** and styled with **Tailwind CSS 3.4** (frappe-ui preset). Icons come from feather-icons and lucide via the frappe-ui Vite plugin.
+- **JS tooling:** Yarn workspaces (`yarn.lock`, workspaces `patient_portal`, `frappe-ui`) and Node 24 in CI.
+- **Python deps:** `responses`, `python-barcode`. Dev requirements are in `dev-requirements.txt`.
+- **Quality tooling:** ruff (lint + format), ESLint 10 flat config, Prettier, pre-commit, Semgrep (Frappe rules), CodeQL, detect-secrets, pip-audit, commitlint, semantic-release.
