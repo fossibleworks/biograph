@@ -8,13 +8,21 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
+  - .build/RULES.md
+  - .mergify.yml
   - commitlint.config.js
   - .github/workflows/semantic-commits.yml
-  - .mergify.yml
-  - .github/CODEOWNERS
 ---
 
-- **Interactor Build engine.** Every code change needs a tracked **Goal**, created via the build.interactor.com UI or `ibuild engine goal-create`. Work happens on branch `goal/<goalId>` in an isolated worktree, never on the main branch `biograph-fh`, and ships through the Goal's single PR, which must pass review and CI. GitHub issues map to Goals only after an explicit import. EngineTasks under a Goal cycle through investigation → execution → review. `ibuild off` is allowed only for small interactive changes, which still go through a hand-opened PR.
-- **Commits** use Conventional Commits, enforced by commitlint and `semantic-commits.yml`. Batch work carries a scope suffix, e.g. `fix: ... (upstream sync B2)`.
-- **Upstream sync** cherry-picks from `earthians/marley version-16` with `git cherry-pick -x`. Conflicts are resolved so the fork's intent wins, with a 3-way union of doctype JSON `fields` and a union of `patches.txt`. Each pick is logged in the wiki ledger.
-- **Review and merge.** Owners are @akurungadam and @Sajinsr (CODEOWNERS). Mergify auto-merges after one approval and green CI; the `squash` label means squash-merge and `dont-merge` blocks merging. Mergify also closes PRs against the stable `version-*` branches; use hotfix or develop branches instead.
+**Work tracking (Interactor Build engine), from `CLAUDE.md`:**
+- Every code change needs a tracked **Goal**. A GitHub issue maps to a Goal only after an explicit import. The engine generates EngineTasks under a Goal, and each task runs investigation → execution → review.
+- Work on the branch `goal/<goalId>` in an isolated worktree. Never commit to the main branch directly. Existing branches follow this pattern, e.g. `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8`.
+- Each Goal ships through one PR that the engine opens and that must pass review and CI. CLI: `ibuild engine goal-create`, `goal queue`, `work`, `report --yes`, `goal accept`. Small interactive changes can use `ibuild off`, but still go through a hand-opened PR.
+
+**Branches:** this fork's integration branch is **`biograph-fh`** (the default). Upstream marley's model uses `develop` plus `version-1x-hotfix` → `version-1x` stable branches. Mergify auto-closes PRs from non-maintainers that target `version-14/15/16`.
+
+**Commits:** use Conventional Commits (commitlint). Add a scope when it helps, e.g. `docs(wiki):` or `fix(tests):`. Append the work-stream tag in parentheses when relevant, e.g. `(upstream sync B2)`. Upstream cherry-picks use `git cherry-pick -x` and are logged in `wiki/upstream-sync-version-16.md`.
+
+**Merging:** Mergify merges automatically once there is at least one approving review and no `dont-merge` label. The `squash` label switches it to a squash merge.
+
+`.build/RULES.md` holds the project rule placeholders (not filled in yet).
