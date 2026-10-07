@@ -1,5 +1,5 @@
 ---
-title: Product Context
+title: Product context
 category: product-context
 layer: project
 applies_to: []
@@ -9,14 +9,21 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - healthcare/www/patient_portal.py
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
 ---
 
-**Biograph (by Tacten)**, also called fossibleHIS, is an open-source Hospital Information System (HIS). It is a fork of earthians' Marley Health with extra features. It ships as a Frappe app named `healthcare` (app title "Biograph") that adds a healthcare domain to ERPNext. Much of the data model follows HL7 FHIR.
+**Biograph** (app name `healthcare`, branded fossibleHIS / "Biograph - by Tacten") is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' Marley Health with added features. It runs as a Frappe app on top of ERPNext and adds the healthcare domain to ERPNext. Much of its data model follows **HL7 FHIR**.
 
-**Users:** healthcare practitioners, nurses, lab staff, clinic and hospital administrators (Frappe Desk at `/desk/healthcare`), and patients (Vue patient portal at `/patient-portal`).
+**Who uses it:** healthcare practitioners, clinics and hospitals (desk users such as practitioners, nurses, lab staff and billing staff), plus patients through a **Patient Portal** (a Vue SPA served at `/patient_portal`).
 
-**Key capabilities:** patient management, outpatient and inpatient management (appointments, encounters, admissions/discharge), clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions), laboratory and diagnostics (lab tests, observations, diagnostic reports), medication requests, nursing tasks, insurance (payors, contracts, claims), fee validity, medical code standards (code systems and values), and ABDM integration for India. Facilities map to Healthcare Service Units and specialities map to Medical Departments.
+**Main feature areas (from the README and the doctype tree):**
+- Patient management, with patient duplicate checking (see the `wiki/PATIENT-DUPLICATE*.md` docs)
+- Outpatient and inpatient care: Patient Appointment, Patient Encounter, Inpatient Record, block-based therapy appointment booking
+- Clinical Procedures, Rehabilitation and Physiotherapy (Therapy Plan, Exercise Type)
+- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report, Service Request
+- Insurance: payor contracts, policies and coverage
+- Configurable Medical Code Standards and FHIR terminology. Facilities are modelled as Healthcare Service Units and specialities as Medical Departments
+- Regional customisations, for example `healthcare/regional/india` (ABDM)
 
-ERPNext supplies pharmacy and stock, purchasing, HR, accounts, and assets. Fork-specific features are documented in `wiki/`: block-based appointment booking, patient duplicate checking, FHIR terminology parity, and insurance parity.
+Pharmacy, purchasing, HR, accounts and assets come from ERPNext. In `hooks.py`, `required_apps = ["frappe/erpnext"]` and the desk home is `/desk/healthcare`.
+
+**Fork lineage:** upstream is `earthians/marley` (`version-16`), and this fork's working branch is `biograph-fh`. Upstream commits are cherry-picked in using the policy in `wiki/upstream-sync-version-16.md`.
