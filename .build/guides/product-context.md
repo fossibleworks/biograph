@@ -8,15 +8,15 @@ binding: reference
 source: inferred
 evidence:
   - README.md
-  - healthcare/hooks.py
+  - pyproject.toml
   - healthcare/healthcare/api/patient_portal.py
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
 ---
 
-Biograph (by Tacten, maintained here as **fossibleHIS** on the `biograph-fh` branch) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' Marley Health, with additional features. It is a Frappe app named `healthcare` (app title "Biograph") that adds the health domain to ERPNext. Most of its design follows **HL7 FHIR**.
+**Biograph by Tacten** (packaged as the Frappe app `healthcare`; this fork is tracked as *fossibleHIS*) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' Marley Health, with enhancements. It adds the health domain to **ERPNext**, and much of its data model follows **HL7 FHIR**.
 
-**Users:** healthcare practitioners, clinics and hospitals (desk users), plus patients through a web **Patient Portal** (`/patient-portal`). In the portal, patients view and book appointments, see diagnostics, and pay fees.
+**Who uses it:** hospitals, clinics and individual practitioners. Inside the Frappe Desk the main users are clinical staff, front-desk staff, lab staff and billing staff. Patients use the self-service **Patient Portal** at `/patient-portal`, where they book appointments, pay fees, and see appointments, orders and diagnostic reports.
 
-**Feature areas:** patient management, outpatient and inpatient (Inpatient Record, admissions, service units), appointments (including block-based therapy booking, recurring appointments, practitioner availability, fee validity), clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions), laboratory and diagnostics (Lab Test, Observation, Diagnostic Report, Sample Collection), medication requests, clinical notes, insurance (payors, contracts, coverage, claims), medical code standards (Code System / Code Value), and patient duplicate detection. There is also a regional India module for ABDM (Ayushman Bharat Digital Mission).
+**Core features:** patient management, outpatient and inpatient care (encounters, admissions, inpatient medication orders and entries), clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions, exercises), laboratory (lab tests, samples, templates, observations, diagnostic reports), insurance (payors, contracts, eligibility plans, claims), configurable medical code standards (Code System, Code Value), healthcare service units, and medical departments. Pharmacy, purchasing, HR, accounts and assets come from ERPNext, which is integrated through hooks on Sales Invoice, Payment Entry and Company.
 
-ERPNext supplies pharmacy and stock, billing (Sales Invoice hooks), HR, accounts and assets. Healthcare facilities are modelled as **Healthcare Service Units** and specialities as **Medical Departments**.
+**Fork-specific features** are documented in `wiki/`: block-based (custom time range) appointment booking, practitioner unavailability, the patient duplicate checker, insurance parity, and FHIR terminology parity. The work now in progress keeps the fork (`biograph-fh`) in sync with upstream `earthians/marley` `version-16` while keeping fork behaviour.
