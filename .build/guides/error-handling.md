@@ -4,40 +4,20 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
-  - healthcare/patches/v15_0/check_version_compatibility_with_frappe.py
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - healthcare/setup.py
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/public/js/sales_invoice.js
 ---
 
-**Validation errors go to the user through `frappe.throw`** (about 180 call sites). Always translate the message:
-```python
-frappe.throw(_("Please set {0} in Healthcare Settings").format(...), title=_("Missing Configuration"))
-```
-- Pass a `title=_()` for a categorised dialog. Use "Missing Configuration" for settings that have not been set.
-- When callers or tests need to catch a specific error type, define a subclass of `frappe.ValidationError` in the controller module, as with `MaximumCapacityError` and `OverlapError` in `patient_appointment.py` and `insurance_payor_contract.py`. Raise it with `frappe.throw(msg, OverlapError)`.
-- Validation belongs in controller hooks (`validate`, `before_submit`, `on_cancel`) or in the `doc_events` handlers in `hooks.py`, not in the client. The PR template says: "All business logic and validations must be on the server-side."
-
-**Non-fatal failures** in background or side-effect work (SMS, calendar events, notifications, patches) are caught and recorded, so they don't block the transaction:
-```python
-try:
-	...
-except Exception:
-	frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
-```
-The user is then told through `frappe.msgprint(_(...))`.
-
-**Informational messages** use `frappe.msgprint(_("Sales Invoice {0} created").format(...))`.
-
-**Client side:** desk JS shows errors with `frappe.msgprint`/`frappe.throw` and wraps strings in `__()`.
-
-**Do not:**
-- swallow exceptions without `frappe.log_error`
-- use bare `except:`
-- show untranslated messages
-
-If a `frappe.throw` is deliberate in a place Semgrep flags, annotate it with `# nosemgrep`, as in `check_version_compatibility_with_frappe.py`.
+- **Validation errors go to the user through `frappe.throw`** (about 180 uses). Use a translated message and, where useful, a `title=_(...)`. Existing titles include "Missing Configuration", "Customer Not Found" and "Invalid Healthcare Service Unit". Link to the misconfigured record with `get_link_to_form("Healthcare Settings", "Healthcare Settings")`.
+- **Typed errors:** subclass `frappe.ValidationError` per domain, e.g. `MaximumCapacityError` and `OverlapError` in `patient_appointment.py`. Pass the class as `frappe.throw(msg, OverlapError)` so tests and callers can catch it specifically.
+- **Non-blocking notices:** use `frappe.msgprint`.
+- **Background or side-effect failures** (notifications, calendar events, patches) are caught and recorded with `frappe.log_error(frappe.get_traceback(), _("<Title>"))` or `frappe.log_error(title=...)` instead of failing the user transaction. Examples include "Appointment Confirmation Message Not Sent" and "Unavailability Calendar Event Error".
+- Catch specific Frappe exceptions where possible (`except frappe.DuplicateEntryError:` in setup). Broad `except Exception` is limited to patches and best-effort side effects.
+- Desk JS guards with `frappe.throw(__("Please select a Patient to be invoiced"))` before `frappe.call`.
+- Whitelisted API functions validate input and permissions server-side (`healthcare/permissions.py` throws on denied access).
