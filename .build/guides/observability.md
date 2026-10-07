@@ -7,20 +7,16 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
-  - .github/workflows/codeql.yml
-  - .pre-commit-config.yaml
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/hooks.py
 ---
 
-# Observability
+The app has no metrics or tracing of its own. It relies on Frappe's built-in facilities:
+- **Error Log doctype:** `frappe.log_error(message, title)`, often with `frappe.get_traceback()`. Use this for failures in background jobs, patches and side effects.
+- **Logger:** `frappe.logger().info/error(...)` writes to bench logs. Patches use it for setup progress.
+- **Realtime:** `frappe.publish_realtime` sends progress and updates to the UI, for example in sample collection.
+- **Background jobs:** `frappe.enqueue(..., queue="long", enqueue_after_commit=True)` jobs show up in RQ Job / Scheduled Job Log. Scheduled jobs are declared in `scheduler_events` in `hooks.py`.
 
-There is no external metrics or tracing stack. The app relies on Frappe's built-in facilities:
-
-- **`frappe.log_error(...)`** (about 15 uses) writes to the **Error Log** doctype. This is the main way failures are recorded. Pass a traceback plus a short translated title: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-- **`frappe.logger()`** (about 9 uses) writes file logs for setup and patch progress: `frappe.logger().info("Starting patient duplicate check rules setup")` and `.error(...)` for parse failures.
-- **Audit trail.** Patient medical-record history comes from the `doc_events` hooks (Patient History Settings). Status fields (`status`, `submitted_date`) are set with `db_set` on lifecycle events.
-- **CI-level signals:** Codecov coverage, CodeQL (python and javascript), and Semgrep.
-
-Do not use `print()` for diagnostics. The `debug-statements` pre-commit hook blocks debugger calls.
+There are about 24 `log_error`/`logger` call sites. Follow the same pattern, give each a short human-readable title, and do not log PHI in titles.
