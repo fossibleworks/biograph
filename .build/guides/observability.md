@@ -4,20 +4,21 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - .pre-commit-config.yaml
+  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
+  - healthcare/regional/india/abdm/utils.py
+  - healthcare/healthcare/doctype/abdm_request/abdm_request.py
+  - healthcare/hooks.py
 ---
 
-There are no metrics or tracing libraries. The project relies on Frappe's built-in facilities:
+The app uses Frappe's built-in facilities and adds no external metrics or tracing stack.
 
-- **Error Log doctype:** `frappe.log_error(message_or_traceback, title)` is the main way to record failures (about 15 call sites). Titles are short and human-readable, e.g. "Appointment Confirmation Message Not Sent" or "Unavailability Calendar Event Error". Pass `frappe.get_traceback()` when inside `except`.
-- **App logger:** `frappe.logger().info(...)` / `.error(...)` for setup and patch progress (about 9 call sites, e.g. patient duplicate check setup).
-- **Realtime:** `frappe.publish_realtime` pushes status to the browser.
-- **Audit trail:** Patient Medical Record entries are created and updated through the wildcard submit/cancel hooks, and Frappe's version tracking covers document history.
-- Don't add `print()` or `debug` statements. Pre-commit's `debug-statements` hook rejects them.
+- **Error Log:** `frappe.log_error(...)` is the main mechanism (about 15 call sites). It writes an *Error Log* record viewable in Desk. Pass the traceback and a short human title: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`. Newer code uses the keyword form `frappe.log_error(title="...")`.
+- **Structured app logs:** `frappe.logger(...)` appears in a handful of places (about 9). Use it for informational or debug traces instead of `print`.
+- **Integration audit trail:** each ABDM call is persisted as an **`ABDM Request`** doc holding the request payload, URL, request name and response. Mirror this request-log-doctype pattern for new external integrations.
+- **Domain audit:** submit, cancel and update events feed the **Patient Medical Record** timeline through `patient_history_settings`. Frappe's document versioning and timeline cover user actions.
+- **CI-side:** Codecov coverage, CodeQL and semgrep findings.
+- **Anti-pattern present:** `patient_appointment.py` uses `print(f"DEBUG - ...")` / `print(f"ERROR - ...")` (about 71 `print(` calls across doctype modules). These go to worker stdout only. Do not add more; convert them when you touch that code.
