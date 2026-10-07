@@ -11,51 +11,53 @@ evidence:
   - .github/workflows/ci.yml
   - .pre-commit-config.yaml
   - .github/workflows/linters.v2.yml
+  - .github/workflows/semantic-commits.yml
   - package.json
   - patient_portal/package.json
-  - .github/workflows/semantic-commits.yml
 ---
 
-Server commands run inside a **Frappe bench** where ERPNext is installed.
-
-**Install**
+**Install (bench)**
 ```sh
 bench get-app https://github.com/Tacten/biograph
 bench --site <site> install-app healthcare
 ```
 
-**Tests** (the same command CI runs)
+**Server tests** (from `~/frappe-bench`, as CI runs them)
 ```sh
-cd ~/frappe-bench
 bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1
-# or a single module/doctype:
-bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"
+# single module (standard Frappe):
+bench --site test_site run-tests --app healthcare --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment
 ```
+CI sets up the bench with `.github/helper/install.sh`.
 
-**Lint and format** (pre-commit runs trailing-whitespace, yaml/json/toml/ast checks, prettier, eslint, pip-audit, ruff `--fix`, ruff-format and detect-secrets)
+**Lint and format**
 ```sh
-pip install pre-commit
-pre-commit install
-npm install
-pre-commit run --all-files
-# files in pre-commit's exclude list: run ruff directly
-ruff check <file> && ruff format <file>
+pip install pre-commit && pre-commit install
+npm install          # eslint deps
+pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
 ```
 
-**Semgrep** (Frappe rules, as in CI)
+**Semgrep** (also run in CI)
 ```sh
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
 pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-**Patient Portal frontend**
+**Commit message check**
 ```sh
-yarn install          # root postinstall also installs patient_portal
-yarn build            # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
-cd patient_portal && yarn dev   # Vite dev server with frappe proxy
+npx commitlint --from <base> --to <head>
 ```
 
-**Desk assets:** `bench build --app healthcare`.
+**Patient Portal**
+```sh
+yarn install         # root postinstall also installs patient_portal
+yarn build           # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
+cd patient_portal && yarn dev
+```
 
-**Commit messages** are checked with `npx commitlint --from <base> --to <head>`.
+**Sanity check that CI also runs**
+```sh
+python -m compileall -f .
+```
+CI also greps for leftover `<<<<<<<` merge-conflict markers.
