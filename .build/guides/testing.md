@@ -8,15 +8,21 @@ binding: required
 source: inferred
 evidence:
   - healthcare/tests/utils.py
-  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
-  - healthcare/tests/test_utils.py
-  - .github/workflows/ci.yml
+  - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
   - codecov.yml
+  - .github/workflows/ci.yml
 ---
 
-- **Framework:** Frappe/ERPNext test runner, built on unittest. Test classes extend `HealthcareTestSuite` (in `healthcare/tests/utils.py`), which subclasses ERPNext's `ERPNextTestSuite`.
-- **Fixtures:** `BootStrapTestData` creates shared master data (company, service items, patients, practitioners, service units, templates, insurance payors) via `make_records`. `_Test …` naming is used for fixture records (e.g. `_Test Company`, `_Test Insurance Payor`). Reuse these builders rather than creating ad-hoc fixtures.
-- **Layout:** each doctype keeps its test next to its code (`doctype/<name>/test_<name>.py`). There are about 85 test files. Cross-cutting tests live in `healthcare/tests/` (e.g. `test_utils.py`).
-- **Running:** `bench --site test_site run-parallel-tests --app healthcare` in CI. This needs a bench site with ERPNext and a MariaDB instance.
-- **Coverage:** captured on non-PR (scheduled) runs and uploaded to Codecov. `codecov.yml` sets the patch target at **85%** on PRs to develop and allows the project to drop at most 0.5%.
-- **Baseline caveat:** the fork has no CI baseline for `biograph-fh` (see `wiki/upstream-sync-version-16.md`), so compare test failures against a locally recorded baseline.
+- **Framework:** Frappe's unittest-based runner, executed with `bench run-tests` / `run-parallel-tests --app healthcare` against a real MariaDB site.
+- **Layout:** tests sit next to the code as `doctype/<dt>/test_<dt>.py` (about 85 files). The shared helpers are in `healthcare/tests/utils.py`.
+- **Base class:** every test class subclasses `HealthcareTestSuite`, which extends ERPNext's `ERPNextTestSuite`. Recent commits migrated all remaining fork tests to it. `BootStrapTestData` creates the deterministic master data: `_Test Company`, practitioners, patients, service units, templates, insurance payors, etc.
+- **Conventions:**
+  - Call `super().setUp()` in `setUp`.
+  - Look records up deterministically (`frappe.get_list(..., pluck="name")`).
+  - Reuse factory helpers exported from sibling tests, e.g. `create_appointment` from `test_patient_appointment`.
+  - Configure `Healthcare Settings` in the test and save with `ignore_permissions=True`.
+  - Test record names use the `_Test …` prefix.
+- **Coverage:** captured on scheduled/non-PR runs and uploaded to Codecov.
+  - Patch target: **85%** on PRs (develop).
+  - Project: `auto` with a 0.5% threshold.
+- **Baseline caveat:** the fork has no CI history on `biograph-fh`, so the first goal-PR CI run is the baseline. Compare failures against the introducing commit.
