@@ -9,37 +9,35 @@ source: inferred
 evidence:
   - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
+  - .github/workflows/semantic-commits.yml
+  - .github/workflows/docs_checker.yml
   - .github/workflows/codeql.yml
   - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
   - .releaserc
-  - .github/release.yml
-  - .mergify.yml
-  - .github/helper/install.sh
-  - codecov.yml
+  - .github/workflows/release_notes.yml
 ---
 
-**CI on pull requests** (GitHub Actions)
+**PR checks (GitHub Actions):**
 - `ci.yml` (Server Tests):
-  - Skipped for PRs that change only css/js/md/html/csv. It also runs nightly.
-  - Compiles all Python and greps for merge-conflict markers.
-  - Builds a bench via `.github/helper/install.sh`, installing frappe, payments, erpnext and healthcare on MariaDB 11.8.
-  - Runs `bench run-parallel-tests --app healthcare`. Coverage is uploaded to Codecov on non-PR runs.
-- `linters.yml` / `linters.v2.yml`: the pre-commit action (ruff, prettier, eslint, pip-audit, detect-secrets) plus Semgrep with the Frappe rules and `r/python.lang.correctness`.
-- `semantic-commits.yml`: checks that commit and PR titles are conventional.
-- `docs_checker.yml`: docs-link requirement for `feat` PRs.
-- `codeql.yml`: Python and JavaScript CodeQL on `develop`, plus a weekly run.
-- `labeller.yml`: auto-labels PRs, including `needs-tests`.
-- Dependabot is configured.
+  - Triggers on PRs (skipping css/js/md/html/csv-only changes) and nightly at 00:00 UTC.
+  - Steps: Python 3.14, Node 24, MariaDB 11.8 → `compileall` and a merge-conflict grep → `.github/helper/install.sh` (bench setup) → `bench run-parallel-tests --app healthcare`.
+  - Coverage goes to Codecov on non-PR runs only.
+- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus Frappe semgrep rules.
+- `semantic-commits.yml`: commitlint over the PR's commit range.
+- `docs_checker.yml`: `feat` PRs must link docs.
+- `codeql.yml`: Python and JS analysis on `develop` and weekly.
+- `labeller.yml`: auto-labels PRs.
 
-**Merging**: Mergify auto-merges after 1 approval and green CI, and handles backports to hotfix branches.
+**Release (inherited from upstream earthians):**
+- `initiate_release.yml` opens weekly `version-N-hotfix` → `version-N` PRs (v14/15/16).
+- `on_release.yml` runs `semantic-release` on pushes to `version-14/15/16`. Per `.releaserc`, it uses the angular preset (breaking changes do not trigger major releases), bumps `healthcare/__init__.py`, and commits `chore(release): Bumped to Version x.y.z`.
+- `release_notes.yml` strips chore/ci/test/docs/style lines from GitHub release notes.
+- `generate-pot-file.yml` regenerates translations weekly.
 
-**Release**
-- `initiate_release.yml` opens weekly PRs from `version-N-hotfix` → `version-N` for N = 14, 15, 16 (Tuesdays).
-- `on_release.yml` runs **semantic-release** (`.releaserc`) on pushes to version branches:
-  - Angular preset; breaking changes do not trigger a major release.
-  - Bumps `__version__` in `healthcare/__init__.py`.
-  - Commits `chore(release): Bumped to Version x.y.z` and creates a GitHub release.
-- `release_notes.yml` and `.github/release.yml`: changelog generation, excluding PRs labelled `skip-release-notes`.
-- `generate-pot-file.yml` regenerates translation strings weekly.
-- Deployment itself is outside this repo. Sites install the app with `bench get-app` and `install-app`, or through Frappe Cloud.
+**Fork caveats:**
+- Several workflows hardcode `earthians/biograph` and bot secrets (`EARTHIANS_BOT_TOKEN`).
+- The fork's `biograph-fh` branch has no CI run history.
+- Pushing changes to `.github/workflows/` requires a credential with `workflow` scope, which blocked one upstream pick (B2 #86).
+
+**Deploy:** via Frappe bench / Frappe Cloud (`bench get-app`, `install-app`, migrate runs `patches.txt` and `after_migrate`).
