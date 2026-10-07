@@ -8,18 +8,17 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
+  - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- The **README** links to the full user documentation on **DeepWiki** (`deepwiki.com/Tacten/biograph`) and to a Telegram community group.
-- **`wiki/`** holds the in-repo design and usage docs, written as Markdown with UPPER-KEBAB names:
-  - feature design: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`
-  - usage guides: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
-  - parity and implementation plans: `insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`
-  - the upstream sync ledger: `upstream-sync-version-16.md`
-- Images that go with a doc sit next to it (`patient-duplicatecheck-thumbnail.png`).
-- **Upstream-sync ledger convention:** each cherry-picked upstream commit gets a table row with `#`, upstream sha, subject, an outcome from a fixed vocabulary (`picked-clean`, `picked-with-conflict-resolution`, `already-present`, `skipped`) and notes. Ledger updates are committed as `docs(wiki): ...`.
-- **Docs check in CI:** `.github/workflows/docs_checker.yml` fails `feat` PRs unless the body links a `/wiki` page on `biograph.frappe.cloud` / `biograph.io`, or contains `no-docs` or `backport`.
-- The PR template asks for documentation updates and `closes #XXXX`.
+- **User and developer docs** live outside the repo. The README points to [DeepWiki](https://deepwiki.com/Tacten/biograph), and the Telegram group is the community channel.
+- **In-repo design and usage docs** are in `wiki/` as standalone Markdown files.
+  - Names are UPPER-KEBAB, for example `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`.
+  - Some files are descriptive, such as `FHIR Terminology Service Parity — Implementation Plan.md` and `insurance-parity-report.md`.
+  - Convention: a DESIGN doc plus a USAGE doc per larger feature. Images (thumbnails) sit next to the doc.
+- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` records each cherry-picked upstream commit and its outcome (`picked-clean`, `picked-with-conflict-resolution`, `already-present`, `skipped`). It also records lint baselines. Doc updates are committed as `docs(wiki): …`.
+- **PR docs gate:** `docs_checker.yml` runs `.github/helper/documentation.py`, which requires `feat` PRs to link a `/wiki` page on `biograph.frappe.cloud` or `biograph.io` unless the body contains `no-docs` or `backport`. The script queries the upstream `earthians/biograph` repo.
+- The PR template asks contributors to "Update necessary Documentation" and add `closes #XXXX`.
+- Python code uses short docstrings on helpers and inline `#` comments for intent. Legacy files carry copyright headers.
