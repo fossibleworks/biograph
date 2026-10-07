@@ -4,24 +4,21 @@ category: performance
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
+  - healthcare/healthcare/api/patient_portal.py
   - healthcare/hooks.py
-  - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - patient_portal/vite.config.js
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
 ---
 
-# Performance-sensitive areas
+These paths are likely to be performance-sensitive:
 
-- **Appointment scheduling and slot availability** (`patient_appointment.py`, about 1,900+ lines). It computes availability, overlaps, capacity, holidays and recurring appointments, and the portal calls it for slot lists. Avoid per-slot DB queries. Batch with `frappe.get_all` and filters.
-- **Scheduler jobs** in `hooks.py`:
-  - `send_appointment_reminder` runs on **every** scheduler tick (`all`).
-  - Daily jobs scan appointments, fee validity, inpatient records (occupancy billables) and medication requests.
-  - These jobs must stay cheap and use indexed filters.
-- **Bulk operations**, such as recurring appointment creation and sample collection, already go through `frappe.enqueue`. Push new long-running work to background jobs too.
-- **Billing paths**: Sales Invoice / Payment Entry overrides and `get_healthcare_services_to_invoice` run on every invoice.
-- **Reports and dashboards**: `report/` (appointment analytics, diagnosis trends, lab test report) and `dashboard_chart_source/` aggregate over large tables. Prefer SQL aggregation (`frappe.qb`/`frappe.db.sql`) over Python loops.
-- **Patient Portal bundle**: Vite build targets es2015 with sourcemaps. Keep dependencies lean.
-- There are about 318 raw `frappe.db.sql` / `get_all` / `get_list` call sites. Watch for N+1 queries inside loops.
+- **Patient Portal API** (`healthcare/healthcare/api/patient_portal.py`). This is the densest query module. It runs `frappe.qb` joins across Patient Appointment, Patient Encounter, observations and the patient's relations on every portal page load. Keep queries set-based, select only the fields needed, and avoid per-row `get_doc` calls.
+- **Appointment scheduling and validation** (`patient_appointment.py`). It checks overlaps, capacity and practitioner availability on every booking. The `send_appointment_reminder` scheduler job runs on the `all` (every-tick) schedule, so keep it cheap and incremental.
+- **Daily scheduler jobs:** appointment status updates, fee validity, inpatient billables for occupied service units and expired medication requests. These walk potentially large tables, so batch them and filter by indexed fields.
+- **Inpatient records:** billing and service-unit occupancy across long stays.
+- **Reports** in `healthcare/healthcare/report/` (diagnosis trends, appointment analytics, medication sales) run aggregate queries over large date ranges.
+- **`doc_events` on `'*'` and on Sales Invoice/Payment Entry** in `hooks.py` run on hot ERPNext transaction paths. Keep those handlers lightweight.
+- Use `frappe.enqueue` for long-running work instead of blocking request handlers.
