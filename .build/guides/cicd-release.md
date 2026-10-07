@@ -1,5 +1,5 @@
 ---
-title: CI/CD and release
+title: CI/CD & release
 category: cicd-release
 layer: project
 applies_to: []
@@ -9,37 +9,32 @@ source: inferred
 evidence:
   - .github/workflows/ci.yml
   - .github/workflows/linters.v2.yml
+  - .github/workflows/codeql.yml
   - .github/workflows/on_release.yml
-  - .releaserc
   - .github/workflows/initiate_release.yml
   - .github/workflows/release_notes.yml
+  - .releaserc
   - .github/helper/install.sh
-  - .mergify.yml
   - .github/dependabot.yml
 ---
 
-# CI/CD and release
+**On PRs:**
+- `ci.yml` runs the server tests. It sets up MariaDB 11.8, Python 3.14, and Node 24, runs `.github/helper/install.sh` to build a frappe-bench with erpnext, and runs `run-parallel-tests`. It is skipped for PRs that change only css/js/md/html/csv and for `version-*-beta` branches. It also runs nightly at 00:00 UTC, uploading coverage to Codecov on non-PR runs.
+- `linters.yml` and `linters.v2.yml` run pre-commit and Semgrep (Frappe rules plus python correctness). v2 also runs on push.
+- `semantic-commits.yml` lints commit messages.
+- `docs_checker.yml` requires a docs link for `feat` PRs.
+- `labeller.yml` applies labels such as `needs-tests`.
+- `codeql.yml` runs CodeQL for python and javascript on `develop` and weekly.
 
-## On pull requests
-| Workflow | What it does |
-|---|---|
-| `ci.yml` (Server Tests) | Runs `compileall` and a merge-marker check. Bootstraps a bench (`.github/helper/install.sh`, MariaDB 11.8, frappe/erpnext/payments on the base branch, or `version-16` for fork branches like `biograph-fh`/`goal/*`). Then runs `bench run-parallel-tests --app healthcare`. Skips PRs that only touch js/css/md/html/csv and `version-*-beta` branches. Also runs nightly at 00:00 UTC with coverage → Codecov. |
-| `linters.yml` / `linters.v2.yml` | pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, basic checks) + semgrep with Frappe rules and `r/python.lang.correctness`. |
-| `semantic-commits.yml` | commitlint over the PR commit range. |
-| `docs_checker.yml` | `feat` PRs must link docs. |
-| `codeql.yml` | CodeQL for python and javascript (PRs and pushes to develop, weekly). |
-| `labeller.yml` | Adds a `needs-tests` label. |
-
-Mergify merges once there is at least 1 approval and CI passes, using merge or squash depending on the label.
-
-## Release (upstream model)
-- `initiate_release.yml` (weekly, Tue 09:30 UTC): opens `version-NN-hotfix` → `version-NN` PRs for 14/15/16.
-- `on_release.yml`: runs semantic-release on pushes to `version-14/15/16`. It uses the angular preset (breaking changes do not trigger major bumps), rewrites the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
-- `release_notes.yml`: regenerates notes and strips chore/ci/test/docs/style entries. The `skip-release-notes` label excludes a PR.
-- `generate-pot-file.yml` (weekly): refreshes `main.pot`. Crowdin opens translation PRs.
+**Release (inherited from upstream earthians and aimed at earthians/biograph):**
+- `initiate_release.yml` opens weekly `version-N-hotfix` → `version-N` PRs for 14, 15, and 16.
+- `on_release.yml` runs `npx semantic-release` on pushes to `version-14/15/16`. `.releaserc` uses the angular preset with breaking changes set to not trigger releases, bumps `healthcare/__init__.py`, and commits `chore(release): Bumped to Version x`.
+- `release_notes.yml` strips chore/ci/test/docs/style entries from the GitHub release notes.
+- `generate-pot-file.yml` regenerates the POT file weekly.
 - Dependabot is configured.
 
-## Fork notes
-- Several workflows still point at `earthians/biograph` (release, docs checker) and at the `develop` branch. On `fossibleworks/biograph`, the `biograph-fh` trunk has no CI run history.
-- Workflow-file edits need a push credential with `workflow` scope (upstream sync B2 #86 was skipped for this reason).
-- Deployment is to Frappe Cloud or a bench (`bench get-app` / `install-app`, then `bench migrate` runs `patches.txt`).
+**Notes for the fork:**
+- Many workflows hard-code `earthians/biograph` and earthians secrets.
+- `fossibleworks/biograph` has never run `ci.yml` on `biograph-fh`.
+- Deployment is via bench / Frappe Cloud, not a CD pipeline in this repo.
+- Editing workflow files needs a credential with `workflow` scope (the ledger records upstream #86 as skipped for this reason).
