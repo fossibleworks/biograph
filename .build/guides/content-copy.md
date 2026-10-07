@@ -8,22 +8,19 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/observation.js
-  - healthcare/public/js/utils.js
-  - patient_portal/src/components/AppointmentModel.vue
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/healthcare/utils.py
+  - healthcare/locale/main.pot
   - crowdin.yml
 ---
 
-**Tone:** plain, direct and clinical-administrative. It is short, polite and has no jokes. Errors state the problem or rule ("Appointment end must be after start.", "Appointment Date and Time are required."). Some errors end with "!" for emphasis ("Patient already has an appointment booked for the same day!").
+**Tone:** short, plain and clinical-administrative. Messages state the problem directly and usually as a full sentence ending in a period. Exclamation marks show up only for warnings about blocked actions ("Patient already has an appointment booked for the same day!").
 
-**Terminology** (match the DocType names, in Title Case): Patient, Healthcare Practitioner (shortened to "Practitioner" in the portal), Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Medical Department, Lab Test, Sample Collection, Observation, Diagnostic Report, Clinical Procedure, Therapy Plan, Fee Validity, Insurance Payor, Healthcare Settings. Use "Appointment", "Encounter" and "Prescription" consistently.
+**Terminology:** use the domain DocType names in Title Case exactly as they are defined: *Patient*, *Healthcare Practitioner*, *Patient Appointment*, *Patient Encounter*, *Clinical Procedure*, *Nursing Task*, *Healthcare Service Unit*, *Medical Department*, *Fee Validity*, *Code Value*, *Insurance Payor*. Workflow status values are quoted in messages ("Not Allowed to 'Complete' Nursing Task without linking Task Document").
 
-**Patterns**
-- Buttons and dialog titles are short verb phrases in Title Case: "Create", "Edit", "Add Observation", "Edit Observation", "Book an Appointment".
-- Error dialog titles are short noun phrases: `title=_("Missing Configuration")`.
-- Dynamic values use positional placeholders: `__("Mismatch in Code-data for row {0}", [row.idx])`, `_("... {0}").format(...)`. Never concatenate translated fragments.
-- Portal empty states: a heading plus one friendly sentence ("No Records Found" / "Looks like you don't have any appointments yet.").
-- Portal section labels are Title Case nouns: "Available Slots", "Appointment Details", "Test Report Details", "Payment Successful".
+**Patterns:**
+- Errors: `_("Appointment end must be after start.")`, `_("Invalid Code Value: {0}")`, `_("{0} is a holiday")`. Titles name the category, for example `"Missing Configuration"`.
+- Buttons and actions: short Title Case verbs or verb phrases, such as `__("Book")`, `__("Check In")`, `__("Create Nursing Tasks")`, `__("Cancel Admission")`, `__("Confirm")`.
+- Confirmations are phrased as questions ("Are you sure you want to book this time block appointment?"). Progress text uses an ellipsis ("Checking for conflicts...").
+- Portal headings are Title Case ("Book an Appointment", "Available Slots", "Pay Your Bill", "Payment Successful"). The empty state is "No Records Found".
 
-**Translation:** all desk strings go through `_()` / `__()`. They are extracted weekly to `healthcare/locale/main.pot` and translated in Crowdin. Note that portal Vue templates currently use hard-coded English.
+All copy must be translatable: `_()` in Python and `__()` in JS, with positional `{0}` placeholders. Translations flow through `healthcare/locale/main.pot` and Crowdin.
