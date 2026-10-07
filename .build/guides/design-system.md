@@ -8,13 +8,11 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/src/patient_portal.js
   - patient_portal/vite.config.js
+  - patient_portal/src/PatientPortal.vue
+  - patient_portal/src/components/BookAppointmentModel.vue
 ---
 
-- **Desk UI.** Use Frappe Desk's built-in form, list, tree and calendar views, dialogs (`frappe.ui.Dialog`), and HTML templates (`healthcare/public/js/*.html`, e.g. `observation.html` and `healthcare_orders.html`). Do not add a separate CSS framework to Desk.
-- **Patient Portal.** **frappe-ui** is both the component library and the token source. Tailwind uses `presets: [frappeUIPreset]` from `frappe-ui/tailwind`, and the only extras are legacy color aliases (lightBlue, warmGray, trueGray, coolGray, blueGray).
-  - Globally registered components: `Button`, `Dialog`, `Badge`, `Card`, `Tooltip`, `FeatherIcon`.
-  - Icons come from feather-icons and lucide (`lucideIcons: true` in the Vite plugin).
-  - Style with Tailwind utility classes from the frappe-ui preset, not custom CSS. `src/index.css` holds the Tailwind entry.
-  - Feature components live in `src/components` (e.g. `BookAppointmentModel.vue`, `PractitionerSelector.vue`, `Payment.vue`).
+- **Desk (staff) UI:** use Frappe's standard form and list framework. Doctype layouts are defined in each doctype's `.json`. Custom UI goes in form scripts and shared widgets in `healthcare/public/js` (for example `observation_widget.js`, `healthcare_orders.html`, `healthcare_note.html`), built with `frappe.ui.Dialog`, form fields and Frappe styles. Do not add a separate CSS framework to Desk.
+- **Patient Portal:** use the **frappe-ui** component library (`Button`, `Dialog`, `Tabs`, `createResource`, `variant="solid|subtle"`, `size="md"`). Tokens come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`), extended only with legacy Tailwind colour aliases (lightBlue, warmGray, and so on). Icons are Lucide (`lucideIcons: true` in the Vite plugin) plus feather-icons. Style with Tailwind utility classes in templates. Global CSS is limited to `src/index.css`.
+- Portal components live in `patient_portal/src/components/*.vue` and are named in PascalCase, often with a `...Model.vue` suffix for dialogs (for example `BookAppointmentModel.vue`).
