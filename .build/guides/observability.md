@@ -4,31 +4,19 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
   - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
-  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
   - .pre-commit-config.yaml
-  - codecov.yml
 ---
 
-The project has no dedicated metrics or tracing stack. Observability relies on Frappe's built-in facilities:
+Observability relies only on Frappe's built-in facilities. There is no metrics or tracing library.
 
-- **Error Log doctype through `frappe.log_error`** (about 24 call sites). This is the main mechanism. Pass the traceback and a short, translated, human-readable title:
-  ```python
-  frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
-  frappe.log_error(error_msg, "Unavailability Calendar Event Error")
-  frappe.log_error(title="Error renaming DocType to Time Block Practitioner Availability")
-  ```
-- **`frappe.logger()`** is used sparingly, mainly in patches, for info and error lines, as in `setup_patient_duplicate_check_rules.py`.
-- Background jobs (`frappe.enqueue`) and scheduler events show up in Frappe's RQ Job and Scheduled Job Log.
-- **Coverage reporting:** Codecov, on scheduled CI runs.
-- **Auditability** comes from Frappe document versioning and Patient Medical Record entries written by the `doc_events` hooks.
-
-**Conventions**
-- Log failures in side-effect paths (SMS, notifications, calendar sync, migrations) rather than letting them raise.
-- Use a stable, descriptive Error Log title so that entries can be grouped.
-- Do not use `print()`. The `debug-statements` pre-commit hook blocks pdb and breakpoint.
-- Never log PHI beyond what the Error Log needs. This is a healthcare system.
+- **`frappe.log_error`** writes to the Error Log doctype. It is the main way failures in background and side-effect code get recorded (about 15 call sites). Use a human-readable, translated title and include `frappe.get_traceback()` in the message.
+- **`frappe.logger()`** has a few `.info`/`.error` calls in setup and patch code, plus one parse failure in `patient_appointment.py`. It goes to bench log files.
+- **Realtime progress:** `frappe.publish_realtime` for long-running jobs.
+- **Coverage reporting:** Codecov on non-PR CI runs.
+- About 39 stray `print(` calls exist, mostly in setup and patches. The `debug-statements` pre-commit hook guards against debugger leftovers. Prefer `frappe.logger()` over `print` in new code.
