@@ -8,25 +8,17 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/public/js/sales_invoice.js
-  - healthcare/public/js/observation_widget.js
-  - patient_portal/src/components/Payment.vue
-  - healthcare/patches.txt
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
+  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
+  - healthcare/healthcare/utils.py
   - healthcare/locale/main.pot
 ---
 
-**Tone**: plain, direct and clinical-administrative. Messages are short sentences in sentence case with a final period or `!`.
-- "Appointment end must be after start."
-- "Patient already has an appointment booked for the same day!"
-- "Please select a Patient to be invoiced"
-
-**Conventions**
-- Refer to records by their DocType name in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Healthcare Service Unit, Lab Test, Sales Invoice. Bold the specific record with `frappe.bold()` or `<b>{0}</b>`.
-- Instructions use "Please select …" or "Please set …".
-- Configuration errors use the dialog title "Missing Configuration".
-- Button and action labels are Title Case verbs: "Get Items From", "Add Observation", "Edit Observation", "Create", "New Service Request".
-- Empty states are short noun phrases, for example "No Observations".
-- Portal copy speaks to the patient in the second person: "Pay Your Bill", "Consultation with {{ practitioner }}", "One-time registration for new patients".
-- Domain terms follow FHIR and HIS vocabulary: Encounter, Observation, Service Request, Diagnostic Report, Practitioner, Service Unit, Fee Validity, Inpatient Record.
-- The product name is **Biograph**. Older "Marley" branding was replaced by the `rebrand_marley_to_biograph` patch.
-- All strings must be translatable (`_()` / `__()`). They flow into `healthcare/locale/main.pot` for Crowdin.
+- **Tone:** short, direct, and declarative. Copy often ends with a period, and occasionally uses `!` for conflicts ("Patient already has an appointment booked for the same day!").
+- **Terminology:** use Title Case domain/DocType nouns exactly as defined: Patient, Healthcare Practitioner, Patient Appointment, Inpatient Record, Healthcare Service Unit, Medical Department, Lab Test, Observation, Clinical Procedure, Therapy Session, Insurance Payor, Fee Validity. The product name is **Biograph**; Marley branding was replaced (see the `rebrand_marley_to_biograph` patch).
+- **Patterns:**
+  - Field-constraint errors: "Appointment end must be after start.", "Expected and Discharge dates cannot be less than Admission Schedule date".
+  - Row errors are prefixed `Row #{0}:`.
+  - Missing setup errors use the title "Missing Configuration".
+  - Action buttons are concise verbs: Reschedule, Confirm, Check In, Make Payment, grouped under menus like "Status".
+- **i18n:** every string goes through `_()` / `__()` with positional `{0}` placeholders, so translators get `healthcare/locale/main.pot`. Don't build sentences by concatenating translated fragments.
