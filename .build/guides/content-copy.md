@@ -8,20 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/utils.py
-  - healthcare/public/js/mark_unavailable.js
-  - healthcare/locale/main.pot
+  - healthcare/healthcare/doctype/patient_encounter/patient_encounter.py
+  - patient_portal/src/components/Payment.vue
+  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
   - crowdin.yml
-  - patient_portal/src/components/AppointmentModel.vue
+  - healthcare/locale/main.pot
 ---
 
-- **All copy is translatable:** wrap it in `_()` in Python and `__()` in JS/Jinja. Strings are harvested into `healthcare/locale/main.pot` and translated via Crowdin (`crowdin.yml`).
-- **Tone:** short, direct and factual. Use sentence-style messages that name the DocType and field in Title Case.
-  - Validation: "Appointment end must be after start.", "Appointment Date and Time are required.", "Registration Fee cannot be negative or zero", "Configure a service Item for {0}".
-  - Not-allowed: "Not Allowed to cancel Nursing Task with status 'Completed'".
-  - Confirmation: "Are you sure you want to mark this time as unavailable?"
-  - Progress: "Creating unavailability record..."
-  - Dialog titles: "Missing Configuration".
-- **Placeholders:** use positional `{0}` with `.format()`. Never use f-strings inside `_()`.
-- **Terminology:** use the domain DocType names consistently: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Inpatient Record, Lab Test, Observation, Diagnostic Report, Fee Validity, Insurance Payor. The product name is **Biograph** (rebranded from Marley via the `rebrand_marley_to_biograph` patch).
-- **Buttons:** short verbs, e.g. "Create", "Cancel", "Book", "Add Observation", "Get Items From". Statuses are Title Case ("On Hold", "Invoiced", "Active").
+- **Tone:** short, plain, clinical-administrative sentences that end with a period, for example "Appointment Cancelled.", "Appointment end must be after start.", "Appointment Date and Time are required." and "Patient already has an appointment booked for the same day!". Exclamation marks are rare.
+- **Titles and labels** use Title Case: "Missing Configuration", "Not Allowed", "Mandatory", "Mark Unavailable", "Therapy Session", "Entered In Error".
+- **Interpolate record names** with `{0}` placeholders and bold them, for example `_("Therapy Plan {0} created successfully.").format(frappe.bold(doc.name))`. In JS use `__("{0} medication orders completed", [n])`.
+- **Terminology:** follow the domain DocType names exactly: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Fee Validity, Lab Test, Observation, Therapy Plan, Insurance Payor. FHIR-style status values include "Entered In Error". The product name is **Biograph**; a v16 patch rebranded it from Marley.
+- **Patient Portal copy** speaks to patients in friendly second person: "Pay Your Bill", "Details of fees", "Consultation with {{ practitioner }}", "One-time registration for new patients".
+- **Translation:** every string must go through `_()` / `__()`. They are extracted into `healthcare/locale/main.pot` and translated via Crowdin (`crowdin.yml`). Portal Vue templates currently hard-code English.
