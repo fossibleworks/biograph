@@ -8,23 +8,15 @@ binding: required
 source: inferred
 evidence:
   - healthcare/tests/utils.py
-  - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
   - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - healthcare/tests/test_utils.py
   - .github/workflows/ci.yml
   - codecov.yml
-  - .github/labeler.yml
 ---
 
-- **Framework**: Frappe's unittest-based runner. Tests subclass `HealthcareTestSuite` from `healthcare/tests/utils.py`. That class extends ERPNext's `ERPNextTestSuite`.
-- **Shared fixtures**: `BootStrapTestData` in `healthcare/tests/utils.py` creates master data. This includes company, service items, patients, practitioners, service units, templates and insurance payors, using `_Test …` names.
-- **Layout**: one `test_<doctype>.py` inside each DocType folder, about 85 test files. Cross-cutting tests live in `healthcare/tests/` and `healthcare/healthcare/custom_doctype/test_sales_invoice.py`.
-- **Style**:
-  - Clean up in `setUp` with `frappe.db.sql("delete from `tab…`")`.
-  - Configure `Healthcare Settings` inside the test.
-  - Reuse factory helpers exported by other tests, for example `create_appointment` from `test_patient_appointment`.
-  - Assert on DB state with `frappe.db.get_value` and `self.assertEqual` / `self.assertTrue`.
-- **Running**: `bench --site test_site run-parallel-tests --app healthcare` in CI. This runs against MariaDB with ERPNext and payments installed.
-- **Coverage expectations**:
-  - Codecov patch target is **85%** on PRs to `develop`. The project threshold is 0.5%.
-  - Coverage is uploaded only on non-PR (scheduled) runs.
-  - The labeler adds `needs-tests` when a PR changes `healthcare/**/*.py` without touching any `test*.py`.
+- **Framework:** Frappe/ERPNext test runner, built on unittest. Test classes extend `HealthcareTestSuite` (in `healthcare/tests/utils.py`), which subclasses ERPNext's `ERPNextTestSuite`.
+- **Fixtures:** `BootStrapTestData` creates shared master data (company, service items, patients, practitioners, service units, templates, insurance payors) via `make_records`. `_Test …` naming is used for fixture records (e.g. `_Test Company`, `_Test Insurance Payor`). Reuse these builders rather than creating ad-hoc fixtures.
+- **Layout:** each doctype keeps its test next to its code (`doctype/<name>/test_<name>.py`). There are about 85 test files. Cross-cutting tests live in `healthcare/tests/` (e.g. `test_utils.py`).
+- **Running:** `bench --site test_site run-parallel-tests --app healthcare` in CI. This needs a bench site with ERPNext and a MariaDB instance.
+- **Coverage:** captured on non-PR (scheduled) runs and uploaded to Codecov. `codecov.yml` sets the patch target at **85%** on PRs to develop and allows the project to drop at most 0.5%.
+- **Baseline caveat:** the fork has no CI baseline for `biograph-fh` (see `wiki/upstream-sync-version-16.md`), so compare test failures against a locally recorded baseline.
