@@ -4,31 +4,40 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/utils.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/regional/india/abdm/utils.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
+  - healthcare/patches/v15_0/check_version_compatibility_with_frappe.py
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-**Validation and user errors:** use `frappe.throw` (about 181 call sites). It raises `frappe.ValidationError` (or a subclass) and shows the message to the user.
+**Validation errors go to the user through `frappe.throw`** (about 180 call sites). Always translate the message:
 ```python
-frappe.throw(_("Appointment end must be after start."))
-frappe.throw(msg, title=_("Missing Configuration"))
-frappe.throw(_("Patient already has an appointment booked for the same day!"), OverlapError)
+frappe.throw(_("Please set {0} in Healthcare Settings").format(...), title=_("Missing Configuration"))
 ```
-- Always translate messages with `_()`. Pass a `title=` for configuration problems. When the fix is a settings change, link to it with `get_link_to_form("Healthcare Settings", "Healthcare Settings")`.
-- Define domain-specific exception classes, such as `OverlapError` in patient_appointment, when callers or tests need to catch them.
-- Business rules and validation belong on the **server**, in controller `validate`/`before_submit` methods. The PR template says so explicitly.
-- Use `frappe.msgprint` for non-blocking warnings.
+- Pass a `title=_()` for a categorised dialog. Use "Missing Configuration" for settings that have not been set.
+- When callers or tests need to catch a specific error type, define a subclass of `frappe.ValidationError` in the controller module, as with `MaximumCapacityError` and `OverlapError` in `patient_appointment.py` and `insurance_payor_contract.py`. Raise it with `frappe.throw(msg, OverlapError)`.
+- Validation belongs in controller hooks (`validate`, `before_submit`, `on_cancel`) or in the `doc_events` handlers in `hooks.py`, not in the client. The PR template says: "All business logic and validations must be on the server-side."
 
-**Background and integration failures:** catch the exception, log it with `frappe.log_error(frappe.get_traceback(), _("<Short Title>"))` (about 15 call sites), and carry on when the failure must not block the main transaction. Examples are notifications (`Appointment Confirmation Message Not Sent`), calendar events and patches.
+**Non-fatal failures** in background or side-effect work (SMS, calendar events, notifications, patches) are caught and recorded, so they don't block the transaction:
+```python
+try:
+	...
+except Exception:
+	frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
+```
+The user is then told through `frappe.msgprint(_(...))`.
 
-**External HTTP (ABDM):** call `response.raise_for_status()` inside `try`, record each request/response in an `ABDM Request` doc for auditing, and handle `json.decoder.JSONDecodeError` separately.
+**Informational messages** use `frappe.msgprint(_("Sales Invoice {0} created").format(...))`.
 
-**Client-side:** use `frappe.msgprint(__("..."))` / `frappe.throw` in form scripts for guard conditions. The server's thrown messages reach the UI automatically through `frappe.call`.
+**Client side:** desk JS shows errors with `frappe.msgprint`/`frappe.throw` and wraps strings in `__()`.
 
-**Avoid:** `print(...)`-based error output. `patient_appointment.py` contains `print(f"ERROR - ...")` / `DEBUG` prints, which is legacy and should not be copied. Also avoid bare `except Exception` that swallows the error without `log_error`.
+**Do not:**
+- swallow exceptions without `frappe.log_error`
+- use bare `except:`
+- show untranslated messages
+
+If a `frappe.throw` is deliberate in a place Semgrep flags, annotate it with `# nosemgrep`, as in `check_version_compatibility_with_frappe.py`.
