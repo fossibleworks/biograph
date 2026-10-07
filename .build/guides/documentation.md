@@ -9,17 +9,18 @@ source: inferred
 evidence:
   - README.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - .github/helper/documentation.py
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - .github/workflows/docs_checker.yml
+  - .github/helper/documentation.py
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **Public documentation:** the README points to DeepWiki (deepwiki.com/Tacten/biograph) and a Telegram group.
-- **In-repo design and usage docs:** these live in `wiki/` as UPPER-KEBAB markdown, for example:
-  - `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`
-  - `BLOCK-APPOINTMENT-BOOKING-USAGE.md`
-  - `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
-  - implementation plans and parity reports
-- **Upstream sync ledger:** `wiki/upstream-sync-version-16.md` is a running record of every cherry-picked upstream commit, in tables per batch. Outcomes use a fixed vocabulary: picked-clean, picked-with-conflict-resolution, already-present, skipped. Update it as `docs(wiki): …` commits.
-- **PR docs gate:** `docs_checker.yml` fails any `feat` PR whose body has no docs link (a `/wiki` URL on biograph.frappe.cloud or biograph.io) unless the body says `no-docs` or `backport`.
-- **PR template:** asks for a description, screenshots and `closes #XXXX`.
+- **README.md** covers the product overview, installation through bench, development (pre-commit and semgrep), and links. End-user documentation is hosted externally on DeepWiki (`deepwiki.com/Tacten/biograph`).
+- **`wiki/`** holds in-repo markdown for fork-specific features and engineering records:
+  - Design docs, in UPPER-KEBAB file names: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`
+  - Usage guides: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
+  - Plans and reports: `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`
+  - The upstream sync ledger `upstream-sync-version-16.md`. It records every cherry-picked upstream commit with an outcome (picked-clean / picked-with-conflict-resolution / already-present / skipped) and notes. Commits that update it use `docs(wiki): …`.
+- **PR-level docs gate** (upstream workflow `docs_checker.yml`): a PR whose title starts with `feat` must link a docs page (a `/wiki` path on an allowed docs host), or say `no-docs` or `backport` in its body.
+- The PR template asks contributors to "Update necessary Documentation" and to follow the ERPNext docs page format.
+- Code comments are sparse. Docstrings are uncommon except in newer modules such as the `setup/` and duplicate-check code.
