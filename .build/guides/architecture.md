@@ -8,38 +8,38 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/hooks.py
-  - healthcare/healthcare/api/patient_portal.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - patient_portal/vite.config.js
-  - pyproject.toml
+  - healthcare/healthcare/api/patient_portal.py
+  - healthcare/tests/utils.py
   - healthcare/patches.txt
 ---
 
-The repo is a single **Frappe app** (`healthcare`) plus a separate Vue SPA.
+The repo root is the Frappe app `healthcare`, and it is installed into a bench next to frappe and erpnext.
 
 ```
-healthcare/                 # Frappe app package (installed via bench)
-  hooks.py                  # wiring: doc_events, scheduler_events, override_doctype_class, jinja, portal
+healthcare/                 # Python package (app root)
+  hooks.py                  # wiring: doc_events, scheduler_events, override_doctype_class, standard_queries, doctype_js
   healthcare/               # the "Healthcare" module
     doctype/<snake_name>/   # one folder per DocType: .json schema, .py controller, .js form script, test_*.py
-    custom_doctype/         # overrides/extensions of ERPNext doctypes (Sales Invoice, Payment Entry)
-    api/patient_portal.py   # @frappe.whitelist() endpoints used by the Vue portal
-    report/, page/, web_form/, workspace/, dashboard_chart*/, number_card/, print_format/
-    utils.py                # shared server helpers (invoicing, service unit tree, barcodes)
-  regional/india/abdm/      # regional integration (ABDM)
-  controllers/              # shared controllers/queries
-  patches/ + patches.txt    # data migrations, versioned v0_0 / v15_0 / v16_0
-  public/js/                # desk JS (healthcare.bundle.js, shared utils/widgets)
-  public/frontend/          # built Patient Portal assets (generated)
-  www/                      # website routes (patient_portal.html/.py, patient-portal)
+    api/patient_portal.py   # whitelisted endpoints used by the portal
+    custom_doctype/         # overrides of ERPNext doctypes (sales_invoice.py, payment_entry.py)
+    report/, page/, dashboard_chart_source/, number_card/, workspace/, print_format/, web_form/
+    utils.py                # shared helpers (billing, settings lookups)
+  controllers/              # cross-doctype controllers (queries.py, service_request_controller.py)
+  regional/                 # country-specific logic
+  patches/ + patches.txt    # data migrations (v15_0, v16_0 ...)
+  setup.py, install.py, after_migrate.py, uninstall.py
+  public/js/                # desk JS bundle and doctype_js includes
+  www/                      # web routes (patient_portal.html/.py, patient-portal)
   tests/utils.py            # BootStrapTestData + HealthcareTestSuite
-patient_portal/             # Vue 3 + frappe-ui SPA source, built by Vite into healthcare/
+  locale/main.pot           # translations source
+patient_portal/             # Vue 3 + frappe-ui SPA; Vite builds into healthcare/public/patient_portal/assets, served via healthcare/www/patient_portal.html
 wiki/                       # design docs, usage docs, upstream-sync ledger
 ```
 
-**How the pieces depend on each other**
-- `healthcare` depends on **frappe** and **erpnext**. It extends ERPNext through `hooks.py`: `override_doctype_class` (HealthcareSalesInvoice), `doc_events` on Sales Invoice, Payment Entry, Company and `*` (medical record creation on submit), `doctype_js` for ERPNext forms, and `scheduler_events` (appointment reminders, daily status updates).
-- DocType controllers call each other through module paths (`healthcare.healthcare.doctype.<x>.<x>`) and shared helpers in `healthcare.healthcare.utils`.
-- The **Patient Portal** SPA calls whitelisted methods in `healthcare/healthcare/api/patient_portal.py` through the frappe-ui resources and proxy. Vite writes its build into the app, and `healthcare/www/patient_portal.html` serves it.
-- Import order (ruff isort sections): stdlib, then third-party, then `frappe`, then `erpnext`, then `healthcare`.
-
-Put new domain logic in the doctype controller that owns it. Wire cross-doctype or ERPNext reactions through `hooks.py` instead of changing ERPNext.
+**How the parts call each other:**
+- DocType controllers import each other directly by module path, for example `patient_appointment.py` imports from `fee_validity`, `healthcare_settings` and `api.patient_portal`.
+- ERPNext integration goes through `hooks.py`: `doc_events` and `override_doctype_class` (for example Sales Invoice) plus ERPNext imports such as `erpnext.setup.doctype.employee.employee`.
+- The Vue portal calls whitelisted Python methods through frappe-ui resources and uses a socket.io client (`src/socket.js`).
+- Background work runs through `frappe.enqueue` and `scheduler_events`.
