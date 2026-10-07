@@ -1,5 +1,5 @@
 ---
-title: Content and copy
+title: Content & copy
 category: content-copy
 layer: project
 applies_to: []
@@ -9,20 +9,17 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/utils.py
-  - crowdin.yml
+  - healthcare/healthcare/doctype/patient/patient.js
+  - healthcare/locale/main.pot
 ---
 
-# Content & copy
-
-- **Terminology** follows DocType names in Title Case:
-  - Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Fee Validity, Lab Test, Observation, Service Request, Insurance Payor.
-  - In messages, write "Practitioner", not "doctor", and "Service Unit", not "room".
-  - Healthcare Settings is the configuration doc.
-- **Errors** are short, plain sentences ending with a period (sometimes "!"). They state the problem or the fix. Examples:
-  - "Appointment end must be after start."
-  - "Configure a service Item for {0}"
-  - "Patient already has an appointment booked for the same day!"
-  - Titles: "Missing Configuration", "Not Available".
-- **Desk actions** use Title Case verb phrases: "Add Observation", "Get Items From", "Get Items from Healthcare Services". Prompts read like "Please select a Patient to be invoiced".
-- **Portal copy** uses Title Case headings and buttons: "Book an Appointment", "Available Slots", "Pay Your Bill", "Payment Successful". The empty state is "No Records Found".
-- Every string must be translatable: `_()` in Python, `__()` in JS. Strings flow into `healthcare/locale/main.pot` and Crowdin. Use `{0}` placeholders instead of string concatenation.
+- **Tone:** direct, short and operational, written for clinical and admin staff. Sentences usually end with a period, and an exclamation mark appears only on hard conflicts (`'Patient already has an appointment booked for the same day!'`).
+- **Patterns:**
+  - Blocking rules start with `'Not allowed, ...'`, for example `'Not allowed, cannot overlap appointment {}'`.
+  - Prompts take the form `'Please enter {}'`.
+  - Required fields: `'Appointment Date and Time are required.'`.
+  - Configuration gaps use the title `'Missing Configuration'`.
+  - Escalation: `'..., please contact System Manager'`.
+- Interpolate record names and values with `.format()` and wrap them in `frappe.bold()`. Always wrap strings in `_()` / `__()` so they reach `locale/main.pot`.
+- **Terminology** (use the DocType names exactly, in Title Case): Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Inpatient Record, Lab Test, Observation, Service Unit, Medical Department, Therapy Plan, Fee Validity, Service Request. The product name is **Biograph**.
+- Portal button labels are short verbs (`'Book'`).
