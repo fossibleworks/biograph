@@ -8,14 +8,19 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
+  - .github/workflows/codeql.yml
   - .pre-commit-config.yaml
 ---
 
-Observability uses Frappe's built-in facilities only. There are no metrics or tracing libraries.
+# Observability
 
-- **`frappe.log_error`** (about 15 call sites) writes to the Error Log doctype. Use it for failures that should not abort the user's action: notification sends, calendar-event sync, sample collection, and patches. Give it a clear, translated title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(message=e, title="Failed to mark Collected!")`.
-- **`frappe.logger()`** writes to file logs at `.info` / `.error`. It is used sparingly, e.g. for unparseable appointment times and patch progress.
-- Do not use `print` or debug statements. The pre-commit `debug-statements` hook rejects leftover `pdb`/`breakpoint`.
-- CI coverage goes to Codecov. CodeQL and semgrep provide security signals.
+There is no external metrics or tracing stack. The app relies on Frappe's built-in facilities:
+
+- **`frappe.log_error(...)`** (about 15 uses) writes to the **Error Log** doctype. This is the main way failures are recorded. Pass a traceback plus a short translated title: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
+- **`frappe.logger()`** (about 9 uses) writes file logs for setup and patch progress: `frappe.logger().info("Starting patient duplicate check rules setup")` and `.error(...)` for parse failures.
+- **Audit trail.** Patient medical-record history comes from the `doc_events` hooks (Patient History Settings). Status fields (`status`, `submitted_date`) are set with `db_set` on lifecycle events.
+- **CI-level signals:** Codecov coverage, CodeQL (python and javascript), and Semgrep.
+
+Do not use `print()` for diagnostics. The `debug-statements` pre-commit hook blocks debugger calls.
