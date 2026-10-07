@@ -8,18 +8,21 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
   - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-- **User-facing docs** are external: README links to DeepWiki (`deepwiki.com/Tacten/biograph`). The upstream doc-check helper looks for links to `biograph.frappe.cloud` or `biograph.io` `/wiki` pages.
-- **In-repo docs** live in `wiki/` as flat Markdown files, usually in UPPER-KEBAB-CASE:
-  - design docs: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`
-  - usage guides: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
-  - reports and ledgers: `insurance-parity-report.md`, `upstream-sync-version-16.md`
-  - images sit next to them (`patient-duplicatecheck-thumbnail.png`)
-- **Feature PRs:** the `Documentation Required` workflow fails a `feat:` PR unless its body links to docs or includes `no-docs` (or `backport`).
-- **Commit type:** documentation-only commits use `docs(wiki): ...`.
-- **Agent guidance:** `CLAUDE.md`, `.build/RULES.md`, the managed guides block in `AGENTS.md`, and `.github/instructions/build-rules.instructions.md`.
+# Documentation
+
+- **README.md** covers the product overview, install steps, pre-commit/semgrep dev setup and links. The full user docs are external: [DeepWiki](https://deepwiki.com/Tacten/biograph).
+- **`wiki/`** (in-repo) holds design and usage documents and engineering ledgers. They are ALL-CAPS or Title-Case markdown files:
+  - `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` and `BLOCK-APPOINTMENT-BOOKING-USAGE.md` (design + usage pairs)
+  - `PATIENT-DUPLICATE*.md`
+  - `FHIR Terminology Service Parity — Implementation Plan.md`
+  - `insurance-parity-report.md`
+  - `upstream-sync-version-16.md`: the cherry-pick ledger. It records every picked or skipped upstream commit and lint baselines. Update it in the same PR whenever upstream commits are synced, using `docs(wiki): ...` commits.
+- **Docs gate inherited from upstream**: `docs_checker.yml` runs `.github/helper/documentation.py`. It fails `feat` PRs unless the body links a `/wiki` page on biograph.frappe.cloud or biograph.io, or contains `no-docs` or `backport`.
+- The PR template asks you to "Update necessary Documentation" and to explain details, with screenshots.
+- Do not write docs inside doctype JSON descriptions beyond field help text.
