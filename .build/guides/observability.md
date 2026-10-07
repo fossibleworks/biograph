@@ -4,20 +4,18 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v16_0/populate_appointment_end_fields.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/patches/v16_0/rename_time_block_to_practitioner_availability.py
   - .pre-commit-config.yaml
 ---
 
-Biograph has no metrics or tracing layer. It relies on Frappe's built-in facilities:
+The app has no metrics or tracing stack. It relies on Frappe's built-ins:
 
-- **`frappe.log_error(...)`** (about 15 uses) is the main way to record failures. It writes an **Error Log** document in the desk. Use it with `frappe.get_traceback()` and a translated, descriptive title, e.g. `_("Appointment Confirmation Message Not Sent")`, or with `title=` only. Use it for failures that shouldn't block the user's transaction: notifications, calendar events, patches.
-- **`frappe.logger()`** (about 9 uses) does informational or diagnostic logging to the site log files (`.info(...)`, `.error(...)`). It appears mainly in setup and patch code (`healthcare/setup/patient_duplicate_check.py`) and parse fallbacks.
-- **User-visible feedback** goes through `frappe.msgprint` and `frappe.throw`, not logs.
-- Frappe's Scheduled Job Log captures the outcome of scheduled jobs automatically.
-
-Don't add `print()` (pre-commit runs `debug-statements`) or new logging libraries.
+- **Error Log doctype.** `frappe.log_error(...)` has about 15 call sites. Pass a traceback or message plus a short human title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(title="Error renaming DocType ...")`. Use it for swallowed exceptions in side effects, patches and setup.
+- **File logger.** Use `frappe.logger().info(...)` / `.error(...)` for progress and diagnostics in setup, patches and parsing fallbacks (e.g. `patient_duplicate_check.py`, patient_appointment time parsing).
+- **User-visible feedback.** Use `frappe.msgprint(..., alert=True)` for success toasts and `indicator="orange"` for degraded outcomes.
+- **Do not use** `print()` or debug statements. The pre-commit `debug-statements` hook blocks `pdb`/`breakpoint`.
