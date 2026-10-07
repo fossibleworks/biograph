@@ -4,33 +4,21 @@ category: tech-stack
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: required
 source: inferred
 evidence:
   - pyproject.toml
   - package.json
   - patient_portal/package.json
-  - patient_portal/vite.config.js
-  - healthcare/hooks.py
+  - .github/workflows/ci.yml
   - yarn.lock
-  - .pre-commit-config.yaml
+  - healthcare/hooks.py
 ---
 
-**Backend**
-- Python >= 3.10 (ruff target `py310`). CI linting runs on Python 3.14.
-- **Frappe Framework**, a metadata-driven full-stack framework. **ERPNext** is a required app (`required_apps = ["frappe/erpnext"]`).
-- Packaged with `flit_core` (`pyproject.toml`). The version string lives in `healthcare/__init__.py`.
-- Extra Python dependencies: `responses`, `python-barcode`.
-- MariaDB/SQL through the Frappe ORM (`frappe.db`, `frappe.get_all`, `frappe.qb`).
-
-**Desk frontend**
-- Frappe desk JavaScript: doctype form scripts (`<doctype>.js`) and shared scripts in `healthcare/public/js`, bundled through `healthcare.bundle.js`.
-
-**Patient Portal frontend** (`patient_portal/`)
-- Vue 3 and vue-router 4, built with Vite 4.
-- **frappe-ui** components, Tailwind CSS 3.4 (with the frappe-ui preset), PostCSS and autoprefixer, feather and lucide icons.
-- Yarn workspaces. The root `package.json` declares the `patient_portal` and `frappe-ui` workspaces.
-
-**Tooling**
-- ruff for linting and formatting, Prettier, ESLint 10 (flat config), pre-commit, Semgrep (Frappe rules), pip-audit, detect-secrets.
-- commitlint (conventional commits), semantic-release, Crowdin for translations, Codecov.
+- **Backend:** Python 3.10+ (`requires-python >=3.10`; CI runs Python 3.14). The package is built with `flit_core`. It is a **Frappe Framework** app and needs **ERPNext** (`required_apps = ["frappe/erpnext"]`).
+- **Database:** MariaDB (CI uses `mariadb:11.8`). Data access uses the Frappe ORM, `frappe.qb`, and raw `frappe.db.sql`.
+- **Desk UI:** Frappe form and list scripts in plain JavaScript (`<doctype>.js`, `<doctype>_list.js`) plus the `healthcare/public/js/healthcare.bundle.js` bundle. ESLint globals include `frappe`, `erpnext`, `$`, `moment` and similar.
+- **Patient Portal SPA:** Vue 3, vue-router 4, **frappe-ui**, Tailwind CSS 3.4 and Vite 4, organised as a Yarn workspace under `patient_portal/`.
+- **Python dependencies:** `responses`, `python-barcode`.
+- **Tooling:** ruff, prettier, eslint 10, pre-commit, semgrep (Frappe rules), pip-audit, detect-secrets, commitlint and semantic-release.
+- **Node:** 24 in CI. Yarn is the package manager (`yarn.lock`).
