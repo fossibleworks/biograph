@@ -8,16 +8,14 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
   - .github/helper/documentation.py
+  - .github/workflows/docs_checker.yml
+  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
   - AGENTS.md
 ---
 
-- **Product docs** are external. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **The `wiki/` directory** holds in-repo feature and design documents as Markdown:
-  - Design docs: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`
-  - Usage guides: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`
-  - Plans and reports: the FHIR terminology parity plan, `insurance-parity-report.md`
-  - The **upstream sync ledger** (`upstream-sync-version-16.md`). Each cherry-picked upstream commit is recorded there with an outcome (picked-clean, picked-with-conflict-resolution, already-present, or skipped) and notes. Commits like `docs(wiki): ...` keep it current.
-- **`docs_checker.yml`** fails PRs whose title starts with `feat` unless the body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` or `backport`.
-- **Agent-facing docs:** `CLAUDE.md`, `AGENTS.md` (managed guides block), and `.build/RULES.md`.
+- **User and product docs** live outside the repo. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`). The `docs_checker` workflow requires every `feat…` PR to link a wiki page on `biograph.frappe.cloud` or `biograph.io` (a URL containing `/wiki`), unless the PR body contains `no-docs` or `backport`.
+- **In-repo design docs and ledgers** go in `wiki/` as Markdown. Names are UPPER-KEBAB for feature docs (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`), with paired design and usage docs per feature, plus reports and plans (`insurance-parity-report.md`, `FHIR Terminology Service Parity — Implementation Plan.md`).
+- **Upstream sync** is recorded in `wiki/upstream-sync-version-16.md`: one table row per upstream commit with an outcome (`picked-clean`, `picked-with-conflict-resolution`, `already-present`, `skipped`) and notes. Commits that change the ledger use `docs(wiki): …`.
+- **Code-level docs:** docstrings are sparse. Hook-wired functions note how they are applied (see `auth.py`). Comments in `hooks.py` explain non-obvious hooks.
+- `AGENTS.md` and `CLAUDE.md` hold Build-managed guide blocks. Edit the source under `.build/`, not the rendered block.
