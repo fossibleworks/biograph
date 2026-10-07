@@ -8,13 +8,17 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
-  - patient_portal/src/patient_portal.js
   - patient_portal/vite.config.js
+  - patient_portal/src/components/Payment.vue
+  - healthcare/public/js/healthcare_orders.html
+  - healthcare/public/images/biograph-app-icon.svg
 ---
 
-- **Desk UI:** use Frappe desk's native form, list and tree views and controls. Use `frappe.ui.Dialog`, `frappe.show_alert` and `frappe.msgprint`. There are small shared HTML templates in `healthcare/public/js` (`healthcare_note.html`, `observation.html`, `healthcare_orders.html`). Don't introduce a separate component library for desk screens.
-- **Patient Portal:** **frappe-ui** is the component library. `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `patient_portal.js`, and `frappeRequest` is the resource fetcher.
-  - Styling is **Tailwind CSS** with `frappe-ui/tailwind` as the preset, which is the design-token source. It is extended only with legacy color aliases (lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate).
-  - Icons: feather-icons, and lucide via the frappe-ui Vite plugin.
+- **Desk UI** uses the stock Frappe/ERPNext desk with no custom design tokens. Customise forms through DocType JSON, form scripts, `frappe.ui` dialogs and HTML templates in `healthcare/public/js` (`healthcare_orders.html`, `observation.html`, `healthcare_note.html`).
+- **Patient Portal:**
+  - The component library is **frappe-ui** (`Card`, `ErrorMessage`, `Button`, dialogs, `createResource`).
+  - Icons come from `lucideIcons: true` in the vite plugin, plus `feather-icons`.
+  - Tokens come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only extension is legacy colour aliases: `lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`.
+  - Components use Tailwind utilities, for example `text-gray-900`, `text-sm text-gray-500`, `rounded-xl shadow-sm`, `p-5`, and `text-green-600` for amounts.
   - Global CSS is in `patient_portal/src/index.css`.
-  - Reuse frappe-ui components and Tailwind utilities rather than custom CSS.
+- Brand icons are in `healthcare/public/images` (`biograph-app-icon.svg`, `healthcare.svg`).
