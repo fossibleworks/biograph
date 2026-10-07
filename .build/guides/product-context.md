@@ -1,5 +1,5 @@
 ---
-title: Product context
+title: Product Context
 category: product-context
 layer: project
 applies_to: []
@@ -9,15 +9,24 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
 ---
 
-**Biograph** (by Tacten / fossibleworks; app name `healthcare`, app title "Biograph") is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' Marley Health, with enhancements on top. It runs as a Frappe app that adds a healthcare domain to **ERPNext**, and most of its data model follows **HL7 FHIR**.
+# Product context
 
-**Users:** healthcare practitioners, clinics, hospitals and their staff (front desk, nurses, lab, billing), plus **patients** through the Patient Portal (`/patient-portal`, role `Patient`).
+**Biograph** (app name `healthcare`, by Tacten / fossibleworks) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians' *Marley Health*, with additions on top. It runs as a Frappe app on top of **ERPNext** (`required_apps = ["frappe/erpnext"]`). Much of its data model follows **HL7 FHIR**: Observation, Diagnostic Report, Service Request, Code System/Value Set, and so on.
 
-**Main features:** patient management, outpatient and inpatient care (Patient Appointment, Patient Encounter, Inpatient Record), clinical procedures, rehabilitation and physiotherapy (Therapy Type/Plan, Exercise Type), laboratory (Lab Test, Sample Collection, Observation, Diagnostic Report), medication requests, insurance (Insurance Payor/Contract/Claim), configurable medical code standards, and Healthcare Service Units arranged as a tree. Fork-specific additions include block-based therapy appointment booking, a patient duplicate checker, practitioner availability, and role-based login home pages. Regional code covers India ABDM (`healthcare/regional/india/abdm`).
+## Who uses it
+- **Clinical staff and administrators** work in Frappe Desk (`app_home = /desk/healthcare`). Their work covers patient registration, outpatient appointments, inpatient admission and medication, clinical procedures, lab tests and sample collection, therapy and rehab plans, nursing tasks, discharge summaries, and insurance payors, contracts and claims.
+- **Patients** use the Vue **Patient Portal** (`/patient-portal`). There they book appointments, see diagnostics, and pay fees (consultation and registration).
+- ERPNext supplies billing (Sales Invoice, Payment Entry), stock and pharmacy, HR and accounts.
 
-Pharmacy, purchasing, HR, accounts and assets come from ERPNext. Sales Invoice and Payment Entry are extended through hooks.
+## Key domain concepts
+The main records are Patient, Healthcare Practitioner, Patient Appointment, Fee Validity, Healthcare Service Unit (facilities modelled as a tree), Medical Department (specialities), Lab Test and Lab Test Template, Observation, Service Request, Medication Request, Inpatient Record, and Insurance Claim. There are about 139 doctypes under `healthcare/healthcare/doctype/`.
 
-The working branch is `biograph-fh`. It is kept at parity with upstream `earthians/marley` `version-16` through a documented cherry-pick ledger. When the fork and upstream conflict, the fork's behaviour wins.
+Fork-specific features are documented in `wiki/`:
+- block-based therapy appointment booking
+- patient duplicate check
+- FHIR terminology service
+- insurance parity
+
+The `regional/india` module adds ABDM integration (`abdm_request`, `abdm_settings`).
