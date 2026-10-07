@@ -10,13 +10,15 @@ evidence:
   - healthcare/hooks.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_appointment/recuring_appointment_handler.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
 ---
 
-Likely hot or sensitive paths:
+Likely hot or expensive paths:
 
-- **Patient Appointment** (`patient_appointment.py`, about 2,000 lines): slot availability, overlap and capacity checks, fee validity and billing, and recurring appointments. This code runs on every booking from both desk and portal. Avoid per-slot queries inside loops.
-- **Scheduler jobs:** `send_appointment_reminder` runs on **`all`** (every few minutes), so keep it cheap and indexed. The daily jobs (appointment status update, fee validity status, inpatient occupied-unit billables, expired medication requests) scan large tables.
-- **Long-running work goes to the background** with `frappe.enqueue` (the recurring-appointment handler and sample collection already do this).
-- **Queries:** about 91 raw `frappe.db.sql` and about 80 `frappe.qb` usages. Prefer `frappe.qb` or `frappe.get_all` with explicit fields and filters, and avoid N+1 `frappe.get_doc` calls in loops.
-- **Reports** (`report/`: patient_appointment_analytics, diagnosis_trends, lab_test_report, medication_item_wise_sales, …) aggregate over large clinical datasets.
-- **Portal bundle:** built with Vite (target es2015, sourcemaps on). Keep dependencies lean.
+- **Wildcard `doc_events["*"]`** (`on_submit`/`on_cancel`/`on_update_after_submit` → `patient_history_settings`) runs on **every submitted document in the site**, ERPNext ones included. Keep it cheap and return early for doctypes it doesn't track.
+- **Sales Invoice / Payment Entry hooks** (`manage_invoice_validate`, `manage_invoice_submit_cancel`, `set_paid_amount_in_healthcare_docs`) add work to every ERPNext billing transaction.
+- **Patient Appointment** (~1,900-line controller): slot availability, overlap/capacity checks, recurring appointments (already pushed to `frappe.enqueue`), and the `send_appointment_reminder` scheduler job that runs on **`all`** (every tick).
+- **Daily schedulers** scan appointments, fee validities, inpatient records, and medication requests.
+- **Reports** (`patient_appointment_analytics`, `diagnosis_trends`, `lab_test_report`, …) and dashboard chart sources aggregate over large clinical tables.
+- Raw `frappe.db.sql` and `frappe.cache` appear about 90 times. Prefer `frappe.qb`/`get_all` with filters and indexed fields, and avoid N+1 `get_doc` calls inside loops.
+- Long work belongs in `frappe.enqueue`, and progress goes out through `frappe.publish_realtime` (see `sample_collection`).
