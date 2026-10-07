@@ -8,13 +8,20 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/patches/v15_0/setup_patient_duplicate_check_rules.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
   - .pre-commit-config.yaml
+  - patient_portal/src/socket.js
 ---
 
-There is no metrics or tracing stack. Observability relies on Frappe built-ins:
+Observability uses Frappe's built-in facilities only. There is no metrics or tracing library.
 
-- `frappe.log_error(message_or_traceback, title)` writes to the **Error Log** doctype. This is the main mechanism (about 15 calls) and is used for failed notifications, calendar events, and patch failures.
-- `frappe.logger().info/error(...)` writes to file logs. It is used sparingly (about 9 calls), mostly in patches and parsing fallbacks.
-- Use `frappe.get_traceback()` to attach stack traces.
-- No `print` debugging. The pre-commit `debug-statements` hook blocks leftover breakpoints.
+- **Error Log doctype:** `frappe.log_error(...)` (about 15 call sites) is the main way failures are recorded. Use it with a short, human-readable title, and usually pass `frappe.get_traceback()` as the message:
+  ```python
+  frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
+  frappe.log_error(error_msg, "Unavailability Calendar Event Error")
+  ```
+- **App logger:** `frappe.logger().info(...)` / `.error(...)` (about 9 sites), mainly in setup routines and patches (`setup/patient_duplicate_check.py`).
+- Do not use `print`. The pre-commit `debug-statements` hook also blocks leftover `pdb`/`breakpoint` calls.
+- **Realtime:** the portal opens a socket.io connection (`patient_portal/src/socket.js`) for server push.
+- **CI-side signals:** Codecov coverage, CodeQL, Semgrep and pip-audit.
