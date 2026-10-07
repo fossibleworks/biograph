@@ -1,5 +1,5 @@
 ---
-title: Performance-sensitive paths
+title: Performance
 category: performance
 layer: project
 applies_to: []
@@ -10,16 +10,15 @@ evidence:
   - healthcare/hooks.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/api/patient_portal.py
+  - healthcare/healthcare/doctype/fee_validity/fee_validity.py
 ---
 
-# Performance-sensitive paths
+Paths where performance is likely to matter:
 
-There is no explicit caching layer. No `frappe.cache`/`redis_cache` usage was found in the healthcare module. Hot paths rely on DB queries, so watch for N+1 queries and unindexed filters.
+- **Patient Appointment** (`patient_appointment.py`, about 2.2k lines): slot availability, overlap and capacity checks, block bookings, and `send_appointment_reminder`, which runs on the **`all`** scheduler tick (every few minutes).
+- **Wildcard doc_events (`*`)** on submit, cancel, and update_after_submit create and update Patient Medical Records for *every* submitted doctype. Keep that handler cheap.
+- **Daily schedulers** iterate appointments, fee validities, inpatient records, and medication requests.
+- **Patient portal API** (`api/patient_portal.py`) runs multi-join `frappe.qb` queries per request.
+- **`healthcare/healthcare/utils.py`** (about 1.9k lines) handles billables and invoicing lookups.
 
-- **Global `doc_events["*"]`** (`on_submit`/`on_cancel`/`on_update_after_submit` → `patient_history_settings.create/delete/update_medical_record`) runs on **every submittable document in the whole site**, ERPNext included. Keep it cheap and return early when the doctype isn't configured.
-- **Sales Invoice / Payment Entry hooks** (`manage_invoice_validate`, `manage_invoice_submit_cancel`, `set_paid_amount_in_healthcare_docs`, insurance claim validation) are on the billing hot path.
-- **Appointment scheduling**: `patient_appointment.py` (about 1,800+ lines) and portal `get_slots` compute availability and overlaps. They are called interactively.
-- **Scheduler**: `send_appointment_reminder` runs on `all` (every tick). Daily jobs update appointment status, fee validity, inpatient billables and expired medication requests. All of these scan large tables, so batch them and filter by indexed fields.
-- **Reports** (`healthcare/healthcare/report/*`: diagnosis_trends, patient_appointment_analytics, lab_test_report, etc.) aggregate over patient-scale datasets. Prefer `frappe.qb` with date filters.
-- About 116 fields are marked `search_index: 1` in doctype JSON. Add indexes in the JSON when you introduce new frequent filters.
-- The portal uses frappe-ui `createResource` / `getCachedResource` for client-side caching.
+Existing conventions: use `frappe.get_cached_value` and `frappe.get_single` for settings and master lookups, and `frappe.qb` joins instead of per-row `get_doc` loops.
