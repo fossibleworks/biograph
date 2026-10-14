@@ -4,13 +4,15 @@
 applyTo: "**"
 ---
 
-- **End-user and product docs** are hosted outside the repo, on DeepWiki (`https://deepwiki.com/Tacten/biograph`), which the README links to.
-- **`wiki/`** (repo root) holds the fork's working docs, written in Markdown with UPPER-KEBAB file names:
-  - Feature usage guides, e.g. `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` and `BLOCK-APPOINTMENT-BOOKING-USAGE.md`. These have a numbered table of contents, an overview, configuration, UX and examples, and images that sit next to them.
-  - Design docs, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` and `FHIR Terminology Service Parity — Implementation Plan.md`.
-  - Analysis and parity reports, e.g. `insurance-parity-report.md`.
-  - Upstream-sync ledgers, e.g. `upstream-sync-version-16.md`. These record the method, the outcome vocabulary (picked-clean, picked-with-conflict-resolution, already-present, skipped), the baselines and a per-batch log.
-  - Commits that touch these files use `docs(wiki): …`.
-- **PR docs gate**: `docs_checker.yml` runs `.github/helper/documentation.py`. PRs whose title starts with `feat` must link to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`. You can opt out by writing `no-docs` in the PR body, and backports are exempt.
-- In-code docs are sparse: copyright headers plus short comments. Comments in `hooks.py` explain why a hook exists.
-- The README has development notes (pre-commit, semgrep). There is no CONTRIBUTING.md; the PR template links to the ERPNext contribution and docs guidelines.
+# Documentation
+
+- **User and product docs** are external. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`), and `context7.json` registers the repo with Context7.
+- **Fork design docs** live in `wiki/` as standalone Markdown files:
+  - `DESIGN-<FEATURE>.md` for design
+  - `<FEATURE>-USAGE.md` / `...-USAGE-DOC.md` for how-to
+  - `*-report.md` and `*Implementation Plan.md` for parity analyses
+  - Images sit alongside, e.g. `patient-duplicatecheck-thumbnail.png`
+- **The upstream sync ledger** is `wiki/upstream-sync-version-16.md`. It records method, conflict policy, and the outcome of each batch and commit (picked-clean, picked-with-conflict-resolution, already-present, skipped). Commits updating it use `docs(wiki): ...`.
+- **PR docs check:** `docs_checker.yml` runs `.github/helper/documentation.py`. Any PR titled `feat...` must link a `/wiki` page on `biograph.frappe.cloud` or `biograph.io` in its body. Otherwise the body must contain `no-docs` or `backport`.
+- The PR template asks contributors to "Update necessary Documentation" and links Frappe/ERPNext doc guidelines.
+- Code comments are sparse and explain non-obvious intent, e.g. `# Skip certain validations for unavailability appointments`. Docstrings are short one-liners.
