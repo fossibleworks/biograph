@@ -4,53 +4,47 @@ category: commands
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
+  - README.md
+  - .github/workflows/ci.yml
+  - .github/helper/install.sh
+  - .github/workflows/linters.v2.yml
   - package.json
   - patient_portal/package.json
-  - .github/workflows/ci.yml
-  - .pre-commit-config.yaml
-  - .github/workflows/linters.v2.yml
-  - README.md
-  - healthcare/patches.txt
+  - .github/workflows/semantic-commits.yml
 ---
 
-# Commands
+All of these run inside a Frappe bench (`~/frappe-bench`) that has frappe, erpnext and payments installed.
 
-## Install (in a Frappe bench)
+**Install / setup**
 ```sh
-bench get-app https://github.com/Tacten/biograph
+bench get-app https://github.com/Tacten/biograph   # or a local path
 bench --site <site> install-app healthcare
+bench --site <site> migrate                        # runs patches.txt + after_migrate
 ```
+CI bootstrap script: `bash .github/helper/install.sh`. It runs bench init, gets payments and erpnext on the matching branch (falling back to `version-16` for fork branches), sets up `test_site`, and reinstalls it.
 
-## Frontend (patient portal)
+**Tests**
 ```sh
-yarn install          # root postinstall runs `cd patient_portal && yarn install --check-files`
-yarn build            # = cd patient_portal && yarn build  (vite build --base=/assets/healthcare/patient_portal/)
-cd patient_portal && yarn dev   # vite dev server with frappe proxy
+bench --site test_site run-parallel-tests --app healthcare            # what CI runs
+bench --site <site> run-tests --app healthcare --module healthcare.healthcare.doctype.fee_validity.test_fee_validity
 ```
 
-## Tests (server; needs a bench + MariaDB)
-```sh
-bench --site test_site run-parallel-tests --app healthcare   # what CI runs
-bench --site <site> run-tests --app healthcare --module healthcare.healthcare.doctype.<name>.test_<name>
-```
-
-## Lint / format
+**Lint / format** (mirrors CI)
 ```sh
 pip install pre-commit && pre-commit install
-npm install            # eslint deps for the eslint hook
-pre-commit run --all-files     # trailing-whitespace, yaml/json/toml/ast checks, prettier, eslint, pip-audit, ruff --fix, ruff-format, detect-secrets
-ruff check <path> && ruff format <path>
-```
-
-## Semgrep (Frappe rules, as in CI)
-```sh
+pre-commit run --all-files     # ruff --fix, ruff-format, prettier, eslint, detect-secrets, pip-audit, yaml/json/toml/ast checks
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
-pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-## Migrations
-Add a patch module under `healthcare/patches/vXX_0/` and register it in `healthcare/patches.txt`. It runs on `bench --site <site> migrate`.
+**Patient Portal frontend**
+```sh
+yarn install              # root postinstall installs patient_portal
+yarn build                # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
+cd patient_portal && yarn dev   # vite dev server (frappeProxy to bench)
+```
+
+**Commit-message check**: `npx commitlint --from <base> --to <head>`.
