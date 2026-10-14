@@ -5,11 +5,12 @@ description: Observability
 alwaysApply: true
 ---
 
-# Observability
+Biograph relies on Frappe's built-in facilities. There is no metrics or tracing library.
 
-The app has no metrics or tracing. It uses Frappe's built-in facilities:
+- **Error Log doctype**: use `frappe.log_error(message_or_traceback, title)` for failures that should not break the user flow. There are about 15 uses, e.g. "Appointment Confirmation Message Not Sent", "Unavailability Calendar Event Error", and patch failures. Pass `frappe.get_traceback()` as the message and give a short, translatable title.
+- **Logger**: `frappe.logger().info/error(...)` is used in setup code and patches (`healthcare/setup/patient_duplicate_check.py`, patch `setup_patient_duplicate_check_rules`) and occasionally for parse warnings in `patient_appointment.py`.
+- **Realtime**: `frappe.publish_realtime` (1 use) and `patient_portal/src/socket.js` for portal updates.
+- **Background jobs** run through `frappe.enqueue` and can be seen in the RQ Job / Scheduled Job Log views.
+- **CI-side**: Codecov coverage, CodeQL (Python + JS) and Semgrep security/correctness scans.
 
-- **`frappe.log_error(...)`** writes to the Error Log doctype (≈15 call sites). Use it for caught exceptions in side effects (SMS, calendar events, setup, background jobs). Give it a descriptive title and the traceback, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(message=e, title="Failed to mark Collected!")`.
-- **`frappe.logger()`** with `.info()` / `.error()` is used sparingly for setup or progress messages and parse failures.
-- Bare `print` is not used, and the pre-commit `debug-statements` hook blocks leftover debuggers.
-- **CI-level:** CodeQL (python, javascript) runs on develop, codecov collects coverage on non-PR runs, and semgrep runs with the Frappe rules.
+Do not add `print` statements; the `debug-statements` pre-commit hook rejects them. Do not log PHI (patient identifiers, clinical details) beyond the document name.
