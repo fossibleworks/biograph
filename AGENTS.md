@@ -16,12 +16,12 @@ source. Edit the source file, never this list.
 - [Error handling](.build/guides/error-handling.md)
 - [Generated & vendored files](.build/guides/generated-files.md)
 - [Observability](.build/guides/observability.md)
-- [Performance](.build/guides/performance.md)
+- [Performance-sensitive paths](.build/guides/performance.md)
 - [Product context](.build/guides/product-context.md)
 - [ratchets.proposed](.build/guides/ratchets.proposed.md)
 - [Tech stack](.build/guides/tech-stack.md)
 - [Testing](.build/guides/testing.md)
-- [Workflow](.build/guides/workflow.md)
+- [Work-tracking & branching workflow](.build/guides/workflow.md)
 - [Project Rules](.build/RULES.md)
 
 <!-- END BUILD GUIDES -->
