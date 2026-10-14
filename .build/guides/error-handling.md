@@ -4,39 +4,20 @@ category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/utils.py
-  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
-  - healthcare/patches/v15_0/check_version_compatibility_with_frappe.py
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
+  - healthcare/setup.py
+  - healthcare/patches/v16_0/populate_appointment_end_fields.py
+  - healthcare/public/js/sales_invoice.js
 ---
 
-# Error handling
-
-## Validation errors (user-facing)
-- Use `frappe.throw(_("..."))` (about 181 call sites). Always translate with `_()` and use positional `{0}` placeholders with `.format()`. Wrap record names in `frappe.bold()`:
-  ```python
-  frappe.throw(
-  	_("The practitioner {0} is already marked as unavailable during this time (see appointment {1})").format(
-  		frappe.bold(self.practitioner), frappe.bold(existing.name)
-  	)
-  )
-  ```
-- Avoid f-strings inside `_()`. Some legacy code does this, but it breaks translation extraction.
-- Pass `title=_("Missing Configuration")` (and similar) for configuration errors, as in `healthcare/healthcare/utils.py`.
-- **Typed errors:** subclass `frappe.ValidationError` in the controller module and pass the class as the second argument so tests can `assertRaises` it. Examples: `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`.
-- Use `frappe.msgprint` for non-blocking notices.
-
-## Background, scheduler and integration failures
-- Catch the exception and record it with `frappe.log_error(...)`. Pass a traceback or message and a short title, e.g. `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`. This keeps a notification or calendar side effect from blocking the main transaction.
-- Patches that must abort use `frappe.throw(message)  # nosemgrep`.
-
-## Portal (Vue)
-Show server errors with a toast, e.g. `toast.error(err.messages?.[0] || err)`, from the frappe-ui resource `onError`.
-
-## Permissions
-Check access with `has_website_permission` hooks and the `permissions.py` helpers. Use `frappe.throw` with `frappe.PermissionError` when access is denied.
+- **User and validation errors:** `frappe.throw(_("Message {0}").format(val))` raises a `ValidationError` and shows a dialog. This is the dominant pattern, with about 181 calls. Give context with `title=_("Missing Configuration")` or pass an exception class: `frappe.throw(msg, frappe.ValidationError)`.
+- **Custom error types:** subclass `frappe.ValidationError` near the controller that uses them, for example `MaximumCapacityError` and `OverlapError` in patient_appointment and insurance_payor_contract. Tests then assert on the specific class.
+- **Background or best-effort failures:** in schedulers, notifications and patches, catch the exception and call `frappe.log_error(frappe.get_traceback(), _("Title"))` or `frappe.log_error(title=...)` rather than crash. Examples: appointment confirmation SMS, unavailability calendar events, patch migrations.
+- **Expected framework errors:** catch them narrowly, for example `except frappe.DuplicateEntryError:` in setup.
+- **Broad `except Exception` blocks:** use them only around non-critical side effects, and always log.
+- **Desk JS:** warnings go through `frappe.msgprint(__("..."))`, toast feedback through `frappe.show_alert({message, indicator})`.
+- **Semgrep:** a `# nosemgrep` marker appears on dynamic `frappe.throw(message)` calls whose message is already translated.
