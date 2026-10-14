@@ -1,0 +1,24 @@
+---
+title: Content and copy
+category: content-copy
+layer: project
+applies_to: []
+inclusion: always
+binding: recommended
+source: inferred
+evidence:
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/utils.py
+  - healthcare/public/js/sales_invoice.js
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - crowdin.yml
+---
+
+# Content and copy
+
+- **Tone:** short, plain, and procedural. Write sentence-case statements, usually ending with a period. Examples: `"Appointment Date and Time are required."`, `"Appointment end must be after start."`, `"SMS not sent, please check SMS Settings"`, `"No pending medication orders found for selected criteria"`.
+- **Success alerts** name the record: `"Sales Invoice {0} created"`, `"Customer {0} is created."`, `"Unavailability record cancelled successfully"`.
+- **Dialog titles** use Title Case: `"Missing Configuration"`.
+- **Prompts:** `"Please select Healthcare Service"`, and portal placeholders like `"Choose a patient"`.
+- **Terminology:** use DocType names exactly and capitalised (Patient, Healthcare Practitioner, Patient Appointment, Healthcare Service Unit, Medical Department, Fee Validity, Lab Test, Clinical Procedure, Inpatient Record, Insurance Payor, Healthcare Settings). The product is **Biograph** and the module is **Healthcare**.
+- **Translation:** wrap every string in `_()` / `__()` and interpolate with `{0}` placeholders (`.format()` in Python, an array argument in JS). Never concatenate translated fragments. Strings flow to `healthcare/locale/main.pot` → Crowdin.
