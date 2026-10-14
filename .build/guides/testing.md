@@ -1,0 +1,32 @@
+---
+title: Testing
+category: testing
+layer: project
+applies_to: []
+inclusion: always
+binding: required
+source: inferred
+evidence:
+  - healthcare/tests/utils.py
+  - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
+  - codecov.yml
+  - .github/labeler.yml
+  - .github/workflows/ci.yml
+---
+
+# Testing
+
+## Framework
+Server tests run on Frappe's test runner inside a bench (`bench run-tests` / `run-parallel-tests`) against MariaDB. There are no frontend tests.
+
+## Layout
+- Put the test next to its doctype: `healthcare/healthcare/doctype/<name>/test_<name>.py` (≈85 test files). Custom doctype tests go in `custom_doctype/test_*.py`.
+- The shared base class is **`HealthcareTestSuite`** in `healthcare/tests/utils.py`. It builds on ERPNext's `ERPNextTestSuite`, and `BootStrapTestData` creates master data such as `_Test Company`, `_Test Medical Department`, `_Test Insurance Payor`, practitioners, patients, and templates.
+- Test classes look like `class TestFeeValidity(HealthcareTestSuite)`. Call `super().setUp()` first, then clear the doctypes under test (e.g. ``frappe.db.sql("delete from `tabFee Validity`")``).
+- Reuse factory helpers that other tests export (e.g. `create_appointment` from `test_patient_appointment`) instead of writing new fixtures.
+- Assertions use the unittest methods `assertEqual` and `assertTrue`, with `frappe.db.get_value` to check persisted state.
+
+## Expectations
+- Codecov: the **patch target is 85%** on PRs, and the project may drop by at most 0.5%. Coverage is collected only on non-PR CI runs.
+- The labeler adds **`needs-tests`** when Python files change but no `test*.py` does.
+- CI has no baseline on the fork yet. Per the sync ledger, the first CI run on a goal PR becomes the baseline, so compare new failures against that run.
