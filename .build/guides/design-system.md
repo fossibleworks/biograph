@@ -8,27 +8,16 @@ binding: recommended
 source: inferred
 evidence:
   - patient_portal/tailwind.config.js
+  - patient_portal/package.json
   - patient_portal/vite.config.js
   - patient_portal/src/components/BookAppointmentModel.vue
-  - patient_portal/src/index.css
-  - healthcare/public/js/mark_unavailable.js
-  - healthcare/public/images/biograph-app-icon.svg
+  - healthcare/public/js/observation.html
 ---
 
-# Design system
-
-## Desk UI
-This is Frappe Desk's own UI. Use these building blocks instead of custom HTML or CSS:
-- `frappe.ui.form` scripts
-- `frappe.ui.Dialog` with `fields`, `primary_action_label` and `title`
-- `frappe.show_alert` / `frappe.msgprint`
-- list views (`_list.js`), calendar views (`_calendar.js`) and treeviews
-
-Shared desk widgets live in `healthcare/public/js/`: observation widgets, healthcare notes and orders templates (`.html`), and `utils.js`.
-
-## Patient portal
-- The component library is **frappe-ui**: `Dialog`, `Progress`, `createResource`, toasts, and lucide/feather icons through the frappe-ui Vite plugin.
-- **Tokens:** the frappe-ui Tailwind preset (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). Use its semantic classes such as `text-ink-gray-8`, plus standard Tailwind spacing and greys (`text-gray-700`, `bg-gray-100`, `border-gray-200`, `rounded-md`). The extended colour aliases are `lightBlue` (sky), `warmGray`, `trueGray`, `coolGray` and `blueGray`.
-- Local components in `patient_portal/src/components/` are PascalCase SFCs: `DepartmentSelector`, `PractitionerSelector`, `Calendar`, `Payment`, and the `*Model.vue` dialogs.
-- Global CSS is in `patient_portal/src/index.css`, e.g. the `animate-fade-in` utility.
-- Branding images live in `healthcare/public/images/` (`biograph-app-icon.svg`, `healthcare.svg`).
+- **Patient portal:** uses **frappe-ui** (`^0.1.176`) as its component library and Tailwind preset (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only token extensions are legacy color aliases: lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate. Icons come from feather-icons and lucide (`lucideIcons: true` in the frappe-ui Vite plugin).
+  - Components live in `patient_portal/src/components/` (PascalCase `.vue`: `BookAppointmentModel.vue`, `Calendar.vue`, `PractitionerSelector.vue`, ...).
+  - Styling uses Tailwind utility classes such as `text-sm font-medium text-gray-600`.
+  - Global CSS is in `src/index.css`.
+  - Shared formatting helpers are in `src/utils/formatters.js`.
+- **Desk UI:** relies on Frappe Desk's own form, list and dialog components (`frappe.ui.Dialog`, `frappe.ui.form`). Small HTML templates sit in `healthcare/public/js/*.html` (`observation.html`, `healthcare_orders.html`).
+- Do not bring in another component library or define custom design tokens. Reuse frappe-ui and Frappe Desk primitives.
