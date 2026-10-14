@@ -8,37 +8,47 @@ binding: required
 source: inferred
 evidence:
   - pyproject.toml
-  - .prettierrc.yaml
-  - eslint.config.mjs
   - .pre-commit-config.yaml
-  - healthcare/healthcare/doctype/fee_validity/test_fee_validity.py
+  - eslint.config.mjs
+  - patient_portal/.prettierrc.json
+  - healthcare/healthcare/api/patient_portal.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - commitlint.config.js
-  - patient_portal/src/components/BookAppointmentModel.vue
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-**Python** (ruff, configured in `pyproject.toml`)
-- Indent with **tabs**. Use **double quotes**. Line length is 110, but `E501` is ignored. Target is py310, and pyupgrade (`UP`) is on.
-- Selected lint rules: `F, E, W, I, UP, B, RUF`. Several are ignored: `F401`, `F403/405`, `E402`, `E741`, `B904`, and others.
-- Import order (isort sections): future → stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local. Put a blank line between each group (see `test_fee_validity.py`).
-- `typing-modules = ["frappe.types.DF"]`. DocType controllers may carry auto-generated typed field blocks.
+# Coding conventions
+
+## Python (Ruff, configured in `pyproject.toml`)
+- **Indent with tabs.** Use double quotes. Line length is 110, though E501 is ignored.
+- Lint rule sets: `F, E, W, I, UP, B, RUF`. Several rules are ignored to suit Frappe idioms (F401, F403/F405, E402, B904 and others).
+- **Import order** (isort sections): future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local, with a blank line between groups. Example:
+  ```python
+  import frappe
+  from frappe import _
+  from frappe.utils import getdate
+
+  import erpnext
+
+  from healthcare.healthcare.utils import get_appointment_billing_item_and_rate
+  ```
+- Use the full dotted path `healthcare.healthcare.doctype.<x>.<x>` for imports and hook strings.
 - Naming:
-  - DocType folders and modules use snake_case of the DocType name (`patient_appointment/patient_appointment.py`), and the controller class is CamelCase (`PatientAppointment(Document)`).
-  - Tests are `test_<doctype>.py` with `class Test<DocType>(HealthcareTestSuite)`.
-  - Patches live in `healthcare/patches/v<major>_0/<verb_phrase>.py` with an `execute()` function.
-  - Custom exceptions subclass `frappe.ValidationError` and are named `*Error`.
-- Expose client-callable functions with `@frappe.whitelist()` (182 uses). Prefer `frappe.qb` or `frappe.db.get_value/get_all` over raw SQL in new code.
-- Wrap every user-facing string in `_()` and use positional `{0}` placeholders with `.format()`.
-- Many legacy files are listed in the `.pre-commit-config.yaml` exclude list and are therefore not linted. Do not reformat them wholesale. Keep diffs minimal so upstream (marley) cherry-picks stay clean.
+  - Doctype folders and files are `snake_case` of the doctype name.
+  - Controller classes are PascalCase (`PatientAppointment(Document)`).
+  - Functions are snake_case.
+  - Test fixtures use `_Test ...` names.
+- Prefer `frappe.qb` or `frappe.get_all`/`get_list(pluck=...)` over raw SQL in new code. Raw `frappe.db.sql` still exists in older code.
+- Type hints are being added gradually (`typing-modules = ["frappe.types.DF"]`).
+- **Note:** `.pre-commit-config.yaml` carries a large `exclude` list of legacy files that are skipped by all hooks. New files are linted. Do not add new files to that list.
 
-**JavaScript** (Desk)
-- ESLint flat config (`eslint:recommended`) with the Frappe globals (`frappe`, `erpnext`, `$`, `moment`, …).
-- Prettier: tabs, `tabWidth: 4`, `printWidth: 88`, `arrowParens: avoid`.
-- Form scripts use `frappe.ui.form.on("<DocType>", { refresh(frm) {…} })`. Wrap user strings in `__()`.
+## JavaScript (desk)
+- ESLint flat config (`eslint:recommended`) with Frappe globals (`frappe`, `__`, `$`, `moment`, ...).
+- Prettier settings are in `.prettierrc.yaml`. `patient_portal/` is excluded from the root prettier hook.
+- Wrap every user-facing string in `__()`.
 
-**Vue (patient_portal)**
-- Vue 3 SFCs in PascalCase (`BookAppointmentModel.vue`), using `<script setup>`. Import from `@/` (the alias for `src`).
-- Use frappe-ui components and `createResource` for API calls. Style with Tailwind utility classes.
-- Prettier excludes `patient_portal/`, so follow the existing file formatting.
+## Vue (patient_portal)
+- Prettier settings are in `patient_portal/.prettierrc.json`: no semicolons, single quotes.
+- Use SFCs with frappe-ui components (`Dialog`, `Progress`, `createResource`) and Tailwind utility classes. Use the `@` alias for `src`.
 
-**Commits**: Conventional Commits, enforced by commitlint. Allowed types are `build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test`, written in lower case, with an optional scope (e.g. `fix(tests): …`).
+## Business logic
+Keep validations server-side in the doctype controller (`validate`, `on_submit`, ...), as the PR template requires.
