@@ -8,28 +8,25 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_encounter/patient_encounter.js
-  - healthcare/healthcare/utils.py
-  - patient_portal/src/components/Payment.vue
+  - healthcare/public/js/mark_unavailable.js
+  - healthcare/public/js/observation.js
+  - patient_portal/src/components/AppointmentModel.vue
   - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/locale/main.pot
-  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
+  - crowdin.yml
 ---
 
-**Translation**
-- Every user-visible string is wrapped for translation: `_("…")` in Python and `__("…")` in Desk JS.
-- Use positional placeholders (`{0}`, `{1}`) with `.format()`. Never build sentences by concatenation, because translators need the whole sentence.
-- Strings flow into `healthcare/locale/main.pot` and are translated through Crowdin.
+# Content and copy
 
-**Tone**: plain, direct and clinical-administrative. Sentences are short and end with a period or, for warnings, an exclamation mark.
-- Instructions start with "Please …": "Please select Patient", "Please set a Customer linked to the Patient", "Please enter {0}".
-- Refusals start with "Not allowed, …": "Not allowed, cannot overlap appointment {0}".
-- State errors name the entity and the conflict: "Patient already has an appointment booked for the same day!", "The practitioner {0} is not available during this time due to an unavailability record {1}", "Appointment end must be after start."
-- Where it helps, point to who can fix the problem: "…please contact System Manager".
-- Dialog titles are short Title Case nouns: "Missing Configuration", "Invalid Healthcare Service Unit".
-
-**Buttons and actions**: Title Case verb phrases ("Schedule Admission", "Cancel Admission", "Refer Patient", "Schedule Discharge") grouped under "Create" / "View".
-
-**Patient Portal**: friendly, second person, Title Case headings ("Book an Appointment", "Pay Your Bill", "Select a Department", "Select a Practitioner", "Available Slots", "Payment Successful"). The empty state is "No Records Found".
-
-**Terminology**: use the DocType names exactly as defined: Patient, Healthcare Practitioner ("practitioner"), Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Observation, Fee Validity, Healthcare Settings. The product is called **Biograph**. Patch `rebrand_marley_to_biograph` replaced "Marley", so do not reintroduce "Marley" in user-facing copy.
+- **Always translatable:** use `_()` in Python and `__()` in desk JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin.
+- **Use healthcare domain terms consistently:** Patient, Healthcare Practitioner (shortened to "practitioner" in prose), Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Observation, Fee Validity, Inpatient Record, Insurance Payor and Healthcare Settings. Refer to doctypes by their title-case names.
+- **Error tone:** plain and direct. State the problem and, where possible, name the conflicting record in bold:
+  - "Appointment Date and Time are required."
+  - "Appointment end must be after start."
+  - "Patient already has an appointment booked for the same day!"
+  - "The practitioner {0} is not available during this time due to an unavailability record {1}"
+  - Config errors use the title "Missing Configuration".
+- **Buttons and dialog titles:** short verb phrases in title case: "Create", "Add Observation", "Edit Observation", "Mark Time as Unavailable", "Book an Appointment".
+- **Field labels:** title case: "Healthcare Practitioner", "From Time", "Unavailability For".
+- **Empty states (portal):** short headings such as "No Records Found" and "No slots available".
+- **Statuses** are capitalised doctype status values: Open, Scheduled, Confirmed, Closed, Cancelled.
+- Some portal copy is currently hard-coded English in Vue templates. New portal strings should still be easy to translate.
