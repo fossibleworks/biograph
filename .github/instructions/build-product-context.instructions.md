@@ -4,21 +4,27 @@
 applyTo: "**"
 ---
 
-**Biograph** (by Tacten / fossibleworks; Frappe app name `healthcare`, product name *fossibleHIS* in Build) is an open-source **Hospital Information System (HIS)**. It is a fork of earthians **Marley Health** with extra features. It adds a healthcare domain to **ERPNext** on the **Frappe** framework, and much of its data model follows **HL7 FHIR** (Observation, Service Request, Medication Request, Diagnostic Report, Code System / Code Value / Value Set).
+# Biograph (fossibleHIS)
 
-**Users**
-- Clinical and front-office staff in clinics and hospitals: practitioners, nurses, lab technicians and billing staff. They work in the Frappe Desk (`/desk/healthcare`), and their home page depends on their role (`on_login` → `healthcare.healthcare.auth.set_role_based_home_page`).
-- Patients use the **Patient Portal** (`/patient-portal`, Role `Patient`) to book appointments, pay bills and view lab reports.
+Biograph is an open-source **Hospital Information System (HIS)** by Tacten. It is a fork of earthians' Marley Health, with Tacten's own additions on top. It ships as a Frappe app named `healthcare` (app title "Biograph"). It requires ERPNext (`required_apps = ["frappe/erpnext"]`), and its desk home is `/desk/healthcare`. Much of the data model follows **HL7 FHIR**.
 
-**Main feature areas** (doctypes under `healthcare/healthcare/doctype/`, about 139 of them)
-- Patient management, including a configurable duplicate-patient check
-- Outpatient care: Patient Appointment, Patient Encounter, Fee Validity, Practitioner Schedule/Availability, block-based therapy appointment booking
-- Inpatient care: Inpatient Record, Inpatient Medication Order/Entry, Discharge Summary, Nursing Task
-- Clinical Procedures, Therapy / Rehabilitation / Physiotherapy plans, Exercise types
-- Laboratory: Lab Test, Sample Collection, Observation, Diagnostic Report
-- Medication and prescription: Medication, Medication Request
-- Insurance: Insurance Payor, Payor Contract, Patient Insurance Policy/Coverage, Insurance Claim
-- Medical coding standards (Code System/Value), Medical Departments, and Healthcare Service Units arranged as a tree
-- Regional support for India: ABDM (`healthcare/regional/india/abdm`)
+## Who uses it
+- **Clinical and front-office staff** at clinics and hospitals. They work in Frappe Desk: practitioners, nurses, lab staff and billing staff.
+- **Patients**, through a Vue-based **Patient Portal** at `/patient-portal`. Only users with the `Patient` role see it. Patients can book and view appointments, see diagnostic reports, and pay.
 
-ERPNext handles billing (Sales Invoice, Payment Entry), stock/pharmacy, HR and accounts. Biograph hooks into those doctypes; it does not reimplement them.
+## Main feature areas
+The app has about 139 doctypes under `healthcare/healthcare/doctype/`. The main areas are:
+- Patient management and patient duplicate checking
+- Outpatient appointments, including block-based therapy booking and practitioner availability
+- Encounters, and inpatient records with bed/service-unit occupancy and inpatient medication orders/entries
+- Clinical procedures, rehabilitation and physiotherapy (therapy plans, exercises)
+- Laboratory work: lab tests, sample collection, observations, diagnostic reports
+- Medical code standards: Code System, Code Value, and FHIR terminology work
+- Insurance: payors, contracts, policies, coverage, claims
+- Billing, which hooks into ERPNext Sales Invoice and Payment Entry
+- Regional India **ABDM** integration in `healthcare/regional/india/abdm`
+
+ERPNext handles pharmacy and stock, purchasing, HR, accounts and assets.
+
+## Where to read about features
+`wiki/` holds the fork's design and usage docs: block appointment booking, patient duplicate checking, insurance parity, FHIR terminology parity, and the upstream sync ledger.
