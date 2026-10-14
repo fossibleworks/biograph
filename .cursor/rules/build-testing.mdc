@@ -5,25 +5,26 @@ description: Testing
 alwaysApply: true
 ---
 
-**Framework**: Frappe's unittest-based runner (`bench run-tests` / `run-parallel-tests`). It runs against a real MariaDB site that has ERPNext installed. There is no frontend or JS test suite.
+# Testing
 
-**Layout**
-- Tests sit next to their DocType: `healthcare/healthcare/doctype/<name>/test_<name>.py` (about 85 files).
-- Shared fixtures are in `healthcare/tests/utils.py`:
-  - `HealthcareTestSuite` extends ERPNext's `ERPNextTestSuite`.
-  - `BootStrapTestData` creates master data (company, service items, patients, practitioners, service units, templates, insurance payors, …) with `_Test …` names.
-- Every test class should subclass `HealthcareTestSuite` (82 classes already do; the fork tests were migrated in commit `00a96a7e`).
-- Call `super().setUp()` in `setUp`. Tests often reset state with `frappe.db.sql("delete from `tab…`")` and adjust `Healthcare Settings` through `frappe.get_single(...).save()`.
-- Cross-module helpers are imported from other test modules (e.g. `create_appointment` from `test_patient_appointment`).
-- Assertions use `self.assertEqual`, `self.assertTrue` and `self.assertRaises(<CustomError>)`.
+## Framework
+The repo uses Frappe's test runner (unittest-based) through bench. There are no JS or Vue unit tests.
 
-**CI**
-- `ci.yml` runs `bench --site test_site run-parallel-tests --app healthcare` on PRs, except PRs that only touch `.js/.css/.md/.html/.csv` files. It also runs nightly.
-- Coverage is collected only on non-PR runs and uploaded to Codecov.
+## Layout
+- Tests live next to each doctype as `healthcare/healthcare/doctype/<name>/test_<name>.py` (about 85 test files). Shared tests are in `healthcare/tests/`.
+- **Base class:** every test class extends `HealthcareTestSuite` from `healthcare/tests/utils.py`. That class extends ERPNext's `ERPNextTestSuite`. Recent commits migrated all fork tests to it, so do not use `FrappeTestCase` or `unittest.TestCase` directly.
+- **Fixtures:** `BootStrapTestData` creates master data: company, items, departments, users, patients, practitioners, service units, templates, insurance payors and more. Tests look up records with `frappe.get_list("Patient", pluck="name")[0]` instead of creating them ad hoc.
+- **`setUp`** must call `super().setUp()`. It may clean tables with `frappe.db.sql("delete from `tabX`")` and toggle settings via `frappe.db.set_single_value("Healthcare Settings", ...)`.
+- **Helpers:** module-level `create_<thing>()` helpers inside test files, e.g. `create_appointment` and `create_encounter`, are reused across tests.
+- Name fixture records with a `_Test ` prefix.
 
-**Coverage expectations** (`codecov.yml`)
-- The project may not drop more than 0.5%.
-- **Patch coverage target is 85%** on PRs to `develop`.
-- The labeler adds `needs-tests` to any PR that changes `healthcare/**/*.py` without touching a `test*.py`.
+## Running
+Run `bench --site test_site run-tests --app healthcare [--doctype "..."]`. CI uses `run-parallel-tests` against MariaDB 11.8.
 
-**Baseline caveat**: according to `wiki/upstream-sync-version-16.md`, the fork branch `biograph-fh` has no CI test history, and the first goal-PR run is treated as the baseline.
+## Coverage
+- Coverage is captured only on non-PR (scheduled) runs and uploaded to Codecov.
+- `codecov.yml` sets the **patch target at 85%** on PRs to `develop`, and allows project drops of up to 0.5%.
+- New behaviour needs a test in the doctype's `test_*.py`.
+
+## Fork baseline
+According to `wiki/upstream-sync-version-16.md`, `ci.yml` has no run history on `biograph-fh`. Record any pre-existing failures there rather than assuming a green baseline.
