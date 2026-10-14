@@ -4,24 +4,28 @@
 applyTo: "**"
 ---
 
-# CI/CD and release
+**PR checks (GitHub Actions)**
+- `ci.yml` (Server Tests):
+  - Triggers: PRs (skips PRs that only touch `.js/.css/.md/.html/.csv`, and `version-*-beta` branches) plus a nightly cron.
+  - Setup: Ubuntu with Python 3.14, Node 24 and a MariaDB 11.8 service.
+  - Steps: `compileall` and a merge-conflict-marker check, then `.github/helper/install.sh` (bench + frappe/erpnext/payments; fork branches fall back to `version-16`), then `run-parallel-tests`.
+  - Coverage is uploaded to Codecov on non-PR runs only.
+- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit, file checks) plus Semgrep with the Frappe rules and `r/python.lang.correctness`.
+- `semantic-commits.yml`: commitlint over the PR commit range.
+- `docs_checker.yml`: a `feat` PR needs a wiki docs link or `no-docs`.
+- `labeller.yml`: adds labels such as `needs-tests`.
+- `codeql.yml`: Python + JS analysis on `develop` and weekly.
+- Dependabot updates GitHub Actions weekly.
 
-## On pull requests
-- **CI (`ci.yml`)**: runs server tests. It skips PRs that change only css/js/md/html/csv, and it also runs nightly at 00:00 UTC. Steps:
-  1. `python -m compileall` plus a merge-conflict-marker grep.
-  2. `.github/helper/install.sh` builds a bench. Fork branches (`biograph-fh`, `goal/*`) are tested against frappe/erpnext `version-16`.
-  3. `bench run-parallel-tests --app healthcare` on MariaDB 11.8, Python 3.14, Node 24. 30-minute timeout.
-  4. Coverage goes to Codecov on non-PR runs only.
-- **Linters (`linters.yml`, `linters.v2.yml`)**: pre-commit (ruff, eslint, prettier, pip-audit, detect-secrets, …) plus semgrep with the Frappe rules and `r/python.lang.correctness`.
-- **Semantic Commits**: commitlint over the PR's commits.
-- **Documentation Required**: `feat` PRs need a wiki docs link.
-- **Labeler**: adds `needs-tests`. **CodeQL** runs on develop pushes/PRs and weekly.
+**Merge**: Mergify merges after 1 approval and green CI.
 
-## Release (inherited from upstream earthians)
-- `initiate_release.yml` (weekly, Tuesday) opens `version-N-hotfix → version-N` PRs for 14/15/16 in `earthians/biograph`.
-- `on_release.yml`: pushes to `version-14/15/16` run **semantic-release** (angular preset; breaking changes do not trigger a major bump). It rewrites the version in `healthcare/__init__.py` and commits `chore(release): Bumped to Version x.y.z`.
-- `release_notes.yml` regenerates GitHub release notes and drops chore/ci/test/docs/style entries. PRs labelled `skip-release-notes` are excluded.
-- `generate-pot-file.yml` regenerates translations weekly.
+**Release (upstream-style; most of it targets `earthians/biograph` and its secrets)**
+1. `initiate_release.yml` (Tuesdays and on demand) opens `version-N-hotfix → version-N` PRs titled "chore: release vN" for N = 14, 15, 16.
+2. A push to `version-14/15/16` triggers `on_release.yml`, which runs `npx semantic-release` (`.releaserc`):
+   - The angular preset decides the bump; breaking changes do not trigger a release.
+   - It rewrites the version in `healthcare/__init__.py` and commits `chore(release): Bumped to Version x.y.z`.
+   - It creates the GitHub release.
+3. `release_notes.yml` regenerates the release notes and strips chore/style noise.
+4. `generate-pot-file.yml` refreshes translations weekly, and Crowdin opens `fix: sync translations from crowdin` PRs.
 
-## Fork notes
-Many workflows hard-code `earthians/biograph` and its secrets, so release automation does not apply to `fossibleworks/biograph` as is. The fork had no `ci.yml` run history, so the first goal-PR run becomes the baseline. The sync push credential cannot modify `.github/workflows/*`, so workflow changes must be applied by hand.
+On this fork (`biograph-fh`), CI had never run before the current goal PRs. Version bumps have also been done by hand (`chore: bump version to 16.0.8`). Workflow-file changes need a credential with the `workflow` scope (the engine push token lacks it; see the B2 #86 note in the sync ledger). Deployment is not in the repo; it happens by installing the app on a bench or Frappe Cloud.
