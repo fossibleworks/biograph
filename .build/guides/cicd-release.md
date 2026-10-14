@@ -1,46 +1,43 @@
 ---
-title: CI/CD & release
+title: CI/CD and release
 category: cicd-release
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
-  - .github/workflows/linters.v2.yml
-  - .github/workflows/semantic-commits.yml
-  - .github/workflows/docs_checker.yml
+  - .github/workflows/linters.yml
   - .github/workflows/on_release.yml
   - .github/workflows/initiate_release.yml
   - .releaserc
   - .mergify.yml
-  - codecov.yml
+  - .github/dependabot.yml
 ---
 
-# CI/CD and release
+**GitHub Actions** (`.github/workflows/`):
+- `ci.yml`: Server Tests. Runs on pull requests (except `version-**-beta`) and nightly at 00:00 UTC.
+  - Setup: Python 3.14, Node 24, MariaDB 11.8 service. Bench installs through `.github/helper/install.sh`.
+  - Then: `bench --site test_site run-parallel-tests --app healthcare`, and coverage is uploaded to Codecov (non-PR runs).
+  - Skipped for changes that only touch `**.js`, `**.css`, `**.md`, `**.html` or `**.csv`. 30-minute timeout; concurrency cancels in-progress runs.
+- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus Semgrep with the Frappe rules and `r/python.lang.correctness`.
+- `semantic-commits.yml`: commitlint on PR commit titles.
+- `docs_checker.yml`: docs-link requirement for `feat` PRs.
+- `codeql.yml`: CodeQL on develop and weekly.
+- `labeller.yml`: PR labels (`.github/labeler.yml`).
+- `generate-pot-file.yml`: weekly POT regeneration.
+- `initiate_release.yml`: weekly (Tuesday) release PRs for versions 14, 15 and 16.
+- `on_release.yml`: `npx semantic-release` on release branches.
+- `release_notes.yml`: manual release-notes update by tag.
 
-## On every pull request
-- **Server Tests** (`ci.yml`). Skipped for PRs that only touch css/js/md/html/csv. The job:
-  1. runs `compileall` and a merge-marker grep
-  2. bootstraps a bench via `.github/helper/install.sh` (frappe, payments and erpnext on the base branch, or `version-16` for fork branches; MariaDB 11.8)
-  3. installs `healthcare` and runs `bench run-parallel-tests --app healthcare`
-  It also runs nightly on a cron, and that is when coverage is uploaded to Codecov.
-- **Linters:**
-  - `linters.yml` and `linters.v2.yml` run pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets) and semgrep with the Frappe rules plus `r/python.lang.correctness`. `linters.v2` also runs on push.
-  - `semantic-commits.yml` runs commitlint over the PR's commits.
-  - `docs_checker.yml` requires a docs link on `feat` PRs.
-- `codeql.yml` does security scanning, and `labeller.yml` labels PRs.
+**Release:**
+- `.releaserc` runs semantic-release on `version-14/15/16`, with the angular preset; breaking changes do not trigger a major bump.
+- `@semantic-release/exec` bumps the version string in `healthcare/__init__.py`, and `@semantic-release/git` commits `chore(release): Bumped to Version x.y.z`.
+- GitHub releases are created automatically.
 
-## Merge
-Mergify auto-merges after at least one approval with CI passing: a merge commit by default, or squash with the `squash` label. The `dont-merge` label blocks merging. Backport labels open PRs against `develop` or the `version-XX-hotfix` branches.
+**Merge automation:** Mergify merges once CI is green and the PR is approved.
 
-## Release (inherited upstream pipeline)
-- `initiate_release.yml` opens weekly PRs (Tuesday 09:30 UTC) from `version-XX-hotfix` to `version-XX` for 14, 15 and 16. Its `owner: earthians` target means it acts on upstream.
-- `on_release.yml` runs **semantic-release** (`.releaserc`, angular preset; breaking changes do not trigger majors) when `version-14/15/16` is pushed. It rewrites the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release. `release_notes.yml` handles release notes.
-- `generate-pot-file.yml` regenerates translations weekly. Crowdin opens translation PRs.
-- In this fork, versions are bumped manually (`chore: bump version to 16.0.8`).
+**Dependency updates:** Dependabot updates GitHub Actions weekly.
 
-## Fork caveats
-- `biograph-fh` has no `ci.yml` run history, so there is no baseline.
-- Workflow-file changes can be blocked when the push credential lacks the `workflow` scope (see sync ledger item B2 #86).
+**Fork caveat:** per the sync ledger, the fork `fossibleworks/biograph` has never run `ci.yml`, so there is no CI baseline on `biograph-fh`. Pushing workflow-file changes also requires a credential with `workflow` scope.
