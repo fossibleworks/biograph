@@ -2,21 +2,22 @@
 
 ## Tone
 
-The copy is plain, clinical and administrative. It is short and direct, and it uses healthcare domain terms as nouns.
+Copy is short, plain and clinical-operational. Validation messages use Title Case nouns for DocType and field names, and are often polite imperatives:
+
+- "Please save the patient first"
+- "Please select a Patient Encounter to get from"
+- "Only numbers are allowed in the Mobile No field."
+- "Price List is mandatory" (title: "Price List Not Set")
+- "Item {0} is not active" / "Item with Item Code {0} already exists"
+- "Not allowed to print this document."
+- Error dialog titles: "Insufficient Stock", "Appointment Confirmation Message Not Sent".
+
+Buttons and labels are one or two words in Title Case: "Create", "Cancel", "Status", "Completed", "Clinical Note", "Reason for Cancellation", "Change Item Code". Unit labels use the form "Day(s)" and "Years(s)". Empty-result messages read like "No Lab Tests created".
 
 ## Terminology
 
-Use the DocType names exactly as written, in Title Case: *Patient*, *Healthcare Practitioner* ("Practitioner" in the portal), *Patient Appointment*, *Patient Encounter*, *Medical Department*, *Healthcare Service Unit*, *Lab Test*, *Observation*, *Service Request*, *Medication Request*, *Fee Validity*, *Inpatient Record*. The product name is **Biograph**. The `v16_0.rebrand_marley_to_biograph` patch renamed it from "Marley", so do not reintroduce "Marley Health" in UI copy.
-
-## Patterns
-
-- **Buttons and labels** are Title Case verb + noun: "Add Clinical Note", "Create Medication Request", "Create Service Request", "Book an Appointment", "Pay Your Bill", "Invite as User".
-- **Field labels** are Title Case nouns: "First Name", "Mobile Number", "Blood Group", "Birth Date".
-- **Errors** are sentences that say what is wrong: "Appointment end must be after start.", "From Time must be before To Time", "Only numbers are allowed in the Mobile No field." Dialog titles are short nouns such as "Missing Configuration" and "Not Allowed".
-- **Empty states** in the portal are friendly: "Looks like you don't have any appointments yet." and "No Records Found". Use a straight apostrophe. One string uses a curly ’, so keep new strings consistent with the straight form.
-- **Loading states** use the form "Loading Slots...".
-- **Success** messages are short: "Payment Successful".
+Refer to records by their exact DocType names in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Service Request, Inpatient Record, Fee Validity, Insurance Payor. The product name is **Biograph**; Marley branding was replaced by the `rebrand_marley_to_biograph` patch, so do not reintroduce "Marley".
 
 ## Translation
 
-Every string must be translatable: `_()` in Python and Jinja, `__()` in Desk JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin, so avoid building sentences by concatenation. Prefer `_("... {0}").format(x)` over f-strings inside `_()`, because the translation catalog cannot extract the interpolated forms. Some existing code (`service_request_controller.py`) uses `_(f"...")`. Do not copy that pattern.
+Every string must be translatable: `_()` in Python, `__()` in JS, with `{0}` placeholders. Strings are pulled into `healthcare/locale/main.pot` and translated through Crowdin. Do not wrap field keys or internal identifiers in `_()`. Some existing code does this (e.g. `_("encounter")` in patient_portal.py), and it should not be copied.
