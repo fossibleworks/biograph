@@ -8,16 +8,15 @@ binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
+  - eslint.config.mjs
   - .pre-commit-config.yaml
 ---
 
-# Observability
+The app has no metrics or tracing layer. It relies on Frappe's built-in facilities:
 
-The project has no metrics or tracing stack. It relies on Frappe's built-ins:
-
-- **`frappe.log_error(message, title)`** writes to the Error Log doctype. Use it for caught exceptions in background jobs, notifications, and billing (about 15 call sites). Give it a descriptive title (for example "Can't bill Service Unit occupancy") and include `frappe.get_traceback()` when you have one.
-- **`frappe.logger()`** is used for informational or debug progress in setup routines (`setup/patient_duplicate_check.py`) and for parse warnings. Use `.info` for milestones and `.debug` for per-item detail.
-- `print()` and `debug-statements` are blocked by the pre-commit hook. Do not leave them in.
-- Never log PHI (patient identifiers or clinical data) into error titles.
+- **`frappe.log_error(message, title)`** is the main convention (about 15 call sites). It writes to the Error Log doctype that admins can see in Desk. Use it for failures in background, scheduler or notification work. Pass `frappe.get_traceback()` or the exception as the message and a short, human-readable title (sometimes wrapped in `_()`).
+- **`frappe.logger()`** with `.info`, `.debug` and `.error` is used sparingly (setup in `setup/patient_duplicate_check.py`, time parsing in patient_appointment). Use it for diagnostic, non-user-facing logs.
+- **Avoid `print()` and `console.log`.** ESLint warns on `no-console`, and pre-commit's `debug-statements` hook blocks leftover breakpoints.
+- Some older code logs with f-strings like `f"Error ...: {str(e)}"` and no title. Prefer a title plus the traceback.
