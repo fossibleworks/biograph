@@ -4,22 +4,25 @@
 applyTo: "**"
 ---
 
-**Work tracking (Interactor Build engine)**, per `CLAUDE.md`:
-- Every code change needs a tracked **Goal** first. A GitHub issue becomes a Goal only after an explicit import. EngineTasks sit under the Goal and cycle through investigation → execution → review.
-- Work on the branch **`goal/<goalId>`** in an isolated worktree, never directly on the default branch. The default branch in this fork is `biograph-fh`. Remote branches like `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8` follow this pattern.
-- All changes ship through the Goal's single PR, which must pass review and CI. Never push directly to the default branch.
-- CLI commands:
-  - `ibuild engine goal-create "<title>"`
-  - `ibuild engine goal queue <id>`
-  - `ibuild engine work <task>`
-  - `ibuild engine report --yes`
-  - `ibuild engine goal accept <id>`
-- For a small change, an interactive session can bypass the gate with `ibuild off`. The change still goes through its own branch and a hand-opened PR.
-- Project rules live in `.build/RULES.md`, which is mirrored into `.claude/`, `.cursor/` and `.github/instructions/`. It is currently an unfilled template.
+## Work tracking (Interactor Build engine)
+This fork (`fossibleworks/biograph`, "fossibleHIS") is driven by **Interactor Build**, as described in `CLAUDE.md`.
+- Every code change needs a tracked **Goal**. A GitHub issue maps to a Goal only after an explicit import. The engine breaks a Goal into **EngineTasks**, and each task cycles through investigation → execution → review.
+- **Gate:** before writing any file, there must be a Goal. Work on branch **`goal/<goalId>`** in an isolated worktree, and ship through the goal's single PR. Never commit or push directly to the default branch.
+- CLI: `ibuild engine goal-create "<title>"`, `ibuild engine goal queue <id>`, `ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <id>`. The web UI at build.interactor.com always works as an alternative.
+- An interactive session may use `ibuild off` for a small change. That change still goes on its own branch, through a hand-opened PR that runs CI.
+- Standing rules live in `.build/RULES.md` (currently a template), mirrored to `.claude/rules/`, `.cursor/rules/` and `.github/instructions/`.
 
-**Upstream conventions inherited from earthians/biograph:**
-- Commit and PR titles follow Conventional Commits, enforced by commitlint: `feat:`, `fix:`, `chore:`, `refactor:`, `perf:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `revert:`.
-- In the PR body, explain the problem, add screenshots/GIFs for UI changes and `closes #XXXX`, and keep business logic server-side.
-- Mergify auto-closes PRs against the stable `version-14/15/16` branches from non-maintainers. Target `develop` or a `version-XX-hotfix` branch instead. Backports use the labels `backport develop` and `backport version-XX-hotfix`.
-- Mergify merges after at least 1 approval and CI. Use the `squash` label for squash merge and `dont-merge` to block.
+## Branches
+- The default and integration branch of this fork is **`biograph-fh`**. Goal branches follow the pattern `goal/<slug>-<id>`.
+- Upstream conventions are inherited through Mergify and workflows:
+  - `develop` is the main development branch.
+  - `version-14/15/16` are stable branches. PRs to them are auto-closed unless the author is a maintainer.
+  - `version-N-hotfix` branches feed the weekly release PRs.
+  - Backports are done with labels such as `backport develop` and `backport version-15-hotfix`.
+
+## Commits and PRs
+- Use **Conventional Commits**, enforced by commitlint. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`. Types are lower-case and the subject is required.
+- Follow the PR template: pick the target branch, follow the naming convention, make sure tests pass, keep business logic server-side, update docs, add `closes #XXXX`, and include screenshots or GIFs for UI changes.
+- `feat` PRs need a docs link, or `no-docs` in the body.
+- Mergify merges after at least 1 approval. The `squash` label switches to squash-merge, and `dont-merge` blocks merging.
 - CODEOWNERS: `@akurungadam @Sajinsr`.
