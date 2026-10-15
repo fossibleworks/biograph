@@ -4,11 +4,15 @@
 applyTo: "**"
 ---
 
-# Performance-sensitive paths
+These are the likely hot paths, inferred from the code's structure.
 
-- **`doc_events["*"]`** hooks on submit, cancel and update-after-submit (patient medical record creation) run for **every submitted document in the whole ERPNext site**. Keep them cheap and return early for irrelevant doctypes.
-- **Sales Invoice and Payment Entry hooks** (`manage_invoice_validate`, `manage_payment_entry_submit_cancel`, …) are on core accounting paths.
-- **The scheduler's `all` event** runs `send_appointment_reminder` every few minutes. The daily jobs scan appointments, fee validity, inpatient occupancy and medication requests. Use bulk queries and avoid per-row `get_doc` where possible.
-- **Patient Appointment** availability and slot calculation, plus calendar views. `patient_appointment.py` is about 1,900 lines.
-- **Portal APIs** (`api/patient_portal.py`) use `frappe.qb` joins and `frappe.get_cached_value`. Follow that pattern: one query with joins rather than N+1 lookups, and avoid calling the same helper twice in a query.
-- Reports under `healthcare/healthcare/report/` and dashboard chart sources aggregate large tables, so filter in SQL.
+- **`doc_events["*"]`** runs `create_medical_record` / `delete_medical_record` / `update_medical_record` on **every submit, cancel or update-after-submit of every doctype** site-wide. Keep `patient_history_settings` handlers cheap, and return early for doctypes they don't track.
+- **Patient Appointment** (`patient_appointment.py`, ~1900 lines): `validate` runs overlap, capacity, unavailability and service-unit checks, plus slot generation (`get_availability_data`) and portal `get_slots`. These are DB-heavy per keystroke or slot view. Prefer single aggregated queries (`frappe.qb`) over per-slot loops.
+- **Scheduler**:
+  - `send_appointment_reminder` runs on `all`, which means every few minutes. It must be bounded and indexed.
+  - Daily jobs update appointment status, fee validity, inpatient occupancy billing and expired medication requests over potentially large tables.
+- **Sales Invoice / Payment Entry hooks** (`manage_invoice_submit_cancel`, `set_paid_amount_in_healthcare_docs`) add work to every ERPNext billing transaction.
+- **Patient History feed** (`page/patient_history`) is paginated with `start`/`page_length=20`. Keep it paginated.
+- **Long work goes to `frappe.enqueue`.** Recurring appointment creation and sample collection already do this. Use the same pattern for bulk operations.
+- **Reports** (`report/*`: appointment analytics, diagnosis trends, medication item-wise sales) aggregate over date ranges and need date filters.
+- **Patient Portal** bundle: the build uses `target: es2015` with sourcemaps. Keep dependencies lean.
