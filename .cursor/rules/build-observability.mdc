@@ -5,10 +5,15 @@ description: Observability
 alwaysApply: true
 ---
 
-Observability uses Frappe's built-ins only. There is no metrics or tracing library.
+The app has no metrics or tracing stack. Observability relies on Frappe's built-in facilities.
 
-- **Error Log:** `frappe.log_error(message_or_traceback, title)` is the main mechanism (~24 uses). Give it a short human title such as "Can't bill Service Unit occupancy" or "Appointment Confirmation Message Not Sent", and pass `frappe.get_traceback()` as the message.
-- **Logger:** `frappe.logger().info/error(...)` appears occasionally (patient duplicate check setup, appointment time parsing).
-- **Avoid:** ~39 stray `print(` calls and ~22 `console.log` calls exist. ESLint warns on `no-console`, and pre-commit `debug-statements` blocks `pdb`/breakpoints. Don't add new ones.
-- **Audit:** document history and medical records are produced by the Patient History Settings hooks. Rely on Frappe versioning instead of custom audit logs.
-- **CI logs:** the bench output goes to `bench_run_logs.txt` in CI.
+- **Error Log doctype through `frappe.log_error`** is the main convention for failures in background jobs, notifications, integrations and patches (about 15 call sites). Give a clear title, and include the traceback when catching broadly:
+  - `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`
+  - `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`
+- **`frappe.logger()`** writes structured file logs for progress and diagnostics in setup routines and parsing paths (about 9 uses):
+  - `frappe.logger().info("Starting patient duplicate check rules setup")`
+  - `.debug(f"Rule {i}/{len(rules)}: ...")`
+  - `frappe.logger().error(f"Could not parse appointment time: {appt_time_str}")`
+- **Integration request logs:** ABDM calls are recorded in the `ABDM Request` doctype (`healthcare/healthcare/doctype/abdm_request`).
+- **Audit trail:** standard Frappe document versioning and track-changes. Patient Medical Record entries are created through the `*` doc_events.
+- **Avoid** `print()` (about 39 legacy occurrences, mostly in patches and setup) and `console.log` in desk JS (about 22). Pre-commit's `debug-statements` hook blocks Python debugger calls.
