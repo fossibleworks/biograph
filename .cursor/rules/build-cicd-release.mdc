@@ -5,28 +5,24 @@ description: CI/CD & Release
 alwaysApply: true
 ---
 
-## On every pull request
+## PR checks (GitHub Actions)
 
-| Workflow | What it does |
-|---|---|
-| `ci.yml` (Server Tests) | Runs `compileall` and a merge-conflict-marker scan. `.github/helper/install.sh` builds a frappe-bench with frappe and erpnext on the **same branch name as the PR base**, plus `payments`, and installs `healthcare` on `test_site` (MariaDB 11.8). Then `bench run-parallel-tests --app healthcare`. Skipped when a PR changes only `css/js/md/html/csv`. Ignores `version-*-beta` branches. 30-minute timeout. |
-| `linters.yml` / `linters.v2.yml` | `pre-commit` (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, file checks) plus **semgrep** with frappe/semgrep-rules and `r/python.lang.correctness`. v2 also runs on push. |
-| `semantic-commits.yml` | commitlint over every commit in the PR. |
-| `docs_checker.yml` | `feat` PRs need a wiki docs link (or `no-docs`). |
-| `labeller.yml` | Auto-labels PRs. |
-| `codeql.yml` | CodeQL for python and javascript on develop pushes and PRs, plus a weekly run. |
+| Workflow | Trigger | What it does |
+|---|---|---|
+| `ci.yml` (CI / Server Tests) | PRs (except `version-*-beta` branches and js/css/md/html/csv-only changes) + nightly cron | `compileall` + merge-conflict marker scan, bootstraps frappe-bench with MariaDB 11.8 (`.github/helper/install.sh`), runs `bench run-parallel-tests --app healthcare`. Non-PR runs upload coverage to Codecov. |
+| `linters.yml` / `linters.v2.yml` | PR (v2 also push/dispatch) | `pre-commit` (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, basic checks) + Semgrep with Frappe rules and `r/python.lang.correctness` |
+| `semantic-commits.yml` | PR | commitlint on every commit in the PR |
+| `docs_checker.yml` | PR | `feat` PRs must link docs (`.github/helper/documentation.py`) |
+| `labeller.yml` | PR opened | applies `needs-tests` via `.github/labeler.yml` |
+| `codeql.yml` | push/PR to develop + weekly | CodeQL for Python and JavaScript |
 
-Nightly at 00:00 UTC, `ci.yml` also runs with coverage and uploads it to **Codecov** (patch target 85%, project threshold 0.5%).
+Mergify merges after at least one approval. Dependabot updates GitHub Actions weekly.
 
-## Merge
+## Release pipeline (inherited from upstream earthians/biograph)
 
-Mergify merges after at least 1 approval and green CI. The `squash` label switches to squash merge, and `dont-merge` blocks merging. Backport labels open backport PRs automatically.
+1. `initiate_release.yml` runs weekly (Tuesday 09:30 UTC) and opens `chore: release vNN` PRs from `version-NN-hotfix` to `version-NN` for 14, 15 and 16.
+2. `on_release.yml` runs on push to `version-14/15/16` and executes **semantic-release** (`.releaserc`, angular preset; breaking changes do not trigger major releases). It rewrites the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
+3. `release_notes.yml` regenerates release notes and strips `chore/ci/test/docs/style` lines. PRs labelled `skip-release-notes` are excluded (`.github/release.yml`).
+4. `generate-pot-file.yml` runs weekly and refreshes `healthcare/locale/main.pot`. Crowdin opens `fix: sync translations from crowdin` PRs.
 
-## Release
-
-1. **Weekly, Tuesday 09:30 UTC**, `initiate_release.yml` opens `chore: release v1x` PRs from `version-1x-hotfix` into `version-1x` for 14, 15, and 16.
-2. A push to `version-14/15/16` triggers `on_release.yml`, which runs **semantic-release** (`.releaserc`, angular preset; breaking changes do not trigger a major bump). It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
-3. `release_notes.yml` regenerates the notes and strips `chore`/`ci`/`test`/`docs`/`style` entries.
-4. **Weekly, Sunday 09:30 UTC**, `generate-pot-file.yml` regenerates the translation template on `develop`. Crowdin opens `fix: sync translations from crowdin` PRs.
-
-There is no deploy step in the repo. Sites deploy by `bench get-app` / `bench update` (or Frappe Cloud). Several workflows still hard-code `earthians/biograph` and its secrets, so release automation may not run in this fork.
+Several workflows hard-code `earthians/biograph` and need upstream secrets (`EARTHIANS_BOT_TOKEN`, `RELEASE_TOKEN`, `CODECOV_TOKEN`), so release automation may not work in this fork as-is. Deployment is done by installing or updating the app on a bench or Frappe Cloud (`bench get-app` / `install-app healthcare` / `migrate`). The repo contains no deploy workflow.
