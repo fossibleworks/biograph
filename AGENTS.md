@@ -16,7 +16,7 @@ source. Edit the source file, never this list.
 - [Error Handling](.build/guides/error-handling.md)
 - [Generated & Vendored Files](.build/guides/generated-files.md)
 - [Observability](.build/guides/observability.md)
-- [Performance-Sensitive Paths](.build/guides/performance.md)
+- [Performance](.build/guides/performance.md)
 - [Product Context](.build/guides/product-context.md)
 - [ratchets.proposed](.build/guides/ratchets.proposed.md)
 - [Tech Stack](.build/guides/tech-stack.md)
