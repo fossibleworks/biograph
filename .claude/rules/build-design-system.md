@@ -2,8 +2,13 @@
 
 # Design system
 
-- **Desk UI** uses Frappe's standard form, list, dialog and calendar components through DocType JSON and form scripts. Custom widgets use `frappe.ui.Dialog`/form fields and small HTML templates in `healthcare/public/js/*.html` (`healthcare_note.html`, `observation.html`, `healthcare_orders.html`). Do not introduce custom CSS frameworks in desk.
-- **Patient Portal** uses **frappe-ui** as its component library: `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip`, `Card`, `ErrorMessage` and `toast`. These are registered globally in `patient_portal.js`.
-- **Tokens** come from the `frappe-ui/tailwind` preset in `tailwind.config.js`. The only extensions are legacy color aliases (lightBlue, warmGray, trueGray, coolGray, blueGray). `index.css` sets `--font-sans` to an Inter/system stack.
-- **Icons**: feather-icons and lucide (frappe-ui Vite plugin `lucideIcons: true`).
-- **App branding**: `healthcare/public/images/biograph-app-icon.svg`, `healthcare.svg`/`.png`, plus desk icons in `healthcare/desktop_icon/*.json`.
+## Desk UI
+Use Frappe desk's built-in components: form layouts defined in DocType JSON, `frappe.ui.form`, `frappe.ui.Dialog`, `frappe.msgprint`, and `frappe.show_alert` with `indicator` colours (`green`, `warning`, …). Do not add custom CSS frameworks to desk pages. Workspaces, number cards and dashboard charts are configured through JSON.
+
+## Patient portal
+- The component library is **frappe-ui**. `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `patient_portal.js`, and `ErrorMessage` and others are imported per component.
+- Design tokens come from **Tailwind** using `frappe-ui/tailwind` as the preset in `patient_portal/tailwind.config.js`. The only extensions are legacy colour aliases (`lightBlue`, `warmGray`, `coolGray`, …).
+- Styling uses Tailwind utilities directly in templates (`text-gray-900`, `rounded-xl`, `shadow-sm`). Global CSS lives in `src/index.css`.
+- Icons come from feather-icons, plus lucide through the frappe-ui Vite plugin (`lucideIcons: true`).
+
+Before adding a new primitive, reuse the frappe-ui component.
