@@ -1,5 +1,5 @@
 ---
-title: Coding Conventions
+title: Coding conventions
 category: coding-conventions
 layer: project
 applies_to: []
@@ -9,31 +9,31 @@ source: inferred
 evidence:
   - pyproject.toml
   - .prettierrc.yaml
-  - patient_portal/.prettierrc.json
   - eslint.config.mjs
+  - patient_portal/.prettierrc.json
   - .pre-commit-config.yaml
-  - commitlint.config.js
+  - healthcare/healthcare/doctype/fee_validity/fee_validity.py
   - healthcare/healthcare/api/patient_portal.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
+  - patient_portal/src/components/DepartmentSelector.vue
+  - .git-blame-ignore-revs
 ---
 
-**Python** (Ruff, see `pyproject.toml`)
-- **Tabs** for indentation, **double quotes**, line length 110 (E501 not enforced)
-- Lint rule sets F, E, W, I, UP, B, RUF, with many Frappe-style ignores (e.g. F401, E402, B904)
-- Import order (isort sections): stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local. Use full dotted imports (`from healthcare.healthcare.doctype.x.x import ...`)
-- User-facing strings are wrapped in `_()` (`from frappe import _`)
-- DocType files are snake_case: `doctype/<snake_name>/<snake_name>.py`, the controller class is the PascalCase DocType name, and whitelisted functions are snake_case
-- Prefer the query builder `frappe.qb` for new queries. Raw `frappe.db.sql` still appears, mostly in older code and tests
-- File header: `# Copyright (c) <year>, <owner> and contributors` / `# See license.txt`
+**Python** (enforced by ruff in `pyproject.toml`):
+- **Tabs** for indentation and **double quotes** (`ruff format`, `indent-style = "tab"`). The line length is 110, but E501 is ignored.
+- Lint selection is `F, E, W, I, UP, B, RUF`. Several rules are ignored on purpose, such as F401 unused imports, B904 and E402.
+- **Import order** uses custom isort sections: stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local. A blank line separates each group (see `api/patient_portal.py`).
+- Naming follows Frappe: DocType folders and modules are `snake_case` (`patient_appointment/patient_appointment.py`), and controller classes are the PascalCase DocType name subclassing `frappe.model.document.Document` (`class FeeValidity(Document)`). Module-level helpers are `snake_case`. RPC endpoints are decorated with `@frappe.whitelist()`.
+- Use dotted import paths that match hooks: `healthcare.healthcare.doctype.<name>.<name>.<func>`.
+- Use the Frappe API rather than raw SQL where you can: `frappe.get_cached_value`, `frappe.db.get_value/get_all`, `frappe.qb`. `frappe.db.sql` still appears in about 100 places in legacy code.
+- Wrap every user-facing string in `_()`, with positional `.format()` placeholders: `_("Invalid Code Value: {0}").format(code_value)`.
+- Files start with a copyright header (`# Copyright (c) <year>, ... and contributors`).
 
-**Desk JavaScript** (Prettier + ESLint)
-- Tabs, tab width 4, print width 88, `arrowParens: avoid`
-- ESLint `eslint:recommended` with Frappe globals (`frappe`, `$`, `moment`, `erpnext`, `__`)
-- Form scripts use `frappe.ui.form.on("<DocType>", {...})`, and strings go through `__()`
-- A few large files are excluded from Prettier (patient.js, medication_request.js, service_request.js). Don't reformat them wholesale
+**Desk JavaScript:**
+- Use Prettier with **tabs, width 4, printWidth 88, arrowParens avoid** (`.prettierrc.yaml`), plus ESLint `eslint:recommended` with Frappe globals (`frappe`, `__`, `cur_frm`, `flt`, ...). `no-console` is a warning.
+- Form scripts use `frappe.ui.form.on("<DocType>", {...})`, and strings are wrapped in `__()`.
 
-**Vue / Patient Portal**
-- Its own `.prettierrc.json`: no semicolons, single quotes. It is excluded from the root Prettier hook
-- `<script setup>`-style components in `src/components/PascalCase.vue`, `@` alias to `src/`
+**Patient portal (Vue):**
+- Uses its own `.prettierrc.json`: **no semicolons, single quotes**. Prettier pre-commit excludes `patient_portal/`.
+- Use Vue 3 SFCs with `<script setup>`, `defineProps`, PascalCase component files (`DepartmentSelector.vue`), Tailwind utility classes, and frappe-ui components (`Button`, `Card`, `Dialog`, `FeatherIcon`).
 
-**Commits:** Conventional Commits with lower-case types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test.
+**Legacy exclusion:** `.pre-commit-config.yaml` has a top-level `exclude` that lists hundreds of existing files, and `.semgrepignore` has a similar list. Those files are **not** linted or formatted. New files **are** checked. Don't reformat excluded legacy files wholesale. Record any mass reformat in `.git-blame-ignore-revs`.
