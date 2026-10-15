@@ -4,21 +4,9 @@
 applyTo: "**"
 ---
 
-## Validation errors (the dominant pattern)
-
-- Use `frappe.throw(_("message {0}").format(x), title=_("Short Title"))` for user-facing validation failures. There are about 180 uses in Python.
-- Titles are short noun phrases such as "Missing Configuration", "Not Configured" or "Invalid Number of Service Units".
-- Use `get_link_to_form(doctype, name)` to link records in messages.
-- For domain-specific failures, define a subclass of `frappe.ValidationError` at module top (about 23 exist, e.g. `MaximumCapacityError`, `OverlapError` in patient_appointment) and pass it as `exc=`, so tests can `assertRaises` it.
-- Use `frappe.msgprint` for non-blocking warnings and info. On the JS side, use `frappe.throw(__(...))` / `frappe.msgprint(__(...))` in dialogs and form scripts.
-
-## Catching
-
-- Catch specific Frappe exceptions where possible: `frappe.DoesNotExistError`, `frappe.DuplicateEntryError` (used in setup and seed code for idempotency).
-- For best-effort side effects (SMS/confirmation, calendar events, medication expiry), catch broadly and record with `frappe.log_error(frappe.get_traceback(), _("Title"))` instead of failing the transaction. Example: "Appointment Confirmation Message Not Sent".
-- Do not swallow exceptions silently. A few existing bare `except Exception:` blocks are legacy.
-- Ruff B904 (raise-from) is ignored, so `raise ... from` is not enforced.
-
-## APIs
-
-- Whitelisted methods raise via `frappe.throw` / `frappe.PermissionError`, and Frappe turns these into the standard JSON error response (`exc_type`, `_server_messages`). There is no custom error envelope. Permission checks are in `healthcare/permissions.py`.
+- **User-facing validation:** raise with `frappe.throw(_("message"), [ExcClass], title=_("..."))`. This is used about 181 times and is the dominant pattern. Highlight entity names with `frappe.bold()`. Validation lives server-side in the controller's `validate`/`before_submit` methods. The PR template says "All business logic and validations must be on the server-side".
+- **Typed errors:** define module-level subclasses of `frappe.ValidationError`, such as `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError` and `NoActiveContractError`, and pass them to `frappe.throw` so tests can `assertRaises` them.
+- **Permissions:** throw with `frappe.PermissionError`, e.g. `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)` in the portal API. Use `frappe.DoesNotExistError` for missing records.
+- **Non-fatal and background failures:** catch the exception, then call `frappe.log_error(message=..., title=...)` (or `frappe.log_error(frappe.get_traceback(), _("..."))`) and continue. Examples include notification sending, billing occupancy and calendar events. Catch specific exceptions where possible (`frappe.DuplicateEntryError`, `frappe.DoesNotExistError`, `json.JSONDecodeError`). Bare `except Exception` exists in places but shouldn't be extended.
+- **Informational messages:** `frappe.msgprint` on the server; `frappe.msgprint`/`frappe.show_alert`/`frappe.throw` in desk JS.
+- **Missing setup:** use `frappe.throw(msg, title=_("Missing Configuration"))` (see `utils.py`).
