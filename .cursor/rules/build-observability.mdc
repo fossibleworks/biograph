@@ -5,12 +5,12 @@ description: Observability
 alwaysApply: true
 ---
 
-# Observability
+Biograph relies on **Frappe's built-in facilities**. It has no metrics or tracing libraries.
 
-There is no metrics or tracing stack. The app relies on Frappe built-ins:
-
-- **`frappe.log_error(title=..., message=...)`** writes to the Error Log doctype, visible in Desk. It is the primary way to record failures in background jobs, integrations and notifications (about 15 call sites). Give it a descriptive `title` that includes the document name, plus `frappe.get_traceback()` as the message.
-- **`frappe.logger()`** writes to the bench log files. It is used sparingly for info/debug in setup routines (`healthcare/healthcare/setup/patient_duplicate_check.py`) and for parse errors.
-- `print()` appears only in install, uninstall and migrate scripts for console output.
-- Integration request records such as `ABDM Request` capture external API calls for auditing.
-- Scheduler jobs are registered in `hooks.py`. Their failures surface through the Frappe Scheduled Job Log.
+- **`frappe.log_error(message_or_traceback, title)`** writes to the Error Log doctype. This is the main pattern (about 15 uses).
+  - Typical use: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(error_msg, "Unavailability Calendar Event Error")`.
+  - Give it a descriptive title so entries are searchable.
+- **`frappe.logger().info/error(...)`** writes to file logs (about 9 uses). It is used for setup and seed progress (`setup/patient_duplicate_check.py`) and parse failures.
+- **Request/response audit doctypes**: external API calls (ABDM) are persisted as `ABDM Request` documents holding the request payload and URL. Follow this for new outbound integrations.
+- **Realtime**: `frappe.publish_realtime` is used sparingly, and the portal has a socket client (`patient_portal/src/socket.js`).
+- Do not use `print()`. The `debug-statements` pre-commit hook blocks pdb/breakpoint.
