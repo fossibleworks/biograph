@@ -5,9 +5,20 @@ description: Error Handling
 alwaysApply: true
 ---
 
-- **User-facing validation:** raise with `frappe.throw(_("message"), [ExcClass], title=_("..."))`. This is used about 181 times and is the dominant pattern. Highlight entity names with `frappe.bold()`. Validation lives server-side in the controller's `validate`/`before_submit` methods. The PR template says "All business logic and validations must be on the server-side".
-- **Typed errors:** define module-level subclasses of `frappe.ValidationError`, such as `OverlapError`, `MaximumCapacityError`, `CoverageOverlapError` and `NoActiveContractError`, and pass them to `frappe.throw` so tests can `assertRaises` them.
-- **Permissions:** throw with `frappe.PermissionError`, e.g. `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)` in the portal API. Use `frappe.DoesNotExistError` for missing records.
-- **Non-fatal and background failures:** catch the exception, then call `frappe.log_error(message=..., title=...)` (or `frappe.log_error(frappe.get_traceback(), _("..."))`) and continue. Examples include notification sending, billing occupancy and calendar events. Catch specific exceptions where possible (`frappe.DuplicateEntryError`, `frappe.DoesNotExistError`, `json.JSONDecodeError`). Bare `except Exception` exists in places but shouldn't be extended.
-- **Informational messages:** `frappe.msgprint` on the server; `frappe.msgprint`/`frappe.show_alert`/`frappe.throw` in desk JS.
-- **Missing setup:** use `frappe.throw(msg, title=_("Missing Configuration"))` (see `utils.py`).
+## User-facing validation
+
+- Raise validation failures with **`frappe.throw(_("Message"), ExcClass)`**. The codebase does this about 220 times. Do not use bare `raise` (there are only a few).
+- Domain-specific errors subclass `frappe.ValidationError` and live in the controller module that raises them: `OverlapError` and `MaximumCapacityError` in patient_appointment, `CoverageNotFoundError` and `NoActiveContractError` in patient_insurance_coverage, `CoverageOverlapError`. Tests assert on these classes.
+- Messages are short, translatable sentences, e.g. `_("Appointment end must be after start.")`.
+- Non-blocking feedback uses `frappe.msgprint` on the server and `frappe.show_alert` / `frappe.msgprint` in Desk JS.
+
+## Background and integration failures
+
+- Wrap scheduler jobs, notifications and integration calls in `try/except Exception`. Record the failure with **`frappe.log_error(...)`** so it shows in the Error Log doctype, then carry on instead of failing the parent transaction. Examples:
+  - `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`
+  - `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`
+- Patches catch failures and log them the same way.
+
+## API / portal
+
+- Whitelisted portal endpoints return `None` or an empty value when no data is found (e.g. no logged-in patient) rather than raising. The Vue portal shows errors in a frappe-ui `Dialog` with a warning icon.
