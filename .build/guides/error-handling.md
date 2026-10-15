@@ -8,17 +8,17 @@ binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
-  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
+  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
   - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
-  - healthcare/healthcare/doctype/healthcare_practitioner/healthcare_practitioner.py
+  - healthcare/www/patient-portal/index.py
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - patient_portal/src/components/Payment.vue
 ---
 
-- **Validation errors go to the user through `frappe.throw`.** There are about 180 uses. The message is translated with `_()` and may carry a `title=_("…")` and an exception class. Example: `frappe.throw(msg, title=_("Missing Configuration"))`.
-- **Custom error types** subclass `frappe.ValidationError` and are defined at the top of the controller module, e.g. `OverlapError` and `MaximumCapacityError` in `patient_appointment.py`, `CoverageOverlapError`, and `OverlapError` in `insurance_payor_contract.py`. Pass the class as the second argument to `frappe.throw` so tests can assert on it.
-- **Keep business logic and validation server-side** (PR template rule). JS should only call whitelisted methods and show the server's message.
-- **Background or best-effort failures** (scheduler jobs, notifications, billing sync) catch the exception and record it with `frappe.log_error(title=…, message=frappe.get_traceback(with_context=True), reference_doctype=…, reference_name=…)` instead of raising, so they don't block the main transaction. See `healthcare_payment_record.py` and `inpatient_record.py`.
-- **Non-blocking warnings** use `frappe.msgprint`.
-- Avoid bare `except Exception:` unless you log it. Silently swallowing exceptions is not the convention.
-- Whitelisted API functions return plain data (dicts or lists). There is no custom HTTP error envelope; Frappe turns `frappe.throw` into the standard error response.
+- **User and validation errors:** raise them with `frappe.throw(_("Message"), <ExcType>)`. This is the dominant pattern, with about 180 calls. Frappe rolls back the transaction and shows the message to the user.
+- **Domain exceptions** subclass `frappe.ValidationError` at the top of the controller module. Examples are `OverlapError` and `MaximumCapacityError` in patient_appointment, and `CoverageNotFoundError` and `NoActiveContractError` in patient_insurance_coverage. Pass the exception as the second argument to `frappe.throw` so tests can `assertRaises` it.
+- **Permission and not-found cases** use the built-in Frappe exceptions: `frappe.throw(_("Not permitted"), frappe.PermissionError)` and `frappe.throw(_("Page not found"), frappe.DoesNotExistError)`.
+- **Non-blocking notices** use `frappe.msgprint(_(...))`.
+- **Background and best-effort failures**, such as scheduler jobs, notifications, and calendar events, are caught and logged with `frappe.log_error(message=..., title=...)`, often together with `frappe.get_traceback()`. These failures are not re-raised. Examples: inpatient occupancy billing, appointment confirmation messages.
+- The PR template says all business logic and validations must be on the server side. JS validation is only for UX.
+- In the portal SPA, errors from `createResource` are shown with frappe-ui's `<ErrorMessage :message="error" />`.
