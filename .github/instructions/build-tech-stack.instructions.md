@@ -4,11 +4,24 @@
 applyTo: "**"
 ---
 
-- **Backend:** Python 3.10 or newer (`requires-python >=3.10`; ruff targets `py310`; CI runs on Python 3.14) on the **Frappe framework** with **ERPNext**. The data model is metadata-driven: each DocType has a `.json` schema plus `.py` controller and `.js` form scripts.
-- **Database:** MariaDB (CI uses `mariadb:11.8`). Redis is required by bench.
-- **Packaging:** `pyproject.toml` with the `flit_core` build backend. Runtime dependencies are `responses` and `python-barcode`.
-- **Desk UI:** plain JavaScript Frappe form scripts using the globals `frappe`, `cur_frm`, `__`, jQuery and moment. Desk assets are bundled through `healthcare/public/js/healthcare.bundle.js`, which is wired up as `app_include_js`.
-- **Patient Portal SPA:** Vue 3, vue-router, **frappe-ui**, Vite 4.4.9, Tailwind CSS 3.4.15 with PostCSS/Autoprefixer, and socket.io-client.
-- **JavaScript tooling:** yarn workspaces (`yarn.lock`), ESLint 10 in flat config, and Prettier.
-- **Python tooling:** ruff for linting and formatting, pre-commit, Semgrep with the Frappe rules, pip-audit, and detect-secrets.
-- **Node:** CI uses Node 24.
+## Backend
+
+- **Python ≥ 3.10** (ruff targets `py310`; CI runs Python 3.14). Packaged with `flit_core`. The version string lives in `healthcare/__init__.py` (currently `16.0.2`).
+- **Frappe Framework**, a metadata-driven full-stack framework, plus **ERPNext** as a required app. It also depends on the `payments` app in CI.
+- **MariaDB** (CI uses `mariadb:11.8`) and Redis, both run through `bench`.
+- Extra Python deps: `responses`, `python-barcode`.
+- Queries use the Frappe ORM (`frappe.get_doc`, `frappe.db.*`), `frappe.qb` (pypika query builder) and some raw `frappe.db.sql`.
+
+## Desk frontend
+
+- Plain JavaScript form scripts (`<doctype>.js`, `<doctype>_list.js`) run on Frappe Desk globals (`frappe`, `cur_frm`, `__`, jQuery).
+- Desk JS is bundled through `healthcare/public/js/healthcare.bundle.js` (`app_include_js`).
+
+## Patient portal SPA
+
+- **Vue 3** (`<script setup>`), **vue-router 4**, **frappe-ui** (components, `createResource`, Vite plugin), **Tailwind CSS 3.4** with the frappe-ui preset, **Vite 4.4.9**, feather/lucide icons, socket.io client.
+- Node 24 in CI. The root `package.json` is a yarn workspace (`yarn.lock`).
+
+## Tooling
+
+- ruff (lint + format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), detect-secrets, pip-audit, commitlint, semantic-release, Mergify, CodeQL, Codecov, Crowdin (translations).
