@@ -4,30 +4,26 @@
 applyTo: "**"
 ---
 
-# Coding conventions
+**Python (ruff, `pyproject.toml`)**
+- Indent with **tabs** and use **double quotes**. The target line length is 110, though E501 is ignored. Code targets py310.
+- Lint sets are F, E, W, I, UP, B and RUF, with several ignores (F401, E402, B904…).
+- Import order: stdlib → third-party → `frappe` → `erpnext` → `healthcare`, with a blank line between groups.
+- Use absolute imports, e.g. `from healthcare.healthcare.doctype.x.x import ...`.
+- Files start with a copyright/license header comment.
+- Doctype controllers are `class <DocTypeName>(Document)` in `doctype/<snake_name>/<snake_name>.py`. Folder and file names are snake_case versions of the DocType name.
+- Expose client-callable functions with `@frappe.whitelist()`, restricting methods where it makes sense (`methods=["POST"]`).
+- Wrap every user-facing string in `_()` and use `.format()` placeholders, e.g. `_("Item {0} is not active").format(code)`. Avoid f-strings inside `_()`.
+- Prefer `frappe.qb` or the ORM (`frappe.db.get_all`, `get_value`) to raw `frappe.db.sql`.
 
-## Python (Ruff, configured in `pyproject.toml`)
-- **Tabs** for indentation, **double quotes**, line length 110, target py310.
-- Lint selectors: `F, E, W, I, UP, B, RUF`. Several rules are ignored (for example E501, F401, B904).
-- **Import order** uses custom isort sections: future, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate each group with a blank line, as in `patient_appointment.py`.
-- Use absolute imports from the package root, for example `from healthcare.healthcare.doctype.fee_validity.fee_validity import ...`.
-- DocType controllers are classes named after the DocType in PascalCase (`class PatientAppointment(Document)`). Modules and folders use snake_case (`patient_appointment/patient_appointment.py`).
-- Validation is split into small `validate_*` / `set_*` methods called from `validate()`.
-- Mark API functions with `@frappe.whitelist()`. Internal helpers can use a leading underscore (`_normalize_slot_time`).
-- Wrap user-facing strings in `_()` and use positional `{0}` formatting: `_("User {0} does not exist").format(x)`. Do not use f-strings inside `_()`.
-- Prefer `frappe.db.get_value`, `frappe.get_all` and `frappe.qb` for DB access. Use `frappe.db.sql` only with parameters.
-- Typed DocType fields come from `frappe.types.DF` (`typing-modules`).
-- Many legacy files are listed in the pre-commit `exclude`. New and modified files should still pass ruff.
+**JavaScript (Desk)**
+- Use ESLint `eslint:recommended` with Frappe globals (`frappe`, `__`, `cur_frm`…).
+- Prettier settings: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`.
+- Form scripts use `frappe.ui.form.on("DocType", {...})`. Wrap strings in `__()`.
 
-## JavaScript (desk)
-- **Tabs**, width 4, printWidth 88, `arrowParens: avoid` (`.prettierrc.yaml`).
-- ESLint flat config extends `eslint:recommended`, with Frappe globals (`frappe`, `__`, `cur_frm`, `flt`, and so on). `no-console` is a warning.
-- Form scripts use `frappe.ui.form.on("<DocType>", { refresh(frm) {...}, <field>(frm) {...} })`. Translate strings with `__()`.
+**Vue portal (`patient_portal/`)**
+- Prettier is excluded here, but its local `.prettierrc.json` uses no semicolons and single quotes.
+- Use `<script setup>`/SFC components in PascalCase (`BookAppointmentModel.vue`), the `@` alias to `src`, and frappe-ui components.
 
-## Vue (patient_portal)
-- Separate `.prettierrc.json`: no semicolons, single quotes. Prettier from the root pre-commit does not run on `patient_portal/`.
-- `<script setup>` SFCs, PascalCase component files in `src/components/`, and Tailwind utility classes.
-- Data fetching uses frappe-ui `createResource`.
+**Commits:** use Conventional Commits with these types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. The type is lowercase and an optional scope is allowed, e.g. `feat(appointment): ...`.
 
-## Commits
-- Use Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. An optional scope is common: `feat(appointment): ...`, `fix(linters): ...`.
+**Legacy files:** a long list of older files is excluded from pre-commit in `.pre-commit-config.yaml`. Keep new code compliant even when it touches those files.
