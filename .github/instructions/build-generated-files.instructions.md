@@ -4,19 +4,19 @@
 applyTo: "**"
 ---
 
-# Generated and vendored files
+Do not hand-edit these files. Regenerate them instead.
 
-Do not hand-edit these:
+- **Patient portal build output**:
+  - `healthcare/public/frontend/assets/*` (hashed `patient_portal-*.js/.css/.js.map`), `healthcare/public/frontend/index.html`
+  - `healthcare/public/patient_portal/assets/` (Vite `outDir`)
+  - the injected `healthcare/www/patient_portal.html`
 
-- **`healthcare/public/frontend/assets/*`** (hashed `patient_portal-*.js/.css/.map`) and the Vite build output under `healthcare/public/patient_portal/assets`. These are built from `patient_portal/src` with `yarn build`.
-- **`healthcare/www/patient_portal.html`**: Vite writes this file (`indexHtmlPath`).
-- **`patient_portal/auto-imports.d.ts`, `patient_portal/components.d.ts`**: type stubs that the frappe-ui/Vite plugins generate.
-- **`healthcare/locale/main.pot`**: regenerated weekly by `bench generate-pot-file`. The `.po` files come from Crowdin.
-- **`yarn.lock`**: change it only through yarn.
-- **`healthcare/__init__.py` `__version__`**: semantic-release bumps it on release branches.
-- **`.secrets.baseline`**: managed by detect-secrets.
-- **DocType `*.json`**: these are normally saved from the Frappe desk in developer mode. Small manual edits are fine, but keep the `modified` timestamp bumped so `bench migrate` picks them up.
-- **`.build/`, `AGENTS.md`, `.claude/rules/`, `.cursor/rules/`, `.github/instructions/`**: managed and mirrored by Interactor Build. Edit the source (`.build/RULES.md`), not the mirrors.
-- Ignored by git: `dist/`, `node_modules/`, `__pycache__/`, `*.egg-info`, `healthcare/docs/current`.
-
-Note: `healthcare/public/node_modules` is a committed symlink to a developer's local bench path. Do not rely on it, and do not add more like it.
+  Regenerate with `yarn build`. `dist/` and `dist-ssr` are gitignored.
+- **Auto-generated type shims**: `patient_portal/auto-imports.d.ts` and `patient_portal/components.d.ts`.
+- **Translation template**: `healthcare/locale/main.pot`. The weekly `generate-pot-file.yml` workflow regenerates it, and Crowdin syncs `*.po` files back in (`crowdin.yml`).
+- **Lockfiles**: `yarn.lock`. Update it through yarn only.
+- **DocType JSON** (`doctype/*/*.json`): normally produced by Frappe's DocType editor in developer mode. Edit it carefully so that the field order and `modified` timestamps stay consistent.
+- **Version string** in `healthcare/__init__.py`: semantic-release bumps it (`.releaserc`). Do not bump it by hand.
+- **`.secrets.baseline`**: maintained by detect-secrets.
+- **`healthcare/public/node_modules`**: a symlink to a local bench path. It is not real source.
+- **Ignored paths** (`.gitignore`): `*.pyc`, `__pycache__/`, `*.egg-info`, `dist/`, `node_modules/`, `healthcare/docs/current`. The local `.venv/` is untracked.
