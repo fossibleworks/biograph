@@ -4,14 +4,13 @@
 applyTo: "**"
 ---
 
-Paths that are likely to be performance-sensitive:
+Likely hot or heavy paths:
 
-- **Appointment scheduling** in `patient_appointment.py` (about 1,900 lines). It handles slot availability, overlap and capacity checks, practitioner availability and unavailability, and recurring appointments. These run on every booking and on every portal calendar view, with several raw `frappe.db.sql` queries. Keep queries indexed and filtered by practitioner and date, and avoid N+1 `get_doc` calls inside slot loops.
-- **Scheduler jobs** (`hooks.py`):
-  - `send_appointment_reminder` runs on **every scheduler tick** (`all`)
-  - daily jobs: appointment status update, fee validity update, inpatient service-unit billables, medication request expiry
-  - these run over whole tables, so batch them and use `frappe.db.set_value(..., update_modified=False)`
-- **Long work goes to the background** with `frappe.enqueue`, as in recurring appointments (`recuring_appointment_handler.py`) and sample collection.
-- **Patient history / encounter loading** (`patient_encounter.py`) and the observation and diagnostic report widgets can pull large child tables.
-- **Reports and dashboard chart sources** (`healthcare/healthcare/report`, `dashboard_chart_source`) aggregate over appointments, admissions and claims.
-- **Patient Portal:** the bundle is built once and paginates its lists client-side (`paginatedAppointments`, `paginatedDepartments`).
+- **Patient Appointment** (`patient_appointment.py`, ~1800+ lines): slot availability, overlap/capacity checks, block/therapy bookings, conflict checks run from the form ("Checking for conflicts..."). These run on every booking and reschedule.
+- **Scheduler jobs** in `hooks.py`: `send_appointment_reminder` runs on **`all`** (every few minutes). Daily jobs update appointment status, fee validity, inpatient occupancy billables and expired medication requests. Keep them set-based and batched.
+- **Patient Portal API** (`api/patient_portal.py`): multi-join `frappe.qb` queries over appointments, encounters, practitioners, patients and companies for each logged-in patient and their relations.
+- **Patient history / progress pages** and the **reports** (`patient_appointment_analytics`, `diagnosis_trends`, `lab_test_report`, `medication_item_wise_sales`, ...) scan large clinical tables.
+- **Billing hooks** on ERPNext Sales Invoice / Payment Entry (`custom_doctype/`) run inside financial transactions.
+- **Code System / Code Value** terminology tables can be very large (FHIR code sets).
+
+Practices already used in the repo: prefer `frappe.qb` joins over per-row `frappe.get_doc` loops, select only needed columns, and use `frappe.db.get_value`/`get_all` with filters.
