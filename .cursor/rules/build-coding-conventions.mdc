@@ -5,27 +5,38 @@ description: Coding Conventions
 alwaysApply: true
 ---
 
-# Coding conventions
+## Python (ruff, `pyproject.toml`)
 
-## Python
-- **ruff** handles both lint and format. Line length is 110, target is py310, rules are `F,E,W,I,UP,B,RUF` with the ignores listed in `pyproject.toml`.
-- Indent with **tabs**. Use **double quotes**.
-- Group imports in this order: stdlib, third-party, `frappe`, `erpnext`, `healthcare`, then first-party/local. Separate groups with blank lines (enforced by isort sections).
-- Use absolute dotted imports, for example `from healthcare.healthcare.utils import ...`.
-- DocType controllers subclass `frappe.model.document.Document` with a PascalCase class named after the DocType (`class FeeValidity(Document)`). Put logic in lifecycle methods (`validate`, `before_submit`, `on_submit`, `on_cancel`).
-- Module-level functions are snake_case. Anything called from the client is decorated with `@frappe.whitelist()`.
-- Prefer `frappe.qb` (query builder) and `frappe.db.get_value` / `get_cached_value` over raw `frappe.db.sql`.
-- Wrap user-facing strings in `_()` and use `.format()` placeholders: `_("Item {0} is not active").format(code)`.
-- Files start with a copyright/license header comment.
-- Business logic and validation belong on the server (PR template).
+- Indent with **tabs** and use **double quotes**. Format with `ruff format`.
+- Line length is 110. E501 is ignored, so long lines are tolerated.
+- Lint rule sets are `F, E, W, I, UP, B, RUF`, with Frappe-friendly ignores (F401, F403, E402, B904, ...).
+- Import order (isort sections): stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local, with a blank line between groups. Example:
+  ```python
+  import frappe
+  from frappe import _
 
-## JavaScript (desk)
-- Prettier settings: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. ESLint runs `eslint:recommended` with Frappe globals (`frappe`, `__`, `cur_frm`, …).
-- Form scripts use `frappe.ui.form.on("DocType Name", {...})`. Wrap strings in `__()`.
+  import erpnext
 
-## Vue (patient_portal)
-- Use `<script setup>` SFCs with PascalCase component files in `src/components/`, the `@` alias for `src`, Tailwind utility classes, and frappe-ui components.
-- `patient_portal/.prettierrc.json`: no semicolons, single quotes. This folder is excluded from the root Prettier hook.
+  from healthcare.healthcare.utils import ...
+  ```
+- DocType folders and modules are `snake_case` (`patient_appointment`). Controller classes are `PascalCase` (`PatientAppointment`). Custom exceptions subclass `frappe.ValidationError` (`OverlapError`, `MaximumCapacityError`).
+- Mark client-callable functions with `@frappe.whitelist()`.
+- Wrap user-visible strings in `_()` (`from frappe import _`).
+- Prefer `frappe.qb` for new queries. `frappe.db.sql` still exists in older code.
+- Each file starts with a copyright header comment.
 
-## Legacy-file exemption
-`.pre-commit-config.yaml` and `.semgrepignore` list almost every file that existed before the linters were introduced, so those files skip lint. **New files are fully linted.** When you edit a listed file, do not reformat it wholesale; keep the diff focused.
+## JavaScript
+
+- **Desk JS**:
+  - Prettier with tabs, `tabWidth: 4`, `printWidth: 88` and `arrowParens: "avoid"`.
+  - ESLint `eslint:recommended`, with Frappe globals (`frappe`, `cur_frm`, `__`, `flt`, ...) declared in `eslint.config.mjs`.
+  - Wrap user-facing strings in `__()`.
+- **Patient portal (Vue)**:
+  - `patient_portal/.prettierrc.json` sets `semi: false` and `singleQuote: true`. The portal is excluded from the root Prettier hook.
+  - Use SFCs with `<script setup>`, frappe-ui components (`Button`, `Card`, `FeatherIcon`), Tailwind utility classes and the `@/` alias for `src`.
+  - Component files are `PascalCase.vue`.
+
+## Hygiene
+
+- Pre-commit checks trailing whitespace, AST, merge conflicts, debug statements and secrets.
+- Many legacy files are listed in the large `exclude` block of `.pre-commit-config.yaml`. Do not add new files to that list; new code must pass the linters.
