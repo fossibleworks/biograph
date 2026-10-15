@@ -4,23 +4,17 @@
 applyTo: "**"
 ---
 
-# Workflow
+This repo is driven by **Interactor Build's engine** (see `CLAUDE.md`):
 
-## Work tracking: Interactor Build engine (this fork)
-Every code change goes through a tracked **Goal** in Interactor Build (`CLAUDE.md`):
-1. **No Goal, no edits.** Before writing any file, create a Goal in the Build web UI (build.interactor.com) or with `ibuild engine goal-create "<title>"` and `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after it is explicitly imported.
-2. Work on branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch (`biograph-fh` in this fork).
-3. The engine opens **one PR per Goal**. It must pass review and CI before merge. Do not push directly to the default branch.
-- EngineTasks under a Goal cycle through investigation → execution → review (`ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <goalId>`).
-- For small interactive changes, `ibuild off` may skip the Goal requirement. The change still goes on its own branch and through a hand-opened PR that runs CI.
-- Standing rules are in `.build/RULES.md` (mirrored to `.claude/rules`, `.cursor/rules`, `.github/instructions`).
+1. **A tracked Goal must exist before any file edit.** Create one in the Build web UI, by importing a GitHub issue, or with `ibuild engine goal-create "<title>"` then `ibuild engine goal queue <goalId>`.
+2. **Work on branch `goal/<goalId>` in an isolated worktree, never on the default branch.** The default branch of this fork is `biograph-fh`. Existing remote branches follow `goal/<slug>-<id>` (e.g. `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8`).
+3. **Each Goal ships through one PR** that must pass review and CI. EngineTasks under the Goal go through investigation → execution → review (`ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <goalId>`).
+4. Small interactive changes can use `ibuild off`. Those still go through a branch and a hand-opened PR with CI.
 
-## Upstream branching model (inherited)
-- `develop` is the integration branch. `version-14|15|16-hotfix` hold fixes. `version-14|15|16` are stable branches and only accept bot/maintainer release PRs (Mergify auto-closes others).
-- Backports are requested with labels such as `backport develop` or `backport version-15-hotfix`.
-
-## Commits and PRs
-- Use Conventional Commit titles (`feat:`, `fix:`, `chore:`, ...), checked by commitlint.
-- Follow the PR template: target branch, explanation of the problem, screenshots/GIFs, `closes #N`, passing tests, and server-side validation.
-- `feat` PRs need a docs link or `no-docs` in the body.
-- Merging: Mergify auto-merges after at least one approving review once CI passes, or squashes when the `squash` label is set. The `dont-merge` label blocks merging. CODEOWNERS: @akurungadam @Sajinsr.
+**Inherited upstream conventions (earthians/biograph):**
+- Conventional Commit titles, enforced by commitlint on PRs.
+- No PRs onto stable branches `version-14/15/16`. Mergify auto-closes them except from maintainers. Target `develop` or `version-XX-hotfix`, and backport with labels `backport develop` / `backport version-1X-hotfix`.
+- Mergify merges after ≥1 approval. The `squash` label squashes, and `dont-merge` blocks merging.
+- The PR template asks for details, screenshots/GIFs, server-side validation, docs updates, and `closes #XXXX`.
+- CODEOWNERS: `@akurungadam @Sajinsr`.
+- Project rules live in `.build/RULES.md`, which is still an unfilled template, and are mirrored to `.claude/rules`, `.cursor/rules` and `.github/instructions`.
