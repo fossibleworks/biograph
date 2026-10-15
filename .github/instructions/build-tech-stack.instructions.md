@@ -6,25 +6,21 @@ applyTo: "**"
 
 # Tech stack
 
-## Backend (most of the code)
-- **Python >= 3.10**. Ruff targets `py310`, and CI runs Python 3.14.
-- **Frappe framework** app named `healthcare`, with **ERPNext** as a required app (`required_apps = ["frappe/erpnext"]`). CI also installs the `payments` app.
-- Packaging: `flit_core` (`pyproject.toml`). The version is set in `healthcare/__init__.py`.
-- Extra Python dependencies: `responses`, `python-barcode`.
-- Database: **MariaDB**. CI uses `mariadb:11.8` with utf8mb4. Redis is installed by the bench setup.
-- Data model: Frappe **DocTypes**. Each one is a JSON schema plus a Python controller plus a JS form script. Database access uses the `frappe.qb` query builder, `frappe.db.*` and some raw `frappe.db.sql`.
+## Backend
+- **Python ≥ 3.10.** `pyproject.toml` builds with `flit_core`. CI runs Python 3.14.
+- **Frappe Framework** (a metadata-driven, DocType-based web framework) plus **ERPNext** as a required app. **Payments** is installed in CI.
+- **MariaDB 11.8** (in the CI service) and Redis.
+- Extra Python dependencies: `responses`, `python-barcode`. External HTTP calls use `requests` (ABDM).
+- The version lives in `healthcare/__init__.py` (`__version__`).
 
 ## Desk frontend
-- Plain JavaScript Frappe form, list and calendar scripts kept next to each DocType.
-- Shared desk JS in `healthcare/public/js`, bundled through `healthcare.bundle.js` (`app_include_js`).
-- Uses the jQuery and Frappe globals declared in `eslint.config.mjs`.
+- Plain JavaScript form scripts (`frappe.ui.form.on`) next to each DocType. Shared desk JS lives in `healthcare/public/js/`, bundled through `healthcare.bundle.js` (`app_include_js`).
+- Jinja HTML templates for print formats, `www/` pages and the `.html` micro-templates in `public/js`.
 
-## Patient Portal SPA (`patient_portal/`)
-- **Vue 3** with `vue-router`, **frappe-ui** (^0.1.176), **Vite 4.4.9**, **Tailwind CSS 3.4.15** using the frappe-ui preset, PostCSS/autoprefixer and feather or lucide icons.
-- The build writes to `healthcare/public/patient_portal/assets` and to the Jinja page `healthcare/www/patient_portal.html`.
+## Patient portal SPA (`patient_portal/`)
+- **Vue 3** (`<script setup>`), **vue-router**, **frappe-ui**, feather/lucide icons.
+- **Vite 4.4.9** with the `frappe-ui/vite` plugin, plus **Tailwind CSS 3.4.15**, PostCSS and autoprefixer.
+- Package manager: **Yarn** workspaces (root `yarn.lock`), on Node 24 in CI.
 
 ## Tooling
-- Yarn workspaces (root `package.json` plus `yarn.lock`).
-- pre-commit with ruff, ruff-format, prettier, eslint 10, pip-audit and detect-secrets.
-- Semgrep using the Frappe rules.
-- commitlint, semantic-release, Mergify, Crowdin and Codecov.
+ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), detect-secrets, pip-audit, CodeQL, commitlint, semantic-release, Mergify, Crowdin (translations) and Codecov.
