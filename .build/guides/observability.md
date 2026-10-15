@@ -7,17 +7,17 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
-  - healthcare/www/patient_portal.py
-  - patient_portal/src/socket.js
   - .pre-commit-config.yaml
+  - .github/helper/install.sh
 ---
 
-There is no dedicated metrics or tracing stack. The app relies on Frappe primitives:
+Biograph uses only Frappe's built-in observability. There is no metrics or tracing library.
 
-- **`frappe.log_error(message, title)`** is the main mechanism (Error Log doctype) for caught failures in background or side-effect work: SMS confirmations, calendar events, payment records, sample collection, medication request processing. Give it a descriptive title, e.g. "Unavailability Calendar Event Error", and include `frappe.get_traceback()` when catching broad exceptions.
-- **`frappe.logger()`** is used sparingly for setup progress (`.info`/`.debug` in `setup/patient_duplicate_check.py`) and for parse warnings (`.error`).
-- **Telemetry:** `frappe.utils.telemetry.capture("active_site", "patient_portal")` is called when a logged-in user opens the portal (`www/patient_portal.py`).
-- **Realtime:** the portal opens a Socket.IO connection (`patient_portal/src/socket.js`) for live updates.
-- Avoid bare `print()`. Pre-commit's `debug-statements` hook rejects leftover debuggers.
+- **`frappe.log_error(...)`** (about 15 call sites) writes to the **Error Log** DocType and is the main way to record failures. Pass a short human `title`, put the traceback in `message` (`frappe.get_traceback(with_context=True)`), and set `reference_doctype` and `reference_name` when a document is involved.
+- **`frappe.logger()`** (a few call sites) writes info or error lines to the site log for setup and parsing diagnostics, e.g. `frappe.logger().info("Starting patient duplicate check rules setup")`.
+- **No `print()`** in production code. About 75 `print(` occurrences exist, mostly in patches and setup scripts. Do not add new ones to request paths. Pre-commit's `debug-statements` hook blocks stray `pdb` and `breakpoint` calls.
+- Background jobs are visible through Frappe's RQ Job and Scheduled Job Log. Use `frappe.enqueue` so jobs show up there.
+- CI captures `bench_run_logs.txt` during test setup.
