@@ -7,26 +7,28 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/allergy/test_allergy.py
   - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
   - healthcare/tests/utils.py
   - codecov.yml
   - .github/labeler.yml
   - .github/workflows/ci.yml
   - healthcare/hooks.py
+  - healthcare/regional/india/abdm/test_abdm.py
 ---
 
-**Framework:** Frappe's unittest-based test runner, run with `bench run-tests` or `bench run-parallel-tests`. Tests run against a real MariaDB site that has ERPNext installed. `before_tests` in hooks.py (`healthcare.healthcare.utils.before_tests`) prepares fixtures.
+# Testing
 
-**Layout**
-- Each DocType has `doctype/<name>/test_<name>.py`, about 85 test files in total.
-- Tests subclass `frappe.tests.IntegrationTestCase`, which newer code uses, or `frappe.tests.utils.FrappeTestCase`, which older code uses.
-- Shared helpers are in `healthcare/tests/utils.py` and `healthcare/tests/test_utils.py`. Larger tests define module-level factory functions such as `create_healthcare_docs()` and `create_appointment(...)`, which other tests import.
-- `setUp` often clears tables with `frappe.db.sql("delete from `tabX`")` and toggles settings with `frappe.db.set_single_value`.
-- Many stub tests are empty (`pass`).
+## Framework
+- Server-side tests use Frappe's test runner (unittest-based). Test classes subclass `frappe.tests.utils.FrappeTestCase`. Shared bootstrap code uses `erpnext.tests.utils.ERPNextTestSuite`.
+- Tests run against a real MariaDB site (`test_site`) inside a bench: `bench --site test_site run-parallel-tests --app healthcare`.
+- The `before_tests` hook (`healthcare.healthcare.utils.before_tests`) prepares the site.
 
-**Expectations**
-- The PR labeler adds `needs-tests` when Python under `healthcare/` changes without any `test*.py` change, so ship a test with each logic change.
-- Codecov patch coverage target: **85%** on PRs. Project coverage must not drop by more than 0.5%.
-- CI runs server tests on PRs, except PRs that touch only css/js/md/html/csv. It also runs a nightly scheduled run, which collects coverage.
-- There are no JS or UI test suites in the repo.
+## Layout
+- Co-locate tests with the DocType: `healthcare/healthcare/doctype/<name>/test_<name>.py` (~85 test files). Regional tests sit alongside the code (e.g. `regional/india/abdm/test_abdm.py`).
+- Shared fixtures live in `healthcare/tests/utils.py` (`BootStrapTestData` builds the company, items, patients, practitioners, service units, templates and insurance payors). Test records use the `_Test ...` naming prefix.
+- The usual pattern is a `setUp` that clears relevant tables (`frappe.db.sql("delete from `tabX`")`), module-level factory helpers (`create_healthcare_docs()`, `create_appointment(...)`), then `assertEqual` on document fields and `frappe.db.get_value` results. Settings are toggled with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+
+## Expectations
+- Codecov **patch target 85%** on PRs to `develop`. Project coverage may not drop by more than 0.5%. Coverage is collected on scheduled runs, not on PRs.
+- The PR labeler adds a `needs-tests` label when `healthcare/**/*.py` changes without any `test*.py` change.
+- There is no automated frontend (Vue) test suite. Verify portal changes manually.
