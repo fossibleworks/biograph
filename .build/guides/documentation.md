@@ -7,22 +7,17 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - README.md
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
-  - wiki/PATIENT-DUPLICATE.md
-  - wiki/insurance-parity-report.md
-  - .github/workflows/docs_checker.yml
   - .github/helper/documentation.py
+  - .github/workflows/docs_checker.yml
+  - wiki/PATIENT-DUPLICATE.md
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - README.md
 ---
 
-- **README.md** gives the overview, installation through bench, and the development setup (pre-commit, semgrep). Full end-user docs live outside the repo, on **DeepWiki** (linked from the README).
-- **`wiki/`** holds in-repo markdown for larger features. Files are UPPER-KEBAB-CASE and come in a few kinds:
-  - **Design documents**, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, the FHIR terminology parity plan, and `insurance-parity-report.md`. They cover overview, core features, data model and flows.
-  - **Usage guides**, e.g. `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`. They have an introduction or TOC, a quick start, configuration, and examples.
-  - **Problem statements**, e.g. `PATIENT-DUPLICATE.md`.
-  - Images sit next to the docs (`patient-duplicatecheck-thumbnail.png`).
-- **PR documentation gate:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails any PR whose title starts with `feat` unless the body links to a docs `/wiki` URL on an allowed host, or contains `no-docs`, or is a backport. The script currently queries upstream `earthians/biograph` with hosts `biograph.frappe.cloud` and `biograph.io`, so check that it applies in this fork.
-- In code, docstrings and comments are sparse. Short `#` comments explain non-obvious branches. The DocType JSON `description` fields hold field-level help shown in the UI.
-- AI/agent guidance lives in `CLAUDE.md`, `.build/RULES.md`, `.build/guides/` and `AGENTS.md`, which is generated.
+# Documentation
+
+- User-facing docs are external. The README points to DeepWiki. The `docs_checker` workflow requires every PR titled `feat...` to link to docs on `biograph.frappe.cloud` or `biograph.io` under `/wiki`. Otherwise the body must contain `no-docs`, or the PR must be a backport.
+- In-repo design and usage notes go in **`wiki/`** as Markdown files with uppercase, hyphenated names (for example `PATIENT-DUPLICATE.md`, `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`). They usually start with a problem statement, then the design, then usage.
+- The PR template asks contributors to explain the details of the change, add screenshots or GIFs, update documentation, and include `closes #XXXX`.
+- `patient_portal/README.md` documents the SPA. `.build/` holds Build project files.
