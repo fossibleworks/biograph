@@ -9,25 +9,34 @@ source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
   - healthcare/healthcare/api/patient_portal.py
-  - patient_portal/src/PatientPortal.vue
+  - healthcare/www/patient-portal/index.py
+  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
+  - healthcare/public/js/utils.js
+  - patient_portal/src/components/BookAppointmentModel.vue
 ---
 
-## User-facing validation
+# Error handling
 
-- Raise validation failures with **`frappe.throw(_("Message"), ExcClass)`**. The codebase does this about 220 times. Do not use bare `raise` (there are only a few).
-- Domain-specific errors subclass `frappe.ValidationError` and live in the controller module that raises them: `OverlapError` and `MaximumCapacityError` in patient_appointment, `CoverageNotFoundError` and `NoActiveContractError` in patient_insurance_coverage, `CoverageOverlapError`. Tests assert on these classes.
-- Messages are short, translatable sentences, e.g. `_("Appointment end must be after start.")`.
-- Non-blocking feedback uses `frappe.msgprint` on the server and `frappe.show_alert` / `frappe.msgprint` in Desk JS.
+## Server (Python)
+- **Validation errors** use `frappe.throw(_("message {0}").format(...))`. This raises `frappe.ValidationError` and rolls back the request. It is used about 180 times.
+- **Typed errors**: domain-specific subclasses of `frappe.ValidationError` are declared at the top of the controller module and passed as the second argument to `frappe.throw`:
+  ```python
+  class OverlapError(frappe.ValidationError):
+  	pass
+  frappe.throw(_("..."), title=_("Appointments Overlapping"), exc=OverlapError)
+  ```
+  Examples: `MaximumCapacityError`, `OverlapError`, `CoverageOverlapError`, `CoverageNotFoundError`, `NoActiveContractError`. Tests assert on these with `assertRaises`.
+- **Permission and not-found errors** use the Frappe exception classes, for example `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)` and `frappe.DoesNotExistError` in portal pages.
+- **Background and non-critical failures** (scheduler jobs, notifications, calendar events, billing of occupancy) are caught and logged with `frappe.log_error(...)`, which writes an Error Log, so the main transaction continues. Give a clear title, for example `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
+- Use `frappe.get_link_to_form` in messages to link the user to the conflicting document.
+- Do not swallow exceptions in user-triggered flows. Let `frappe.throw` surface them.
 
-## Background and integration failures
+## Whitelisted API responses
+- Endpoints return plain dicts and lists, and signal errors by raising (`frappe.throw`). Frappe serializes these into `exc_type` and `_server_messages`. There is no custom error envelope.
 
-- Wrap scheduler jobs, notifications and integration calls in `try/except Exception`. Record the failure with **`frappe.log_error(...)`** so it shows in the Error Log doctype, then carry on instead of failing the parent transaction. Examples:
-  - `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`
-  - `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`
-- Patches catch failures and log them the same way.
+## Desk JS
+- Use `frappe.throw(__(...))` for blocking client-side checks and `frappe.msgprint(__(...))` for informational errors. Wrap strings in `__()`.
 
-## API / portal
-
-- Whitelisted portal endpoints return `None` or an empty value when no data is found (e.g. no logged-in patient) rather than raising. The Vue portal shows errors in a frappe-ui `Dialog` with a warning icon.
+## Patient Portal (Vue)
+- Each frappe-ui `createResource` has an `onError(e)` that stores `e.messages?.[0] || e` in a reactive `error` ref, which is rendered with the frappe-ui `ErrorMessage` component.
