@@ -5,9 +5,12 @@ description: Documentation
 alwaysApply: true
 ---
 
-- **End-user and design docs** go in top-level `wiki/` as UPPER-KEBAB-CASE markdown (`PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`), plus plans and parity reports. Usage docs have a table of contents, numbered sections, click paths in bold (**Healthcare → Setup → Healthcare Settings**), tables, and optional screenshots or video thumbnails stored next to the doc.
-- **Public docs** are on DeepWiki (`deepwiki.com/Tacten/biograph`), linked from the README, with Context7 configured in `context7.json`.
-- **PR docs gate:** `docs_checker.yml` fails `feat` PRs unless the body links to a `/wiki` page on `biograph.frappe.cloud` / `biograph.io`, or says `no-docs` (backports are exempt). Its API call targets `earthians/biograph`.
-- The PR template asks you to "Update necessary Documentation" and to reference issues with `closes #XXXX`.
-- `healthcare/docs/current` is git-ignored.
-- `AGENTS.md` holds a Build-managed guides index that points to `.build/RULES.md`.
+- **README.md** gives the overview, installation through bench, and the development setup (pre-commit, semgrep). Full end-user docs live outside the repo, on **DeepWiki** (linked from the README).
+- **`wiki/`** holds in-repo markdown for larger features. Files are UPPER-KEBAB-CASE and come in a few kinds:
+  - **Design documents**, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, the FHIR terminology parity plan, and `insurance-parity-report.md`. They cover overview, core features, data model and flows.
+  - **Usage guides**, e.g. `BLOCK-APPOINTMENT-BOOKING-USAGE.md` and `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`. They have an introduction or TOC, a quick start, configuration, and examples.
+  - **Problem statements**, e.g. `PATIENT-DUPLICATE.md`.
+  - Images sit next to the docs (`patient-duplicatecheck-thumbnail.png`).
+- **PR documentation gate:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails any PR whose title starts with `feat` unless the body links to a docs `/wiki` URL on an allowed host, or contains `no-docs`, or is a backport. The script currently queries upstream `earthians/biograph` with hosts `biograph.frappe.cloud` and `biograph.io`, so check that it applies in this fork.
+- In code, docstrings and comments are sparse. Short `#` comments explain non-obvious branches. The DocType JSON `description` fields hold field-level help shown in the UI.
+- AI/agent guidance lives in `CLAUDE.md`, `.build/RULES.md`, `.build/guides/` and `AGENTS.md`, which is generated.
