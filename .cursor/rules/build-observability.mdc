@@ -5,14 +5,13 @@ description: Observability
 alwaysApply: true
 ---
 
-The project uses only Frappe's built-in facilities. There is no external metrics or tracing stack.
+# Observability
 
-- **Error Log doctype via `frappe.log_error`** is the main mechanism (about 15 call sites). Pass a descriptive, often translated, **title** and either the exception or `frappe.get_traceback()` as the message:
-  ```python
-  frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
-  frappe.log_error(message=e, title="Can't bill Service Unit occupancy")
-  ```
-- **`frappe.logger()`** writes structured file logs in setup/install code (`healthcare/healthcare/setup/patient_duplicate_check.py`) and parsing fallbacks. It is used at `info`/`debug`/`error` levels.
-- **Integration request records**: the ABDM integration persists requests as the `ABDM Request` doctype. Healthcare Payment Record tracks payments.
-- **Realtime**: `frappe.publish_realtime` and socket.io `refetch_resource` keep the portal fresh. These are not used for telemetry.
-- **Avoid `print()` and `console.log`** in app code. ESLint warns on `console`, and the pre-commit `debug-statements` hook blocks leftover debuggers. Existing `print` calls are confined to install/migrate/uninstall scripts and a few legacy modules.
+There is no dedicated metrics or tracing stack. Observability relies on Frappe built-ins:
+
+- **Error Log doctype** through `frappe.log_error(message, title)`, used about 15 times for failures in background or side-effect paths (notifications, calendar events, payment records, medication request expiry, IP occupancy billing). Include `frappe.get_traceback()` or the exception, plus a human-readable title.
+- **The Frappe logger** through `frappe.logger().info/debug/error(...)`, used mainly in setup and patches (`setup/patient_duplicate_check.py`, `patches/v15_0/setup_patient_duplicate_check_rules.py`) and for parse failures in `patient_appointment.py`.
+- The Python `logging` module is not used directly, and `print` is not used for diagnostics.
+- **Desk JS**: ESLint warns on `console.*` (`no-console: warn`), so do not leave console logging in committed code.
+- **Realtime**: `frappe.publish_realtime` (for example in `sample_collection.py`) and Socket.IO on the portal push UI updates. These are not telemetry.
+- Coverage reporting goes to Codecov from scheduled CI runs.
