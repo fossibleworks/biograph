@@ -5,15 +5,16 @@ description: Documentation
 alwaysApply: true
 ---
 
-# Documentation
+## Where docs live
 
-- **README.md** covers installation (bench), development setup (pre-commit, semgrep) and links to external docs at DeepWiki.
-- **`wiki/`** (repo root) holds feature design docs and usage guides in Markdown:
-  - usage docs (`*-USAGE.md`, `*-USAGE-DOC.md`) with numbered sections, a table of contents, and **bold** UI navigation paths ("Healthcare → Setup → Healthcare Settings")
-  - design docs (`DESIGN-*.md`)
-  - implementation plans and parity reports
-  
-  Images sit beside the docs.
-- **The PR docs gate** (`docs_checker.yml` with `.github/helper/documentation.py`) applies to PRs titled `feat...`. Their body must link to a docs page (a `/wiki` URL on an approved domain) or contain `no-docs`.
-- The PR template asks you to "Update necessary Documentation" and follow ERPNext doc guidelines.
-- `.build/` holds Build-managed guides. `AGENTS.md` renders their index, so edit the sources, not the rendered block.
+- **`wiki/`** (repo root) holds feature design docs and user guides as UPPERCASE-KEBAB markdown files. Examples are `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `insurance-parity-report.md`, and an implementation plan for FHIR terminology parity. Images sit beside them.
+  - User guides start with an Introduction, then "This guide covers" bullets, a Quick Start, tables, and step-by-step `### Step N` sections using bold Desk navigation (**Healthcare > Patient Appointment**).
+  - Design docs are written separately from usage docs.
+- **`README.md`** links to the external documentation at DeepWiki, the Telegram group and install steps. It also contains a Build-managed "Guides" block that lists `.build/RULES.md` and `.build/guides/*`.
+- `patient_portal/README.md` covers the SPA.
+- `AGENTS.md` / `CLAUDE.md` / `.build/RULES.md` hold the AI-agent workflow rules.
+
+## PR documentation gate (inherited from upstream)
+
+- `docs_checker.yml` fails `feat:` PRs unless the body links a `/wiki` URL on `biograph.frappe.cloud` / `biograph.io`, or contains `no-docs` or `backport`.
+- It queries the upstream `earthians/biograph` API, so on this fork include `no-docs` or a wiki link in `feat` PR bodies.
