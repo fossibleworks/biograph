@@ -4,21 +4,10 @@
 applyTo: "**"
 ---
 
-# Product context
+**Biograph** (app name `healthcare`, app title "Biograph") is an open-source Hospital Information System (HIS). It is a fork of Marley Health (earthians) with added features, and Tacten / FossibleWorks maintains it as "fossibleHIS". It is a **Frappe app that requires ERPNext** (`required_apps = ["frappe/erpnext"]`), and its home is the Frappe Desk at `/desk/healthcare`.
 
-**Biograph** (by Tacten; this repo is tracked in Build as **fossibleHIS**) is an open-source **hospital information system (HIS)** for healthcare organisations. It forks and extends *Marley Health*. It is installed as a **Frappe app named `healthcare`** on top of **ERPNext** (`required_apps = ["frappe/erpnext"]`).
+**Users:** clinics, hospitals and individual practitioners. Inside the Desk that means front desk staff, doctors (Healthcare Practitioner), nurses and lab staff. Patients use a separate **Patient Portal** at `/patient-portal`, which needs the `Patient` role.
 
-## What it does
-- Patient management, outpatient and inpatient management (Patient Appointment, Inpatient Record, Fee Validity).
-- Clinical procedures, rehabilitation and physiotherapy (Therapy Plan/Session, Exercise), laboratory (Lab Test, Lab Test Template), observations, diagnostic reports, and medication requests.
-- Insurance: payor contracts, patient insurance policy and coverage, and item insurance eligibility.
-- Medical code standards (Code System, Code Value). Much of the design follows **HL7 FHIR**.
-- Facilities are modelled as **Healthcare Service Units** and specialities as **Medical Departments**.
-- Regional integration: India / ABDM (`healthcare/regional/india/abdm`).
-- A **Patient Portal** (Vue SPA served at `/patient-portal`) where patients see appointments, book slots, and pay.
-- ERPNext supplies pharmacy, purchasing, HR, accounts, and assets. Billing goes through Sales Invoice hooks.
+**Main features** (README and doctype list): patient management, outpatient and inpatient care (Patient Appointment, Patient Encounter, Inpatient Record), clinical procedures, rehab and physiotherapy (Therapy, Exercise), laboratory work (Lab Test, Sample Collection, Observation, Diagnostic Report), medication and medication requests, nursing tasks, insurance (Payor, Contract, Coverage, Claim), fee validity and billing through ERPNext Sales Invoice and Payment Entry, and medical coding (Code System, Code Value, Code Value Set; most of the design follows HL7 FHIR). A regional India ABDM integration lives in `healthcare/regional/india/abdm`.
 
-## Users
-Practitioners, front desk, nursing, lab, and billing staff work in Frappe Desk (`app_home = /desk/healthcare`). Patients use the web portal. Role-based home pages are set at login (`on_login` hook).
-
-Feature design notes live in `wiki/`, for example patient duplicate checking, block-based therapy appointment booking, FHIR terminology parity, and insurance parity.
+ERPNext supplies pharmacy, stock, purchasing, HR, accounts and assets. In the portal, patients view appointments, orders and lab results, book appointments by department and practitioner, and pay bills.
