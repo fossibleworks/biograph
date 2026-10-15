@@ -8,29 +8,35 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
-  - .build/CLAUDE.md
+  - .build/RULES.md
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - commitlint.config.js
   - .github/workflows/semantic-commits.yml
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - .mergify.yml
-  - .github/CODEOWNERS
 ---
 
-**Work tracking: Interactor Build (engine).** These rules come from `CLAUDE.md`.
-- Every code change needs a tracked **Goal**. A GitHub issue becomes a Goal only after an explicit import step. EngineTasks under a Goal cycle through investigation → execution → review.
-- Before writing any file, a Goal must exist (`ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <goalId>`, or use the Build web UI).
-- Work on branch **`goal/<goalId>`** in an isolated worktree. **Never commit to the default branch**, which is `biograph-fh` in this fork.
-- Changes ship through the goal's single PR, which the engine opens and which must pass review and CI. Interactive sessions may use `ibuild off` for small changes, but those still go through their own branch and a hand-opened PR.
-- `.build/` holds `vision.md` (read it before planning), `RULES.md`, tasks, phases and sprints. Don't put `[interactor-sync]` in your own commit messages.
+## Work tracking: Interactor Build engine
 
-**Commits and PRs** (inherited from upstream):
-- **Conventional commit titles**, enforced by commitlint on every PR. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`. The type is lower-case and the subject must not be empty.
-- Follow the PR template: say which branch to target, explain *why* the change exists, add screenshots or GIFs for UI, make sure tests pass locally, keep business logic server-side, update docs, and add `closes #NNN`.
-- `feat` PRs need a wiki docs link or `no-docs` in the body.
-- Default reviewers are `@akurungadam` and `@Sajinsr` (CODEOWNERS).
+This repo is connected to **Interactor Build**, which tracks it as fossibleHIS (`fossibleworks/biograph`). Every code change goes through it:
 
-**Upstream branch model** (encoded in `.mergify.yml` and `.releaserc`):
-- Development happens on `develop`. Stable branches are `version-14/15/16`, with matching `version-XX-hotfix` branches.
-- PRs opened directly against stable branches by non-maintainers are auto-closed.
-- Mergify merges after 1 approval (squash if the PR has the `squash` label; `dont-merge` blocks it). Labels `backport develop` and `backport version-XX-hotfix` auto-backport.
-- Translation PRs from Crowdin carry `translation` and `skip-release-notes`.
+1. **A tracked Goal must exist before any file is edited.** A Goal is the objective, and a GitHub issue maps to one Goal. You can create a Goal in three ways:
+   - in the web UI at build.interactor.com
+   - with `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`
+   - by importing a GitHub issue (opening an issue alone does not create a Goal)
+2. **Work on branch `goal/<goalId>` in an isolated worktree.** Never commit to the default branch. In this fork the default branch is `biograph-fh`.
+3. **Ship through the Goal's single PR.** The engine opens it, and it must pass review and CI before merge.
+
+The engine generates EngineTasks under each Goal. Each task cycles through **investigation → execution → review**. Drive them with `ibuild engine work <task>` and `ibuild engine report --yes`. Deliver with `ibuild engine goal accept <goalId>`. For small changes, an interactive session may run `ibuild off`. The change still lands on its own branch through a hand-opened PR that runs CI.
+
+## Commits and PRs
+
+- Use **conventional commit** titles, enforced by commitlint on PRs: `feat|fix|chore|docs|refactor|perf|test|style|ci|build|revert`.
+- Fill in the PR template: explain the problem and the change, add screenshots or GIFs for UI changes, add `closes #NNN`, and keep business logic and validation server-side. Tests must pass locally.
+- `feat` PRs need a docs link or `no-docs` (see Documentation).
+
+## Upstream branch model (inherited from earthians/biograph)
+
+- `develop` is the integration branch. Hotfixes go to `version-1x-hotfix`. Stable branches are `version-14`, `-15`, and `-16`. Mergify **auto-closes PRs against stable branches** from non-maintainers.
+- Mergify auto-merges after at least 1 approval and green CI. The `squash` label squash-merges, and `dont-merge` blocks merging. Labels such as `backport develop` or `backport version-1x-hotfix` create backport PRs.
+
+Project-specific rules live in `.build/RULES.md`. That file is currently an unfilled template.
