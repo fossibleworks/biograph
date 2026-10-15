@@ -4,12 +4,10 @@
 applyTo: "**"
 ---
 
-Biograph relies on **Frappe's built-in facilities**. It has no metrics or tracing libraries.
+The app relies on Frappe's built-in facilities. There is no external metrics or tracing stack.
 
-- **`frappe.log_error(message_or_traceback, title)`** writes to the Error Log doctype. This is the main pattern (about 15 uses).
-  - Typical use: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(error_msg, "Unavailability Calendar Event Error")`.
-  - Give it a descriptive title so entries are searchable.
-- **`frappe.logger().info/error(...)`** writes to file logs (about 9 uses). It is used for setup and seed progress (`setup/patient_duplicate_check.py`) and parse failures.
-- **Request/response audit doctypes**: external API calls (ABDM) are persisted as `ABDM Request` documents holding the request payload and URL. Follow this for new outbound integrations.
-- **Realtime**: `frappe.publish_realtime` is used sparingly, and the portal has a socket client (`patient_portal/src/socket.js`).
-- Do not use `print()`. The `debug-statements` pre-commit hook blocks pdb/breakpoint.
+- **Error Log doctype:** `frappe.log_error(...)` is the main way failures are recorded (about 15 call sites). Always pass a descriptive `title`, e.g. `"Can't bill Service Unit occupancy"` or `"Unavailability Calendar Event Error"`, plus a message or `frappe.get_traceback()`.
+- **Logger:** `frappe.logger()` is used for informational progress in setup and parsing code (about 9 calls), e.g. `frappe.logger().info("Starting patient duplicate check rules setup")`.
+- **Telemetry:** `frappe.utils.telemetry.capture("active_site", "patient_portal")` runs when a logged-in user opens the portal.
+- **Realtime:** the portal listens on socket.io for `refetch_resource` events to reload cached frappe-ui resources. The server side uses `frappe.publish_realtime`.
+- **Frontend:** about 33 `console.log`/`console.error` calls exist across desk JS and the portal. Avoid adding more debug logging. The pre-commit `debug-statements` hook blocks Python debuggers.
