@@ -5,10 +5,15 @@ description: Documentation
 alwaysApply: true
 ---
 
-- **README.md** covers the overview, installation (bench), development setup (pre-commit, semgrep) and links. Full product docs are external on DeepWiki (`deepwiki.com/Tacten/biograph`).
-- **`wiki/`** holds the in-repo feature docs as Markdown, usually in pairs:
-  - **Design documents** (`DESIGN-*.md`, `PATIENT-DUPLICATE.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`) cover the overview, core features, data model and flows.
-  - **User guides** (`*-USAGE*.md`) have an Introduction, a "This guide covers" list, a Quick Start with tables, and numbered steps that reference desk navigation such as **Healthcare > Patient Appointment**. Screenshots sit alongside, e.g. `patient-duplicatecheck-thumbnail.png`.
-- **PR docs gate:** `docs_checker.yml` runs `.github/helper/documentation.py`. A PR whose title starts with `feat` must link to a `/wiki` URL on an approved docs host, or say `no-docs` (or `backport`) in its body. Otherwise the check fails.
-- The PR template asks you to "Update necessary Documentation" and follow ERPNext's page-format guidelines.
-- Agent docs: `CLAUDE.md`, `AGENTS.md` and `.build/RULES.md`. Build-managed guides go under `.build/guides/`.
+## Where docs live
+
+- **`README.md`** covers the overview, installation (bench), dev setup (pre-commit, semgrep) and links. Full user documentation is hosted externally on **DeepWiki** (`deepwiki.com/Tacten/biograph`). There is also a `context7.json` registration.
+- **`wiki/`** holds in-repo feature docs as Markdown, usually written in UPPER-KEBAB-CASE. There are two kinds:
+  - *Design/plan docs*: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `PATIENT-DUPLICATE.md`, `insurance-parity-report.md`.
+  - *Usage docs*: `*-USAGE.md` / `*-USAGE-DOC.md`. These have a table of contents, numbered sections, step-by-step navigation in bold (e.g. **Healthcare → Setup → Healthcare Settings**), and screenshots or a demo-video thumbnail stored next to them.
+- `healthcare/config/docs.py` holds Frappe's in-app docs config.
+
+## PR documentation requirement
+
+- The `Documentation Required` workflow (`.github/helper/documentation.py`) fails any **`feat`** PR whose body lacks a link to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`. You can opt out by writing `no-docs` in the PR body; backport PRs are exempt.
+- The PR template asks you to "Update necessary Documentation" and to attach screenshots/GIFs.
