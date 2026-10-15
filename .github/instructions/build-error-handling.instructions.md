@@ -4,10 +4,12 @@
 applyTo: "**"
 ---
 
-- **Validation errors:** call `frappe.throw(_("Message {0}").format(x), ExcClass, title=_("..."))`. This is the dominant pattern, with about 180 calls in Python.
-- **Domain exceptions:** define small subclasses of `frappe.ValidationError` at the top of the controller module, for example `OverlapError` and `MaximumCapacityError` in `patient_appointment.py`, or `CoverageNotFoundError` in `patient_insurance_coverage.py`. Pass them as the second argument to `frappe.throw` so tests can `assertRaises` them.
-- **Non-blocking notices:** `frappe.msgprint(_(...))`.
-- **Background and best-effort work** (scheduler jobs, notifications, history updates): wrap it in `try/except Exception`, record the problem with `frappe.log_error(message/traceback, title)` (Error Log doctype) and continue. Examples: `inpatient_record.py` ("Can't bill Service Unit occupancy") and `patient_appointment.py` (`frappe.get_traceback()` with "Appointment Confirmation Message Not Sent").
-- **Whitelisted APIs** return `None` or empty results when a lookup finds nothing (`get_logged_in_patient`) and raise `frappe.throw` or `PermissionError` on bad input. Frappe turns these into HTTP error responses.
-- **Desk JS** uses `frappe.throw(__("..."))` and `frappe.msgprint` for client-side validation. Server-side validation is still required (PR template: "All business logic and validations must be on the server-side").
-- **Vue portal:** frappe-ui resources declare `onError(e)` handlers and show `<ErrorMessage :message="error" />` or `toast`.
+# Error handling
+
+- **Validation errors shown to users**: use `frappe.throw(_("message {0}").format(x))`, normally inside controller `validate`/`before_submit` methods. Pass an exception class when the meaning matters, for example `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)`. Optional kwargs include `title=_("Insufficient Stock")`, `is_minimizable=True` and `wide=True`.
+- Format the message with `.format()` after `_()`, not with an f-string inside `_()`. Some legacy code does `_(f"...")`, which breaks translation; do not copy it.
+- **Background or integration failures**: catch, then record with `frappe.log_error(title=..., message=..., reference_doctype=..., reference_name=...)`. Use `frappe.get_traceback(with_context=True)` for detail, as in `healthcare_payment_record.py`. Short titles are the norm ("Cant complete API call", "Failed to sync Payment Record").
+- **External APIs (ABDM)**: the request/response and traceback are persisted on an `ABDM Request` doc with a status (Granted/Revoked) and also logged through `frappe.log_error`. The function then returns a safe fallback instead of raising.
+- Broad `except Exception` appears in about 30 places, mostly around notifications, calendar events and history updates, so a failure there does not block the primary transaction. Do not use it around core validation.
+- **Whitelisted APIs**: enforce permissions server-side. Allow-list the doctypes, and raise `frappe.PermissionError` otherwise.
+- **Portal (Vue)**: resource `onError` handlers surface `err.messages?.[0]` through `toast.error` or an `<ErrorMessage>` component.
