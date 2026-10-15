@@ -4,10 +4,14 @@
 applyTo: "**"
 ---
 
-The app relies on Frappe's built-in facilities. There is no external metrics or tracing stack.
+The project uses only Frappe's built-in facilities. There is no external metrics or tracing stack.
 
-- **Error Log doctype:** `frappe.log_error(...)` is the main way failures are recorded (about 15 call sites). Always pass a descriptive `title`, e.g. `"Can't bill Service Unit occupancy"` or `"Unavailability Calendar Event Error"`, plus a message or `frappe.get_traceback()`.
-- **Logger:** `frappe.logger()` is used for informational progress in setup and parsing code (about 9 calls), e.g. `frappe.logger().info("Starting patient duplicate check rules setup")`.
-- **Telemetry:** `frappe.utils.telemetry.capture("active_site", "patient_portal")` runs when a logged-in user opens the portal.
-- **Realtime:** the portal listens on socket.io for `refetch_resource` events to reload cached frappe-ui resources. The server side uses `frappe.publish_realtime`.
-- **Frontend:** about 33 `console.log`/`console.error` calls exist across desk JS and the portal. Avoid adding more debug logging. The pre-commit `debug-statements` hook blocks Python debuggers.
+- **Error Log doctype via `frappe.log_error`** is the main mechanism (about 15 call sites). Pass a descriptive, often translated, **title** and either the exception or `frappe.get_traceback()` as the message:
+  ```python
+  frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
+  frappe.log_error(message=e, title="Can't bill Service Unit occupancy")
+  ```
+- **`frappe.logger()`** writes structured file logs in setup/install code (`healthcare/healthcare/setup/patient_duplicate_check.py`) and parsing fallbacks. It is used at `info`/`debug`/`error` levels.
+- **Integration request records**: the ABDM integration persists requests as the `ABDM Request` doctype. Healthcare Payment Record tracks payments.
+- **Realtime**: `frappe.publish_realtime` and socket.io `refetch_resource` keep the portal fresh. These are not used for telemetry.
+- **Avoid `print()` and `console.log`** in app code. ESLint warns on `console`, and the pre-commit `debug-statements` hook blocks leftover debuggers. Existing `print` calls are confined to install/migrate/uninstall scripts and a few legacy modules.
