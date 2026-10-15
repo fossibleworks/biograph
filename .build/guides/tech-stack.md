@@ -1,5 +1,5 @@
 ---
-title: Tech stack
+title: Tech Stack
 category: tech-stack
 layer: project
 applies_to: []
@@ -8,33 +8,33 @@ binding: required
 source: inferred
 evidence:
   - pyproject.toml
-  - healthcare/hooks.py
-  - healthcare/__init__.py
   - package.json
   - patient_portal/package.json
   - patient_portal/vite.config.js
   - .github/workflows/ci.yml
-  - .github/helper/install.sh
-  - yarn.lock
+  - healthcare/hooks.py
+  - crowdin.yml
 ---
 
-**Backend**
-- Python. `pyproject.toml` requires `>=3.10`, ruff targets `py310`, and CI runs Python **3.14**.
-- **Frappe Framework** and **ERPNext** (a required app). The code is a Frappe app package named `healthcare`, versioned in `healthcare/__init__.py` (currently 16.0.2).
-- Built with `flit_core`. Runtime deps are `responses` and `python-barcode`.
-- Database is **MariaDB**: CI uses `mariadb:11.8` with utf8mb4. Redis is used through bench. PDFs are rendered with wkhtmltopdf.
-- The `payments` Frappe app is installed alongside in CI.
+# Tech stack
 
-**Desk UI (inside the Frappe desk)**
-- Plain JavaScript form scripts (`<doctype>.js`, `_list.js`, `_calendar.js`) that use the `frappe` and `jQuery` globals.
-- Shared scripts are bundled through `healthcare/public/js/healthcare.bundle.js`, which `app_include_js` in hooks.py loads.
+## Backend
+- **Python ≥ 3.10.** Ruff targets `py310`. CI runs Python **3.14**.
+- **Frappe Framework** app (`healthcare`) that depends on **ERPNext**. Code uses `frappe.*` APIs, the `frappe.qb` query builder, and `frappe.db.sql`.
+- Packaged with **flit_core** (`pyproject.toml`). Runtime extras: `python-barcode`, `responses`.
+- Database: **MariaDB** (CI uses `mariadb:11.8`), plus Redis via bench.
+- Printing and PDF use Jinja print formats and wkhtmltopdf.
 
-**Patient portal SPA** (`patient_portal/`)
-- **Vue 3**, vue-router 4 and **frappe-ui** (components, `createResource`, the frappe-ui Vite plugin and Tailwind preset).
-- **Vite 4.4.9**, **Tailwind CSS 3.4.15**, PostCSS/autoprefixer and feather-icons. socket.io-client handles realtime refetches.
-- Node 24 in CI. Yarn workspaces come from the root `package.json`, with `yarn.lock` committed.
+## Desk frontend
+- Classic Frappe Desk JavaScript: `frappe.ui.form.on`, `frappe.call`, `__()` for translation, and jQuery globals.
+- Files live next to each DocType or in `healthcare/public/js`, bundled through `healthcare.bundle.js`.
 
-**Tooling**
-- ruff (lint and format), ESLint 10 (flat config) and Prettier.
-- pre-commit, semgrep (Frappe rules), pip-audit and detect-secrets.
-- commitlint with conventional commits, and semantic-release.
+## Patient portal SPA (`patient_portal/`)
+- **Vue 3** with `vue-router` and **frappe-ui** (`createResource`, its components, and its Tailwind preset).
+- **Vite 4.4.9** with `@vitejs/plugin-vue`, **Tailwind CSS 3.4.15**, PostCSS, and autoprefixer.
+- Socket.io client for realtime updates (`src/socket.js`).
+
+## Tooling
+- **Yarn** workspaces (`yarn.lock`), Node 24 in CI.
+- ruff (lint and format), prettier, ESLint 10 (flat config), pre-commit, semgrep with the Frappe rules, pip-audit, detect-secrets, commitlint, and semantic-release.
+- Translations use a gettext POT file (`healthcare/locale/main.pot`) synced through Crowdin.
