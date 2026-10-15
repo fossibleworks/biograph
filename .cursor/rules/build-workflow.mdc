@@ -5,15 +5,16 @@ description: Workflow
 alwaysApply: true
 ---
 
-**This fork (fossibleworks/biograph → fossibleHIS)** is driven by **Interactor Build**:
-- Every code change needs a tracked **Goal** first. Create one in the Build web UI, through an imported GitHub issue, or with `ibuild engine goal-create "<title>"`.
-- Work on the branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch `biograph-fh` directly.
-- Each Goal ships as one PR opened by the engine. The PR must pass review and CI before merge. EngineTasks under a Goal cycle through investigation → execution → review.
-- For a small change, an interactive session may run `ibuild off`. The change still goes on its own branch through a hand-opened PR.
-- Project rules live in `.build/RULES.md`, which is mirrored to the `.claude`, `.cursor`, `.github/instructions` and `AGENTS.md` copies.
+**Work tracking (Interactor Build engine), from CLAUDE.md**
+- Every code change needs a tracked **Goal**. A GitHub issue becomes a Goal only after an explicit import. Under each Goal the engine creates EngineTasks, which cycle through investigation, execution and review.
+- Before editing: create or start the Goal (`ibuild engine goal-create "<title>"`, `ibuild engine goal queue <goalId>`), then work on branch **`goal/<goalId>`** in an isolated worktree. Never work directly on the default branch (`biograph-fh` in this fork).
+- All changes ship through the Goal's single PR, which must pass review and CI. Small interactive changes may use `ibuild off`, but they still go on their own branch with a hand-opened PR.
+- `.build/RULES.md` (mirrored to `.claude/rules`, `.cursor/rules`, `.github/instructions`) holds standing rules. It is currently an unfilled template. `AGENTS.md` links to it.
 
-**Upstream conventions (still present in config):**
-- Conventional Commit titles are enforced by commitlint.
-- The PR template asks contributors to choose the right base branch, explain the change, attach screenshots, put all business logic server-side, update docs and include `closes #NNN`.
-- Upstream branches are `develop` plus the stable `version-14/15/16` branches and their `-hotfix` branches. Mergify auto-closes PRs against stable branches. It auto-merges after one approval, or squashes if the PR has the `squash` label. Labels like `backport version-15-hotfix` trigger backports.
-- CODEOWNERS sets the default reviewers to @akurungadam and @Sajinsr.
+**Branching and PR conventions inherited from upstream**
+- `develop` is the integration branch. Stable branches are `version-14`, `version-15` and `version-16`, with hotfix branches `version-NN-hotfix`. Mergify **auto-closes PRs against stable branches** from non-maintainers. Target `develop` or a hotfix branch.
+- Backports use labels such as `backport develop` and `backport version-15-hotfix`.
+- Mergify merges once there is at least 1 approval and CI passes, using a merge commit by default or squash when the `squash` label is set. `dont-merge` blocks merging.
+- PR titles and commits follow Conventional Commits (commitlint). `feat` PRs need a docs link or `no-docs`.
+- CODEOWNERS: `@akurungadam @Sajinsr` review everything.
+- PR body: explain the problem solved, add screenshots or GIFs for UI changes, and include `closes #XXXX`.
