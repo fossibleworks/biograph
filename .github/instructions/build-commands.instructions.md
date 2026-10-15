@@ -4,50 +4,35 @@
 applyTo: "**"
 ---
 
-# Commands
+This app runs inside a **Frappe bench**. There is no standalone run command.
 
-Most commands run **inside a frappe-bench** with this app installed as `apps/healthcare`.
-
-## Setup
+**Setup**
 ```sh
-bench get-app <repo-url>
+bench get-app https://github.com/Tacten/biograph
 bench --site <site> install-app healthcare
+bench --site <site> migrate          # applies patches.txt
 ```
 
-## Tests (server)
+**Frontend (patient portal)**
 ```sh
-bench --site test_site run-parallel-tests --app healthcare   # what CI runs
-bench --site <site> run-tests --app healthcare               # all tests
-bench --site <site> run-tests --doctype "Patient Appointment"  # one doctype
+yarn install            # root postinstall runs yarn install in patient_portal
+yarn build              # = cd patient_portal && yarn build (vite build --base=/assets/healthcare/patient_portal/)
+cd patient_portal && yarn dev   # vite dev server with frappe proxy
 ```
-CI bootstraps its bench with `.github/helper/install.sh`.
 
-## Lint / format
+**Tests** (same as CI)
+```sh
+bench --site test_site run-parallel-tests --app healthcare
+bench --site <site> run-tests --app healthcare --doctype "Fee Validity"   # targeted
+```
+
+**Lint / format**
 ```sh
 pip install pre-commit && pre-commit install
-npm install            # eslint deps
-pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
-```
-Semgrep, as run in CI:
-```sh
+npm install
+pre-commit run --all-files     # ruff --fix, ruff-format, prettier, eslint, detect-secrets, pip-audit, yaml/json/toml/ast checks
+
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
 pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
-```
-Commit titles (CI check):
-```sh
-npx commitlint --from <base-sha> --to <head-sha>
-```
-
-## Frontend (patient portal)
-```sh
-yarn install          # root postinstall also installs patient_portal
-yarn build            # root: cd patient_portal && yarn build
-cd patient_portal && yarn dev   # vite dev server (frappe proxy)
-```
-Desk assets: `bench build --app healthcare`.
-
-## Migrations
-```sh
-bench --site <site> migrate   # runs patches.txt + after_migrate
 ```
