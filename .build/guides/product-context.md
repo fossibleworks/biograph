@@ -9,13 +9,25 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
+  - wiki/BLOCK-APPOINTMENT-BOOKING-USAGE.md
   - pyproject.toml
 ---
 
-Biograph (by Tacten / fossibleworks; internal app name `healthcare`, fork and extension of Marley Health) is an open-source **Hospital Information System (HIS)**. It is installed as an app into an ERPNext site on the Frappe framework.
+**Biograph** (package and app name `healthcare`; this repo is connected to Build as "fossibleHIS") is an open source **Hospital Information System (HIS)** built as a Frappe app on top of **ERPNext**. It is a fork of Marley Health, with enhancements maintained by Tacten / Fossibleworks. The upstream origin is the `earthians/biograph` repo, by earthians Health Informatics.
 
-**Who uses it:** healthcare practitioners, clinics and hospitals (desk users such as practitioners, nurses, lab and billing staff), plus patients through a self-service **Patient Portal** (`/patient-portal`, `Patient` role).
+**Who uses it:** healthcare practitioners, clinics, and hospitals. That means front-desk and billing staff, clinicians, lab and diagnostics staff, inpatient and nursing staff, and insurance teams. Patients also use it through a **Patient Portal** (`/patient-portal`, restricted to the `Patient` role).
 
-**What it does:** patient management, outpatient and inpatient care (Patient Appointment, Patient Encounter, Inpatient Record), clinical procedures, rehabilitation and physiotherapy (Therapy Plan / Therapy Session), laboratory and diagnostics (Lab Test, Observation, Diagnostic Report, Sample Collection), medication orders, insurance (Insurance Payor / Contract / Claim), and support for several medical code standards. Facilities are modelled as Healthcare Service Units and specialities as Medical Departments. Much of the data model follows **HL7 FHIR**. ERPNext supplies billing (Sales Invoice, Payment Entry), pharmacy and stock, HR, and accounts. There is India-specific ABDM integration under `healthcare/regional/india/abdm`.
+**What it does:** most of the data model follows **HL7 FHIR**. The main feature areas are:
+- Patient management, including patient duplicate checking
+- Outpatient work: Patient Appointment, slot-based and block-based booking, Patient Encounter, Fee Validity
+- Inpatient work: Inpatient Record, medication orders, service unit occupancy billing
+- Clinical Procedures, Rehabilitation and Physiotherapy (Therapy Plans and Sessions)
+- Laboratory and Diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
+- Service Requests and Medication Requests (orders)
+- Insurance: payor contracts, policies, coverage, claims
+- Medical code standards and FHIR terminology
+- India regional ABDM integration (`healthcare/regional/india/abdm`)
 
-The desk home is `/desk/healthcare`, and the app title is "Biograph".
+ERPNext supplies billing (Sales Invoice, Payment Entry), pharmacy, stock, HR, and accounts. Healthcare facilities are modelled as **Healthcare Service Units** (a tree) and specialities as **Medical Departments**.
+
+The desk workspaces are Healthcare, Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance, and Setup (see `healthcare/workspace_sidebar/`). Install with `bench get-app` followed by `bench --site <site> install-app healthcare`.
