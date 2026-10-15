@@ -4,17 +4,9 @@
 applyTo: "**"
 ---
 
-## Desk UI (the main staff UI)
+There are two UI surfaces, each with its own system:
 
-- Use Frappe's standard Desk components: DocType forms and lists, `frappe.ui.Dialog` with `fields`, `primary_action_label`, and `frappe.show_alert` / `frappe.msgprint` / `frappe.confirm`.
-- Custom HTML snippets are Jinja/microtemplates in `healthcare/public/js/*.html`, e.g. `healthcare_note.html`, `observation.html`, `healthcare_orders.html`.
-- Navigation is defined as JSON in `workspace_sidebar/*.json`, `desktop_icon/*.json` and `healthcare/workspace`.
-- Icons and branding live in `healthcare/public/images` (`biograph-app-icon.svg`, `healthcare.svg`).
-- Don't introduce a separate CSS framework into the desk.
+1. **Desk (staff UI):** standard Frappe Desk. UI is defined by DocType JSON (fields and layouts), workspaces, number cards and dashboard charts. Form behaviour goes in `frappe.ui.form.on` scripts. Custom widgets use Frappe primitives (`frappe.ui.Dialog`, `frm.add_custom_button`, `frm.page.set_indicator(__("Not Saved"), "orange")`) and small HTML templates in `healthcare/public/js/*.html` (e.g. `observation.html`, `healthcare_orders.html`). Don't add custom CSS frameworks to desk.
+2. **Patient Portal (Vue):** the component library is **frappe-ui** (`Card`, `Button`, resources and so on). Styling uses **Tailwind** with `frappeUIPreset` as the token source (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`), plus aliases for legacy colour names (`lightBlue`→sky, `warmGray`→stone, etc.). Icons come from feather-icons and lucide (`lucideIcons: true` in the Vite plugin). The existing look is utility classes such as `text-gray-900`, `text-sm text-gray-500`, `rounded-xl shadow-sm` and `space-y-4`.
 
-## Patient Portal
-
-- The component library is **frappe-ui**. It provides `Dialog`, `Button`, `createResource` and related components, registered in `patient_portal/src/patient_portal.js`.
-- Design tokens come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `tailwind.config.js`). Only legacy Tailwind color aliases are added (lightBlue, warmGray, trueGray, coolGray, blueGray).
-- Icons are feather-icons and lucide (enabled via the `lucideIcons` option of the frappe-ui Vite plugin).
-- Styles are Tailwind utility classes in SFCs. Global CSS is in `src/index.css`.
+Branding assets live in `healthcare/public/images` (`biograph-app-icon.svg`, `healthcare.svg`).
