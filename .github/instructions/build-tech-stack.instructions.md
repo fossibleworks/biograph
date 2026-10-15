@@ -5,19 +5,20 @@ applyTo: "**"
 ---
 
 ## Backend
+- **Python ≥ 3.10** (`requires-python`, ruff `target-version = py310`). CI runs Python **3.14**.
+- **Frappe framework** app that depends on **ERPNext** (`required_apps = ["frappe/erpnext"]`). Supported release lines are v14/v15/v16, and there are patches for `v15_0` and `v16_0`.
+- Packaging uses **flit_core** (`pyproject.toml`). Extra runtime dependencies: `responses`, `python-barcode`.
+- Database: **MariaDB** (CI uses `mariadb:11.8`). Queries go through `frappe.qb` (pypika query builder), `frappe.db.*` and raw `frappe.db.sql`.
+- Background and realtime work uses `frappe.enqueue`, `scheduler_events` and `frappe.publish_realtime`.
 
-- **Python**: `requires-python >=3.10`, with ruff targeting `py310`. CI runs Python **3.14**.
-- **Frappe Framework** with **ERPNext** as a required app (`required_apps = ["frappe/erpnext"]`). CI also installs the `payments` app. The app version is in `healthcare/__init__.py` (`16.0.2`). Release branches are `version-14`, `version-15` and `version-16`.
-- Packaging uses **flit_core** (`pyproject.toml`). The extra Python dependencies are `responses` and `python-barcode`.
-- The database is **MariaDB** (CI uses `mariadb:11.8`), with Redis for queues and cache.
-- Data access goes through the Frappe ORM (`frappe.get_doc`, `frappe.db.*`), the query builder `frappe.qb` (pypika), and some raw `frappe.db.sql`.
+## Desk frontend
+- Plain JavaScript form scripts (`<doctype>.js`) built on Frappe Desk globals (`frappe`, `cur_frm`, `__`, jQuery, `moment`).
+- These are bundled through `healthcare/public/js/healthcare.bundle.js`, which `app_include_js` includes.
 
-## Frontend
-
-- **Desk UI**: plain JS form scripts per DocType (`<doctype>.js`), using Frappe globals such as `frappe`, `cur_frm` and `__`. Shared code is bundled through `healthcare/public/js/healthcare.bundle.js`.
-- **Patient Portal** (`patient_portal/`): **Vue 3** with `<script setup>`, **vue-router 4**, **frappe-ui**, **Vite 4.4.9**, **Tailwind CSS 3.4.15** using the frappe-ui preset, PostCSS/autoprefixer and feather/lucide icons.
-- **Node 24** in CI. **Yarn** workspaces: the root `package.json` lists `patient_portal` and `frappe-ui`.
+## Patient portal SPA (`patient_portal/`)
+- **Vue 3** with **vue-router 4**, built with **Vite 4.4.9** and `@vitejs/plugin-vue`.
+- UI comes from **frappe-ui** (^0.1.176) plus **Tailwind CSS 3.4.15** using the frappe-ui preset, and `feather-icons`/lucide icons.
+- **Yarn** workspaces (`yarn.lock` at the root). Node **24** in CI.
 
 ## Tooling
-
-The toolchain is ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), detect-secrets, pip-audit, commitlint and semantic-release.
+ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), CodeQL, detect-secrets, pip-audit, commitlint, semantic-release, Mergify, Crowdin (translations), Codecov.
