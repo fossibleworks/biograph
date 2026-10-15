@@ -5,13 +5,29 @@ description: Testing
 alwaysApply: true
 ---
 
-# Testing
+## Framework
 
-- **Framework:** Frappe's test runner. Test classes subclass `frappe.tests.IntegrationTestCase` (current; about 69 uses). A few legacy tests use `frappe.tests.utils.FrappeTestCase` (about 7). Write new tests against `IntegrationTestCase`.
-- **Layout:** `test_<doctype>.py` sits next to its DocType (`healthcare/healthcare/doctype/<name>/test_<name>.py`). About 80 of 138 DocType folders have one, and many are empty `pass` stubs. Cross-cutting tests live in `healthcare/tests/`. Shared fixtures are in `healthcare/tests/utils.py` (`BootStrapTestData`, which builds `_Test Company`, patients, practitioners, service units, insurance payors, …), and `before_tests` is wired in `hooks.py`.
-- **Data:** test records use a `_Test` prefix (for example `_Test Insurance Payor`, `_Test Company`).
-- **Assertions:** for validation failures, use `assertRaises(frappe.ValidationError)` or the specific subclass.
-- **Running:** `bench --site test_site run-parallel-tests --app healthcare`, which runs in CI against MariaDB.
-- **Coverage:** Codecov expects **85% patch coverage** on PRs to `develop`, and the project coverage must not drop more than 0.5%. Coverage is only captured on non-PR runs.
-- **Labeler:** a PR that changes `healthcare/**/*.py` without touching any `test*.py` gets the label `needs-tests`.
-- CI skips server tests for PRs that only change `.js`, `.css`, `.md`, `.html` or `.csv` files.
+Tests are Frappe **integration tests** that run against a real site and database (MariaDB) through bench.
+
+- Newer tests subclass `frappe.tests.IntegrationTestCase`. Older ones use `frappe.tests.utils.FrappeTestCase`.
+- `before_tests` in `hooks.py` calls `healthcare.healthcare.utils.before_tests` to set up fixtures.
+
+## Layout
+
+- Each DocType folder contains `test_<doctype>.py` with a class `Test<DocType>`. There are about 110 test files.
+- Override tests live next to their code (e.g. `custom_doctype/test_sales_invoice.py`). Regional tests do the same (`regional/india/abdm/test_abdm.py`).
+- Shared helpers are in `healthcare/tests/utils.py` and `healthcare/tests/test_utils.py`.
+- Tests often define module-level factories such as `create_healthcare_docs()` and `create_appointment(...)`. They clean tables in `setUp` with `frappe.db.sql("delete from `tab...`")` and toggle settings with `frappe.db.set_single_value`.
+
+## Coverage
+
+Codecov (`codecov.yml`) enforces two checks:
+
+- **Patch** coverage must reach **85%** on PRs against `develop`.
+- **Project** coverage may not drop by more than 0.5%.
+
+Coverage is captured on scheduled and non-PR runs. On PRs the CI tests run without coverage.
+
+## Running
+
+`bench --site <site> run-tests --app healthcare [--doctype "<DocType>"]`. CI uses `run-parallel-tests`.
