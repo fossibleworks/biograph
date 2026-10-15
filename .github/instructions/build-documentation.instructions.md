@@ -6,10 +6,8 @@ applyTo: "**"
 
 # Documentation
 
-- **`README.md`** covers the product intro, install steps (bench), and dev setup (pre-commit, semgrep). It links to external docs on DeepWiki and the Telegram community.
-- **`wiki/`** holds in-repo feature documentation, in markdown, with `UPPER-KEBAB-CASE.md` names. Each larger feature gets two kinds of file:
-  - a **design / implementation doc** (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`), and
-  - a **user guide** (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`). User guides open with Introduction / Quick Start, then step-by-step sections that use **Healthcare > DocType** navigation paths, tables and screenshots.
-- **PR documentation gate:** for a PR whose title starts with `feat`, `.github/helper/documentation.py` requires a docs link (a `/wiki` URL on an allowed host) in the body unless the body says `no-docs` or `backport`.
-- PR descriptions follow `.github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md`: details of the change, screenshots/GIFs, `closes #XXXX`.
-- Inline code comments are sparse. `hooks.py` keeps the Frappe scaffold comments.
+- **User docs** live outside the repo. The README points to DeepWiki (`deepwiki.com/Tacten/biograph`), and `context7.json` registers the project with Context7.
+- **Feature design and usage notes** go in the top-level `wiki/` folder as Markdown, one file per feature in UPPER-KEBAB-CASE: `DESIGN-<FEATURE>.md` for designs, `<FEATURE>-USAGE[-DOC].md` for usage, and parity or implementation reports. Images sit alongside them (e.g. `patient-duplicatecheck-thumbnail.png`). Design docs follow a *Problem statement → Proposed solution* structure.
+- **PR docs gate**: `docs_checker.yml` runs `.github/helper/documentation.py`. Any PR whose title starts with `feat` must link a docs page (`biograph.frappe.cloud` or `biograph.io` with `/wiki` in the path) in the body, unless the body contains `no-docs` or `backport`.
+- Code comments are sparse. Use docstrings or comments for non-obvious hook behaviour (see `on_login` comment in `hooks.py`).
+- `healthcare/docs/current` is gitignored (generated).
