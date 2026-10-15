@@ -4,43 +4,36 @@ category: cicd-release
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: reference
 source: inferred
 evidence:
   - .github/workflows/ci.yml
-  - .github/helper/install.sh
   - .github/workflows/linters.v2.yml
-  - .github/workflows/initiate_release.yml
   - .github/workflows/on_release.yml
+  - .github/workflows/initiate_release.yml
+  - .github/workflows/release_notes.yml
   - .releaserc
+  - .github/workflows/codeql.yml
   - .github/workflows/generate-pot-file.yml
+  - .github/release.yml
   - .github/dependabot.yml
-  - healthcare/patches.txt
 ---
 
 # CI/CD and release
 
 ## On every PR
-- **CI / Server Tests** (`ci.yml`):
-  - Skipped for PRs that only touch css/js/md/html/csv; also runs nightly.
-  - Uses Python 3.14, Node 24 and MariaDB 11.8.
-  - Runs `compileall` and a merge-conflict-marker check.
-  - Then runs `.github/helper/install.sh`, which does a bench init and gets frappe and erpnext on the *same branch name as the PR base*, plus payments and healthcare, then installs on `test_site`.
-  - Then runs `run-parallel-tests`. Coverage goes to Codecov on non-PR runs.
-- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets) and Semgrep with the Frappe rules plus `r/python.lang.correctness`.
-- **Semantic Commits**: commitlint over the PR commits.
-- **Documentation Required**: `feat` PRs need a wiki docs link.
-- **CodeQL** and **labeller** workflows are also present.
+- **CI / Server Tests** (`ci.yml`): installs bench with frappe, payments and erpnext on the base-branch name, against MariaDB 11.8, then runs `python -m compileall`, a merge-marker grep, `install-app healthcare`, and `run-parallel-tests`. It skips PRs that only touch css/js/md/html/csv, and it also runs nightly. Coverage goes to Codecov on non-PR runs only.
+- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit, yaml/json/toml/ast checks) plus Semgrep with the Frappe rules and `r/python.lang.correctness`.
+- **Semantic Commits**: commitlint over the PR's commit range.
+- **Documentation Required**: `feat` PRs need a wiki link or `no-docs`.
+- **Labeler**: adds `needs-tests`.
+- **CodeQL** (python and javascript) runs on `develop` pushes and PRs, plus weekly.
 
-## Release (upstream model)
-- `initiate_release.yml` opens a PR every Tuesday from `version-N-hotfix` to `version-N` for N = 14, 15, 16.
-- `on_release.yml` runs `semantic-release` on pushes to `version-14/15/16`, using the Angular preset. Breaking changes do not trigger a release. It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and publishes a GitHub release.
-- `release_notes.yml` and `.github/release.yml` configure release notes.
-- `generate-pot-file.yml` regenerates translations weekly. Crowdin opens `fix: sync translations from crowdin` PRs.
-- Dependabot updates GitHub Actions weekly.
+## Release (inherited from upstream earthians/biograph)
+- Every Tuesday, `initiate_release.yml` opens `version-N-hotfix → version-N` PRs for 14, 15 and 16.
+- A push to `version-14/15/16` runs **semantic-release** (`.releaserc`, angular preset; breaking changes don't trigger a major bump). It bumps `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
+- `release_notes.yml` regenerates the notes and strips chore, ci, test, docs and style entries. The `skip-release-notes` label excludes a PR.
+- On Sundays, a workflow regenerates the POT file. Crowdin opens `fix: sync translations from crowdin` PRs.
+- Dependabot is configured.
 
-## Deployment
-This repo has no deploy pipeline. Sites install the app through bench or Frappe Cloud (`bench get-app` then `install-app`, then `bench migrate` to run `patches.txt`).
-
-## Notes for this fork
-Several workflows are hard-coded to `earthians/biograph` and to secrets such as `EARTHIANS_BOT_TOKEN`. On the `biograph-fh` fork, the release and docs-check jobs may not apply as-is.
+Several release workflows hard-code `earthians/biograph` and `develop`, so they act on upstream rather than on this fork's `biograph-fh` branch.
