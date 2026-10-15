@@ -5,9 +5,22 @@ description: Error handling
 alwaysApply: true
 ---
 
-- **User-facing validation:** `frappe.throw(_("Message {0}").format(...), title=_("..."))` (~180 uses). It raises a `ValidationError` that aborts the transaction and shows a dialog. Put validation in controller `validate*` methods on the server.
-- **Typed errors:** subclass `frappe.ValidationError` at the top of the controller module and pass it with `frappe.throw(msg, exc=OverlapError)` (e.g. `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`). Tests assert on these types.
-- **Missing configuration:** throw with `title=_("Missing Configuration")` and include a link built with `get_link_to_form` (pattern in `healthcare/healthcare/utils.py`).
-- **Non-blocking info:** `frappe.msgprint(_(...))` for confirmations such as "Customer {0} created and linked to Patient".
-- **Background/side-effect failures** (SMS, calendar events, scheduled billing): wrap in `try/except Exception` and record with `frappe.log_error(message/traceback, title)` so the main flow continues (e.g. inpatient occupancy billing, appointment confirmation messages).
-- **Desk JS:** `frappe.throw(__(...))` / `frappe.msgprint(__(...))` in form scripts. **Portal:** surface errors with frappe-ui `<ErrorMessage :message="error" />`.
+This code follows standard Frappe idioms.
+
+**Validation and user errors:** use `frappe.throw(_("message {0}").format(...), [ExcClass], title=_("..."))`. There are about 181 calls. `frappe.throw` aborts the request, rolls back the transaction and shows a dialog in the desk or portal.
+- Pass `title=` for context, e.g. `title=_("Invalid Healthcare Service Unit")`.
+- Use `get_link_to_form(doctype, name)` in messages so users can jump to the conflicting record.
+
+**Typed errors:** declare a module-level subclass of `frappe.ValidationError` when callers or tests need to tell one failure apart, e.g. `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`. Raise it with `frappe.throw(msg, OverlapError)` and test it with `assertRaises(OverlapError)`.
+
+**Non-blocking warnings:** use `frappe.msgprint(...)` (about 38 uses) to inform without aborting.
+
+**Background and side-effect failures:** in scheduler jobs, notifications, calendar sync, billing jobs and patches, wrap in `try/except` and record with `frappe.log_error(...)` so the main flow continues:
+- `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`
+- `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`
+
+These entries show up in the desk **Error Log**. Do not swallow exceptions silently, and do not use `print`.
+
+**Validate on the server.** The PR template says "All business logic and validations must be on the server-side". Client JS may pre-check, using `frappe.msgprint` / `frappe.throw` in the browser, but the controller must enforce the rule as well.
+
+**Whitelisted API:** `@frappe.whitelist()` functions raise through `frappe.throw` too. Frappe turns that into the HTTP error response, and frappe-ui `createResource` surfaces it via `onError`. Check permissions (`frappe.has_permission` / `has_website_permission` hooks) before returning patient data.
