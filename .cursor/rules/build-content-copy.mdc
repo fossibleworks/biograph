@@ -5,19 +5,8 @@ description: Content & Copy
 alwaysApply: true
 ---
 
-# Content and copy
-
-## Terminology (use the domain terms exactly as they appear in DocTypes)
-Patient, Healthcare Practitioner ("Practitioner" in the portal), Patient Appointment, Patient Encounter, Medical Department, Healthcare Service Unit, Inpatient Record, Lab Test, Sample Collection, Observation, Diagnostic Report, Service Request, Medication Request, Clinical Procedure, Therapy Plan, Fee Validity, Insurance Payor, Healthcare Settings. The product name is **Biograph**. A v16 patch renamed "Marley" to Biograph, so do not reintroduce "Marley" in UI copy.
-
-## Tone
-- Short and direct, in Title Case for buttons, labels and dialog titles: "Add Observation", "Cancel Admission", "Browse Medication", "Book an Appointment", "Pay Your Bill", "Select a Practitioner".
-- Errors are plain sentences that name the record and often start with "Please": "Please set Customer in Patient {0}", "Please select a service request.", "User {0} is disabled", "Not allowed to print this document."
-- Confirmations are phrased as questions: "Are you sure you want to cancel this unavailability record?"
-- Progress messages use a gerund and an ellipsis: "Cancelling unavailability record..."
-- Empty states in the portal are friendly: "Looks like you don't have any appointments yet.", "No Records Found".
-- Patient-facing access errors tell the user what to do: "You are not linked to any patient. Please contact the administration."
-
-## Mechanics
-- Every user-facing string must be translatable: `_()` in Python, `__()` in desk JS. Use positional placeholders `{0}`, `{1}`; do not use concatenation or f-strings. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin.
-- Wrap DocType names and field labels in `<b>` when emphasizing them in messages.
+- **Terminology** follows the domain doctypes and FHIR/clinical vocabulary: Patient, Practitioner (Healthcare Practitioner), Medical Department, Healthcare Service Unit, Patient Appointment, Encounter, Inpatient Record, Lab Test, Observation, Service Request, Insurance Payor, Fee Validity. Use the DocType names exactly in messages.
+- **Tone:** short, plain and Title Case for labels and headings ("Book an Appointment", "Select a Department", "Pay Your Bill", "Payment Successful", "Consultation Fee"). Errors are direct statements, e.g. "Item {0} is not active", "Not allowed to print this document.", "You do not have permission to delete records." Use a title such as "Missing Configuration" for configuration errors.
+- **Empty states** in the portal are friendly and conversational, e.g. "Looks like you don't have any appointments yet." or "No Records Found".
+- Field labels use a trailing colon in detail views ("Order Date:", "Collected On:").
+- **i18n is mandatory.** Use `_()` in Python and `__()` in JS with `{0}` placeholders so strings are extracted into `healthcare/locale/main.pot` and translated through Crowdin. Do not build sentences by concatenating translated fragments.
