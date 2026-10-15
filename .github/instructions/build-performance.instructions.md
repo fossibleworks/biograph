@@ -4,16 +4,13 @@
 applyTo: "**"
 ---
 
-# Performance
+Likely hot or expensive paths:
 
-These paths are likely hot:
+- **Wildcard `doc_events["*"]`** (`on_submit`, `on_cancel`, `on_update_after_submit` → `patient_history_settings.create/delete/update_medical_record`) runs on **every** submittable document in the whole site, including ERPNext ones. Keep these handlers cheap and return early.
+- **Sales Invoice and Payment Entry hooks** (`healthcare.healthcare.utils.manage_invoice_*`, `custom_doctype/payment_entry.py`) sit inside ERPNext's billing path.
+- **Scheduler `all`**: `send_appointment_reminder` runs every few minutes. The daily jobs scan appointments, fee validity, inpatient records and medication requests, so they need indexed filters and set-based queries.
+- **Appointment slot and availability calculation** in `patient_appointment.py` (a very large module) and the portal's `Calendar.vue` and practitioner selector.
+- **Patient portal APIs** (`api/patient_portal.py`) join appointments, encounters, practitioners and companies. Use `frappe.qb` joins and avoid N+1 lookups. Note that `get_appointments` calls `get_patients_with_relations()` twice.
+- **Reports** (`report/*`, e.g. patient_appointment_analytics, diagnosis_trends) and patient history pages aggregate large datasets.
 
-- **The `doc_events["*"]` wildcard** in `hooks.py` runs Patient History Settings `create/delete/update_medical_record` on **every** submit, cancel and update-after-submit of every DocType across the site, ERPNext included. Keep those handlers cheap and exit early.
-- **Sales Invoice and Payment Entry hooks** (`manage_invoice_validate`, `manage_invoice_submit_cancel`, `set_paid_amount_in_healthcare_docs`) sit on ERPNext's billing path.
-- **Scheduler:** `send_appointment_reminder` runs on `all` (every few minutes). The daily jobs scan appointments, fee validity, inpatient occupancy and medication requests.
-- **Patient Appointment** (≈2.2k-line controller, ≈1.75k-line form JS) handles slot and availability calculation, block booking and recurring appointments. Recurring creation already uses `frappe.enqueue`.
-- **Portal API** (`api/patient_portal.py`) joins appointments, encounters, practitioners and patients across all of a user's related patients.
-- Reports and dashboards under `report/`, `dashboard_chart_source/` and `number_card/`.
-
-## Conventions
-Use `frappe.qb` with selected columns rather than full `get_doc` loops. Use `frappe.get_cached_value` / `get_single` for settings and master lookups. Use `frappe.enqueue` for bulk creation (recurring appointments, sample collection). Avoid N+1 queries; for example, `get_appointments` currently calls `get_patients_with_relations()` twice.
+Queries use about 80 `frappe.qb` call sites and about 105 `frappe.db.sql` call sites. Prefer `frappe.qb` or `frappe.get_all` with explicit `fields` and filters. For heavy work, use `frappe.enqueue` (there are only 2 uses today).
