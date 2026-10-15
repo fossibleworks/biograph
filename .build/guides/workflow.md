@@ -10,28 +10,29 @@ evidence:
   - CLAUDE.md
   - .build/RULES.md
   - AGENTS.md
-  - commitlint.config.js
-  - .github/workflows/semantic-commits.yml
   - .mergify.yml
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - .github/CODEOWNERS
+  - commitlint.config.js
 ---
 
-## Interactor Build engine (this fork)
+# Workflow
 
-Every change ships through a tracked **Goal** (see `CLAUDE.md`):
+## Work tracking: Interactor Build engine
+All code changes in this fork (`fossibleworks/biograph`, "fossibleHIS") go through the **Build engine**, as set out in `CLAUDE.md`:
+1. **A tracked Goal must exist before any file is edited.** Create one in the Build web UI or with `ibuild engine goal-create "<title>"`, then admit it with `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after an explicit import.
+2. **Work on the branch `goal/<goalId>` in an isolated worktree.** Never commit directly to the default branch (`biograph-fh`).
+3. **Every change ships through the Goal's single PR**, which the engine opens. It must pass review and CI before merging.
+- EngineTasks under a Goal go through investigation, then execution, then review. Use `ibuild engine work <task>` and `ibuild engine report --yes`, and deliver with `ibuild engine goal accept <goalId>`.
+- For small interactive changes, `ibuild off` (if the project allows it) still requires a separate branch and a hand-opened PR that runs CI.
+- Standing rules live in `.build/RULES.md`, which is mirrored into `.claude/rules/`, `.cursor/rules/`, `.github/instructions/` and `AGENTS.md`. Edit the source, not the mirrors.
 
-1. **No Goal → no edits.** Create one first with `ibuild engine goal-create "<title>"` / `ibuild engine goal queue <goalId>`, or through the Build web UI. You can also import a GitHub issue; an issue does not become a Goal until it is explicitly imported.
-2. Work on branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch (`biograph-fh` here) directly.
-3. Ship through the goal's single PR, which must pass review and CI. EngineTasks under a Goal go through investigation → execution → review.
-4. For small changes, an interactive session may run `ibuild off`. The change still goes on its own branch and a hand-opened PR that runs CI.
+## Branches
+- The fork's default and integration branch is `biograph-fh`. Remote branches follow `goal/<slug>-<id>`.
+- Upstream conventions (Mergify, release workflows) use `develop`, `version-NN-hotfix` and the stable `version-14/15/16`. PRs from non-maintainers to stable branches are auto-closed. Backports are requested with `backport <branch>` labels.
 
-Project rules live in `.build/RULES.md` (still a template). Build-managed guides are listed in `AGENTS.md`.
-
-## Upstream conventions still in effect
-
-- **Conventional commits** are enforced by commitlint on PRs. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`. Types are lower-case and the subject must not be empty.
-- **Branches**: development happens on `develop` and `version-NN-hotfix`. The stable branches `version-14/15/16` are closed to outside PRs (Mergify auto-closes them). Backports are requested with labels such as `backport version-16-hotfix`.
-- **Merging**: Mergify merges once there is at least 1 approval. The `squash` label switches to a squash merge, and `dont-merge` blocks merging.
-- **PR template**: pick the target branch, use a conventional title, make sure tests pass locally, keep validations server-side, update docs, write `closes #XXXX`, and add screenshots.
-- CODEOWNERS: `@akurungadam @Sajinsr` are the default reviewers.
+## PRs and commits
+- Commit messages and PR titles follow Conventional Commits (commitlint). Use `feat:` only with a docs link or `no-docs`.
+- The PR template asks you to pick the target branch, explain why, add screenshots or GIFs, confirm tests pass, keep logic server-side, and add `closes #NNN`.
+- Mergify merges after at least one approval and a passing CI run. Use the `squash` label to squash and `dont-merge` to block.
+- Code owners: `@akurungadam`, `@Sajinsr`.
