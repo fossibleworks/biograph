@@ -7,32 +7,19 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - patient_portal/src/components/DepartmentSelector.vue
-  - patient_portal/src/PatientPortal.vue
-  - healthcare/healthcare/utils.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - patient_portal/src/components/Payment.vue
+  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
+  - crowdin.yml
   - healthcare/locale/main.pot
-  - healthcare/patches.txt
-  - README.md
 ---
 
-## Tone
-
-Copy is plain, short and functional, in British/Indian English (e.g. "organisations" in the README).
-
-- **Headings and buttons** use Title Case or short imperatives: "Book an Appointment", "Select a Department", "Select a Practitioner", "Available Slots", "Pay Your Bill", "Payment Successful", "Book".
-- **Empty states** are friendly and conversational: "Looks like you don't have any appointments yet.", "No Records Found".
-- **Field labels** end with a colon in detail views: "Order Date:", "Collected On:", "Collection Point:".
-- **Errors** are direct statements, often with the record identifier and sometimes a remedy:
-  - "Item {0} is not active"
-  - "Registration Fee cannot be negative or zero"
-  - "Configure a service Item for {0}"
-  - "Not permitted. Please disable the Service Unit Type"
-- **Success and info messages**: "Patient history has been updated.", "Customer {0} is created."
-
-## Terminology
-
-Use the DocType names exactly: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Fee Validity, Lab Test, Observation, Service Request, Inpatient Record, Insurance Claim. Use "Practitioner", not "doctor". The product name is **Biograph**; the patch `rebrand_marley_to_biograph` replaced "Marley".
-
-## i18n
-
-All strings must be translatable. Use `_()` in Python and `__()` in Desk JS, with `{0}` placeholders. They are extracted to `healthcare/locale/main.pot` and translated through Crowdin.
+- **Terminology:** use clinical and HIS terms that match the DocType names: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Fee Validity, Inpatient Record, Insurance Payor, Service Request. The product is **Biograph** (the `rebrand_marley_to_biograph` patch shows it was renamed from Marley). Keep "Healthcare" as the module/workspace name.
+- **Error messages** are short, sentence case, and name the documents involved:
+  - "Patient already has an appointment booked for the same day!"
+  - "Not allowed, cannot overlap appointment {}"
+  - "Please set a Customer linked to the Patient"
+  - Use Title Case dialog titles: "Customer Not Found", "Not Available", "Practitioner Schedule Not Found".
+- **Success notices** report what happened: "Sales Invoice {0} created", "Appointment Cancelled."
+- **Patient portal copy** is friendly and direct with simple headings: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients", button "Book".
+- **i18n:** all backend strings go through `_()`, Desk JS through `__()`, with `{0}` placeholders so Crowdin can translate them (`healthcare/locale/main.pot`). Portal Vue copy is currently hard-coded English.
