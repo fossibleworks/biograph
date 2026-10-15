@@ -5,18 +5,10 @@ description: Documentation
 alwaysApply: true
 ---
 
-## Where docs live
-
-- **README.md**: overview, installation, development (pre-commit, semgrep). It links to the external docs on **DeepWiki** (`deepwiki.com/Tacten/biograph`) and the Telegram group.
-- **`wiki/`** holds in-repo feature docs as UPPER-KEBAB markdown:
-  - **design docs** (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`)
-  - **usage docs** (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`) with a table of contents, numbered sections, examples and screenshots or demo links stored alongside (`patient-duplicatecheck-thumbnail.png`)
-- `AGENTS.md` is a Build-managed index of `.build/guides/`. Do not edit the managed block.
-
-## Docs gate in CI
-
-`.github/workflows/docs_checker.yml` runs `.github/helper/documentation.py`. Any PR whose title starts with `feat` must include a docs link (a `biograph.frappe.cloud` or `biograph.io` URL with `/wiki` in the path) in its body, unless the body contains `no-docs` or `backport`.
-
-## Practice
-
-New user-facing features get a usage doc in `wiki/`, and a design doc for larger work, plus a docs link in the PR.
+- **README.md** gives the overview, installation, development setup (pre-commit, semgrep) and a link to external docs (DeepWiki: `deepwiki.com/Tacten/biograph`). `context7.json` registers the repo with Context7.
+- **`wiki/`** holds in-repo feature docs as UPPER-KEBAB-CASE Markdown:
+  - **Design docs:** `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`, `insurance-parity-report.md`, the FHIR Terminology implementation plan.
+  - **Usage guides:** `*-USAGE.md` / `*-USAGE-DOC.md`.
+  - Usage guides use a table of contents, numbered sections, **bold** UI navigation paths ("Healthcare → Setup → Healthcare Settings"), and screenshots or video thumbnails stored next to them.
+- **Feature PRs need docs:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails `feat` PRs whose body has no wiki link on an allowed docs host. Add `no-docs` to the PR body to opt out; `backport` PRs are exempt.
+- The PR template asks contributors to update the relevant documentation.
