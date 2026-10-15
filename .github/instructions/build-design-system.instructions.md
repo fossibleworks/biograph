@@ -4,15 +4,17 @@
 applyTo: "**"
 ---
 
-## Desk UI
+# Design system
 
-Desk screens use **Frappe Desk's** standard form, list, report, workspace and dialog components. Extend them with doctype JSON (fields, sections, tabs) and form scripts (`frappe.ui.form.on`, `frappe.ui.Dialog`, `frappe.show_alert`) rather than custom HTML/CSS. Shared Desk widgets live in `healthcare/public/js` (observation widget, healthcare notes/orders HTML templates, mark-unavailable and recurring-appointment dialogs). They are loaded through `healthcare.bundle.js`. App icons are `healthcare/public/images/healthcare.svg` and `biograph-app-icon.svg`. Desktop icon groupings are in `healthcare/desktop_icon/*.json`.
+## Desk (staff UI)
+- Uses the **Frappe Desk** UI. Forms, lists, trees, calendars, dashboards, number cards and workspaces are driven by DocType JSON and Frappe's built-in components (`frappe.ui.form`, `frappe.ui.Dialog`, `frappe.ui.form.make_control`).
+- Custom widgets (observation, healthcare notes and orders) are Jinja `.html` templates plus JS in `healthcare/public/js/`. They should reuse Frappe/Bootstrap classes, not new CSS.
+- The app icon and images live in `healthcare/public/images/` (`healthcare.svg`, `biograph-app-icon.svg`).
 
-## Patient portal
+## Patient Portal
+- The component library is **frappe-ui**. `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `src/patient_portal.js`. `ErrorMessage`, `createResource` and the cached resources are imported per component.
+- Design tokens come from the **`frappe-ui/tailwind` preset** in `patient_portal/tailwind.config.js`. The only extra theme config is legacy Tailwind color aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`).
+- Style with Tailwind utility classes inline in SFC templates (for example `text-gray-600`, `bg-blue-100`, `rounded-full`). Global CSS is limited to `src/index.css`.
+- Icons: feather-icons through `FeatherIcon`. Lucide icons are enabled in the frappe-ui vite plugin.
 
-- The component library is **frappe-ui** (`Tabs`, `Dialog`, `Button`, and others), with icons from feather / lucide (`lucideIcons: true`).
-- Design tokens come from **Tailwind CSS 3 with `frappe-ui/tailwind` preset** (`patient_portal/tailwind.config.js`). The only additions are legacy color aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`).
-- Styling is utility classes such as `text-gray-700 font-medium` and `text-sm text-gray-500`. The global stylesheet is `src/index.css`.
-- Dialogs use frappe-ui's `options` API (`title`, `message`, `icon: {name, appearance}`, `actions: [{label, variant: 'solid'}]`).
-
-Use frappe-ui components and the preset's gray scale and spacing. Do not add custom CSS or another UI kit.
+Use frappe-ui components and preset tokens before adding custom components or colors.
