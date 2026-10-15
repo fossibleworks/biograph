@@ -4,24 +4,11 @@
 applyTo: "**"
 ---
 
-## Tone
+# Content and copy
 
-Copy is short, plain and clinical-operational. Validation messages use Title Case nouns for DocType and field names, and are often polite imperatives:
-
-- "Please save the patient first"
-- "Please select a Patient Encounter to get from"
-- "Only numbers are allowed in the Mobile No field."
-- "Price List is mandatory" (title: "Price List Not Set")
-- "Item {0} is not active" / "Item with Item Code {0} already exists"
-- "Not allowed to print this document."
-- Error dialog titles: "Insufficient Stock", "Appointment Confirmation Message Not Sent".
-
-Buttons and labels are one or two words in Title Case: "Create", "Cancel", "Status", "Completed", "Clinical Note", "Reason for Cancellation", "Change Item Code". Unit labels use the form "Day(s)" and "Years(s)". Empty-result messages read like "No Lab Tests created".
-
-## Terminology
-
-Refer to records by their exact DocType names in Title Case: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Service Request, Inpatient Record, Fee Validity, Insurance Payor. The product name is **Biograph**; Marley branding was replaced by the `rebrand_marley_to_biograph` patch, so do not reintroduce "Marley".
-
-## Translation
-
-Every string must be translatable: `_()` in Python, `__()` in JS, with `{0}` placeholders. Strings are pulled into `healthcare/locale/main.pot` and translated through Crowdin. Do not wrap field keys or internal identifiers in `_()`. Some existing code does this (e.g. `_("encounter")` in patient_portal.py), and it should not be copied.
+- **Tone:** plain, concise and instructive. Use Title Case for buttons and headings ("Book an Appointment", "Get Items from Prescriptions", "Add Observation") and sentence-style prompts for validation ("Please select a Patient to be invoiced", "Appointment end must be after start.").
+- **Terminology:** use DocType names as proper nouns with capitals: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Service Unit, Medical Department, Fee Validity, Lab Test, Observation, Inpatient Record. Say "Practitioner", not "doctor".
+- **Errors:** state what is wrong and, where possible, how to fix it ("Not allowed, cannot overlap appointment {0}"). Use `title=` for categories such as "Missing Configuration".
+- **Empty states (portal):** short phrases such as "No Records Found".
+- **i18n:** every string goes through `_()` or `__()` with `{0}` placeholders. Do not concatenate translated fragments. Strings flow to `healthcare/locale/main.pot` and Crowdin.
+- UK/Indian English spellings appear in docs ("organisations"). Be consistent within a string.
