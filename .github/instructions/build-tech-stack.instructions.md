@@ -4,10 +4,19 @@
 applyTo: "**"
 ---
 
-- **Backend:** Python 3.10 or later (`requires-python >=3.10`; CI runs 3.14) on the **Frappe Framework** with **ERPNext** as a required app. Packaged with `flit_core`. The data model is Frappe DocTypes: a JSON schema, a Python controller and a JS form script per doctype.
-- **Database:** MariaDB (CI uses `mariadb:11.8`). Queries use `frappe.qb` (pypika), `frappe.get_all`/`get_list` and raw `frappe.db.sql`.
-- **Desk frontend:** plain JavaScript form and list scripts using Frappe globals (`frappe`, `cur_frm`, `__`, jQuery). They are bundled through `healthcare/public/js/healthcare.bundle.js` (`app_include_js`).
-- **Patient Portal:** Vue 3 + vue-router + **frappe-ui**, built with Vite 4 and styled with Tailwind CSS 3 (frappe-ui preset). Uses `feather-icons` and Lucide icons through the frappe-ui Vite plugin, and socket.io for realtime.
-- **Package management:** Yarn workspaces at the root (`patient_portal`). `yarn.lock` is committed.
-- **Python dependencies:** `responses`, `python-barcode`. Everything else comes from the Frappe/ERPNext bench.
-- **Tooling:** ruff (lint and format), prettier, eslint 10 (flat config), pre-commit, semgrep (Frappe rules), detect-secrets, pip-audit, commitlint, semantic-release.
+**Backend**
+- **Python ≥ 3.10** (ruff targets `py310`; CI runs Python 3.14), packaged with `flit_core`
+- **Frappe Framework**: a metadata-driven full-stack framework (DocTypes, whitelisted APIs, query builder `frappe.qb`)
+- **ERPNext**, a hard dependency (`required_apps = ["frappe/erpnext"]`), plus the `payments` app in CI
+- **MariaDB** (CI uses `mariadb:11.8`), Redis
+- Runtime Python deps: `responses`, `python-barcode`
+- Managed with **bench** (`bench get-app`, `bench install-app`, `bench run-parallel-tests`)
+
+**Desk frontend**
+- Plain JavaScript Frappe form scripts (`<doctype>.js`, `_list.js`, `_tree.js`), shared code in `healthcare/public/js`, bundled through `healthcare.bundle.js`. Uses jQuery and Frappe globals.
+
+**Patient Portal frontend** (`patient_portal/`)
+- **Vue 3** + **vue-router 4**, **frappe-ui** (^0.1.176), **Vite 4.4.9**, **Tailwind CSS 3.4.15** with the frappe-ui preset, PostCSS/autoprefixer, feather/lucide icons, socket.io client
+- Yarn workspaces (`yarn.lock` at root)
+
+**Tooling:** Node 24 in CI, ESLint 10 (flat config), Prettier, Ruff (lint + format), pre-commit, Semgrep (Frappe rules), CodeQL, detect-secrets, pip-audit, commitlint, semantic-release.
