@@ -1,5 +1,5 @@
 ---
-title: Content and copy
+title: Content & Copy
 category: content-copy
 layer: project
 applies_to: []
@@ -7,24 +7,20 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/clinical_procedure/clinical_procedure.py
-  - healthcare/healthcare/doctype/clinical_procedure_template/clinical_procedure_template.js
-  - healthcare/healthcare/doctype/healthcare_settings/healthcare_settings.py
-  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
-  - healthcare/locale/main.pot
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/public/js/healthcare_orders.html
+  - healthcare/healthcare/api/patient_portal.py
+  - healthcare/healthcare/utils.py
+  - patient_portal/src/components/BookAppointmentModel.vue
   - crowdin.yml
+  - healthcare/patches.txt
 ---
 
-- **Translation is mandatory.** Wrap every user-facing string: Python `_()`, Desk JS `__()`. Strings flow into `healthcare/locale/main.pot`, then to Crowdin, then to `.po` files. Use positional placeholders (`{0}`, `{1}`) so translators can reorder them.
-- **Tone:** short, plain and direct, in sentence-like Title Case for labels and action buttons:
-  - Buttons: `Change Item Code`, `Sync`, `Print`, `Book`, `OK`.
-  - Freeze messages end with an ellipsis: `Syncing Documents ...`.
-- **Error messages** state the problem and name the record:
-  - `Item {0} is not active`
-  - `User {0} is already assigned to Healthcare Practitioner {1}`
-  - `Registration Fee cannot be negative or zero`
-- **Instruction errors** start with "Please": `Please set Customer in Patient {0}`, `Please enable pop-ups`.
-- **Dialog titles** are short noun phrases in Title Case: `Customer Not Found`, `Price List Not Set`, `Already Exist`, `Google Calendar Required`.
-- **Status labels** are Title Case words (`Pending`, `In Process`, `Completed`, `Open`, `Scheduled`) and must match the DocType Select options exactly.
-- **Terminology:** use the DocType names verbatim: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Service Request, Clinical Procedure, Lab Test, Therapy Session, Inpatient Record. The product name in UI is **Biograph** (a v16 patch rebrands from Marley). Use British/Indian spelling as in the README ("organisations").
-- Highlight record names with `frappe.bold()` in messages.
+- **Translatable always:** server strings go through `_()`, desk JS and templates through `__()`. They are extracted into `healthcare/locale/main.pot` and translated through Crowdin. Use positional `{0}` placeholders, not concatenation.
+- **Tone:** short, direct and clinical-administrative. Sentences end with a period.
+  - Validation: "Appointment Date and Time are required.", "Appointment end must be after start.", "Patient already has an appointment booked for the same day!", "Not allowed to print this document."
+  - Success: "Sales Invoice {0} created".
+  - Dialog titles name the problem in Title Case: "Missing Configuration", "Invalid Healthcare Service Unit", "Customer Not Found".
+- **Buttons and labels:** Title Case verbs or nouns, e.g. "New Service Request", "New Medication Request", "On Hold", "Replace", "Cancel", "Invoiced". The portal uses "Book an Appointment".
+- **Empty states:** "No <Things>", e.g. "No Service Requests".
+- **Terminology:** use the doctype names exactly as written, capitalised: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Service Unit Type, Medical Department, Lab Test, Clinical Procedure, Inpatient Record, Fee Validity, Insurance Payor, Therapy Session. The product name is **Biograph** (a v16 patch rebranded it from Marley).
