@@ -7,29 +7,32 @@ inclusion: always
 binding: required
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/lab_test/test_lab_test.py
+  - .github/workflows/ci.yml
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
   - healthcare/tests/utils.py
   - healthcare/hooks.py
   - codecov.yml
   - .github/labeler.yml
-  - .github/workflows/ci.yml
+  - healthcare/regional/india/abdm/test_abdm.py
 ---
 
-## Framework
+# Testing
 
-- Server tests run on **Frappe's test runner** (unittest-based). New tests subclass `frappe.tests.IntegrationTestCase`; a handful of older ones still use `FrappeTestCase`.
-- Tests run against a real site and database: `bench --site test_site run-parallel-tests --app healthcare` in CI, or `bench run-tests --app healthcare --doctype "<DocType>"` locally.
-- `before_tests` in `hooks.py` calls `healthcare.healthcare.utils.before_tests`. `healthcare/tests/utils.py` defines `BootStrapTestData`, which builds master data: `_Test Company`, patients, practitioners, service units, templates, insurance payors and so on. It builds on ERPNext's `ERPNextTestSuite`.
+## Framework
+- Server tests use the **Frappe test runner** (unittest-based). They run in CI with `bench --site test_site run-parallel-tests --app healthcare` against MariaDB.
+- Base classes: most tests use `FrappeTestCase` (`frappe.tests.utils`). A few newer files use `IntegrationTestCase` / `UnitTestCase`. Match the base class used in the neighbouring tests.
+- `hooks.py` sets `before_tests = "healthcare.healthcare.utils.before_tests"` to bootstrap test setup.
+- `healthcare/tests/utils.py` provides `BootStrapTestData`, which creates master data (company, items, practitioners, service units, templates, insurance payors). It builds on `erpnext.tests.utils.ERPNextTestSuite`.
 
 ## Layout
-
-- Each test sits next to its DocType: `healthcare/healthcare/doctype/<name>/test_<name>.py` (about 85 test files). Name test classes `Test<DocType>` and methods `test_<behaviour>`.
-- Test modules export `create_*` factory helpers (`create_patient`, `create_appointment_type`, `create_lab_test_template`), and other tests import them. Reuse these before writing new fixtures.
-- Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)` inside the test. Assert validation failures with `self.assertRaises(frappe.ValidationError, doc.submit)` or a specific custom error class.
-- No JS or Vue test suite exists.
+- Put tests next to their DocType: `healthcare/healthcare/doctype/<name>/test_<name>.py`. There are about 85 test files. Cross-cutting tests go in `healthcare/tests/`, and regional tests next to their module (`regional/india/abdm/test_abdm.py`).
+- Test classes are named `Test<DocType>`, with methods `test_<behavior>`.
+- Fixture helpers are module-level functions such as `create_healthcare_docs()` and `create_appointment(...)`, and other tests import them.
+- Test records use the `_Test ...` naming prefix. `setUp` often cleans tables with `frappe.db.sql("delete from `tabX`")`.
+- Settings are toggled with `frappe.db.set_single_value("Healthcare Settings", ...)` inside the test.
 
 ## Coverage expectations
-
-- Codecov **patch target is 85%** on PRs against `develop`. The project threshold allows a 0.5% drop.
-- The labeler adds `needs-tests` to any PR that changes `healthcare/**/*.py` without touching a `test*.py` file.
-- CI collects coverage only on scheduled (non-PR) runs.
+- Codecov **patch target is 85%** on PRs to `develop`. The project threshold is auto with ±0.5%.
+- The PR labeler adds **`needs-tests`** when any `healthcare/**/*.py` changes without a `test*.py` change.
+- Coverage is captured only on scheduled (non-PR) CI runs.
+- There are no JS or Vue unit tests. CI skips server tests on PRs that change only `.js`, `.css`, `.md` or `.html` files.
