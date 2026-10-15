@@ -4,8 +4,6 @@
 applyTo: "**"
 ---
 
-- **Desk UI** (practitioner and staff screens) uses Frappe's built-in form, list, report, workspace and dashboard components, defined declaratively in doctype JSON and form scripts. Do not add custom CSS frameworks there. Custom widgets (`public/js/observation_widget.js`, `healthcare_note.html`, `healthcare_orders.html`) use Frappe's bundled markup and classes.
-- **Patient Portal** uses **frappe-ui** as its component library: `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `src/patient_portal.js`.
-- **Design tokens** come from the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only extras are legacy colour aliases (lightBlue, warmGray, trueGray, coolGray, blueGray).
-- Icons come from feather-icons and lucide (the `lucideIcons: true` Vite option).
-- Use Tailwind utility classes and frappe-ui components instead of bespoke CSS. Shared formatting helpers live in `patient_portal/src/utils/formatters.js`.
+- **Desk UI** (most of the product) uses the stock **Frappe desk** components: DocType forms, `frappe.ui.Dialog` (`primary_action_label`), list views, workspaces, number cards and dashboard charts. Build new UI from Frappe form and dialog APIs rather than custom HTML and CSS. Small HTML templates for desk widgets live in `healthcare/public/js/*.html` (e.g. `observation.html`, `healthcare_orders.html`).
+- **Patient Portal** uses **frappe-ui** as its component library (Button, Dialog, etc., with typings in `components.d.ts`) and **Tailwind CSS** with the `frappe-ui/tailwind` preset as its token source. `tailwind.config.js` only adds legacy colour aliases (`lightBlue`, `warmGray`, `coolGray`, …). Icons come from `feather-icons` and lucide, enabled through the frappe-ui Vite plugin. Use Tailwind utility classes from the preset (e.g. `text-lg font-semibold text-gray-700`) rather than custom CSS. Global styles are in `patient_portal/src/index.css`.
+- App icon and branding assets are in `healthcare/public/images/` (`biograph-app-icon.svg`, `healthcare.svg`).
