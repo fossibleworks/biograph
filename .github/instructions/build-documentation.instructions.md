@@ -4,10 +4,8 @@
 applyTo: "**"
 ---
 
-- **README.md** gives a product overview, bench install steps and dev setup (pre-commit, semgrep). It points to the full docs on DeepWiki (`deepwiki.com/Tacten/biograph`). `context7.json` registers the repo with Context7.
-- **`wiki/`** holds in-repo feature documents in UPPER-KEBAB-CASE markdown. There are two kinds:
-  - design and implementation plans, such as `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`, `insurance-parity-report.md` and the FHIR terminology parity plan
-  - user-facing usage guides (`*-USAGE*.md`) with a table of contents, overview, configuration and examples, plus screenshots stored next to them
-- **PR docs gate:** `docs_checker.yml` runs `.github/helper/documentation.py`. Any PR whose title starts with `feat` must link a wiki page on `biograph.frappe.cloud` or `biograph.io` (path containing `/wiki`) in the PR body. Writing `no-docs` or `backport` in the body skips the check.
-- The PR template asks contributors to "Update necessary Documentation" and to attach screenshots or GIFs.
-- Docstrings and comments are sparse. Code comments explain the reason for non-obvious logic.
+- **User/product docs** are external: the README points to DeepWiki (`deepwiki.com/Tacten/biograph`). A Telegram group is used for the community.
+- **In-repo feature docs** live in `wiki/` as upper-kebab-case Markdown (e.g. `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `insurance-parity-report.md`). Design docs (`DESIGN-*`) and usage guides (`*-USAGE*`) are kept separate. Usage docs have a table of contents, numbered sections, and Desk navigation paths in bold (e.g. **Healthcare → Setup → Healthcare Settings**). Images sit next to the doc.
+- **PR docs gate:** the `Documentation Required` workflow fails `feat` PRs unless the body links a docs URL on `biograph.frappe.cloud`/`biograph.io` containing `/wiki`, or contains `no-docs` (or `backport`). That helper currently queries `earthians/biograph`.
+- The PR template asks you to "Update necessary Documentation" and to put `closes #XXXX` in the body.
+- Code comments are sparse. `hooks.py` keeps the Frappe scaffold comments.
