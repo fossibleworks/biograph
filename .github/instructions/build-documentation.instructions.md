@@ -4,15 +4,13 @@
 applyTo: "**"
 ---
 
-## Where docs live
+# Documentation
 
-- **`README.md`** covers the overview, installation (bench), dev setup (pre-commit, semgrep) and links. Full user documentation is hosted externally on **DeepWiki** (`deepwiki.com/Tacten/biograph`). There is also a `context7.json` registration.
-- **`wiki/`** holds in-repo feature docs as Markdown, usually written in UPPER-KEBAB-CASE. There are two kinds:
-  - *Design/plan docs*: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `PATIENT-DUPLICATE.md`, `insurance-parity-report.md`.
-  - *Usage docs*: `*-USAGE.md` / `*-USAGE-DOC.md`. These have a table of contents, numbered sections, step-by-step navigation in bold (e.g. **Healthcare → Setup → Healthcare Settings**), and screenshots or a demo-video thumbnail stored next to them.
-- `healthcare/config/docs.py` holds Frappe's in-app docs config.
-
-## PR documentation requirement
-
-- The `Documentation Required` workflow (`.github/helper/documentation.py`) fails any **`feat`** PR whose body lacks a link to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`. You can opt out by writing `no-docs` in the PR body; backport PRs are exempt.
-- The PR template asks you to "Update necessary Documentation" and to attach screenshots/GIFs.
+- **README.md** covers the product overview, installation, development setup (pre-commit, semgrep), the community Telegram group and the license. It points to the full documentation on **DeepWiki** (`deepwiki.com/Tacten/biograph`).
+- **`wiki/`** holds in-repo Markdown docs for larger features. Files are named in UPPER-KEBAB-CASE:
+  - Design docs: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` (Overview, then Core Features, then numbered sections)
+  - Usage guides: `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (table of contents, configuration steps as **Menu → Path** navigation, examples and best practices, an optional demo video thumbnail stored next to the doc)
+  - Implementation plans and parity reports: `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md` (scope table, executive summary)
+- **Feature PR rule**: the `Documentation Required` workflow (`.github/helper/documentation.py`) fails any PR whose title starts with `feat` unless the body links a docs URL on `biograph.frappe.cloud` / `biograph.io` with `/wiki` in the path, or contains `no-docs` or `backport`.
+- The PR template asks contributors to "Update necessary Documentation" and links the ERPNext docs page-format guidelines.
+- Code comments are sparse. Short inline `#` comments explain validation steps. Docstrings are uncommon.
