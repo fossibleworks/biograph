@@ -5,9 +5,11 @@ description: Observability
 alwaysApply: true
 ---
 
-The repo has no metrics or tracing stack. Observability relies on Frappe built-ins:
+# Observability
 
-- **`frappe.log_error(message, title)`** (~15 uses) writes to the **Error Log** doctype. It is the standard way to record caught exceptions in background, scheduler or integration code. Pass a descriptive title (e.g. "Appointment Confirmation Message Not Sent") and usually `frappe.get_traceback()` as the message.
-- **`frappe.logger()`** (~9 uses) for informational and diagnostic file logging, e.g. `frappe.logger().info("Starting patient duplicate check rules setup")` in setup code.
-- **`frappe.publish_realtime`** is used for live UI updates. The portal has a `socket.js` client.
-- Do not leave `print` or debugger statements: pre-commit `debug-statements` blocks them.
+There is no metrics or tracing stack. Observability comes from Frappe's built-in facilities:
+
+- **Error Log DocType** via `frappe.log_error(message, title)`. This is the main mechanism (about 15 call sites), used in scheduler, notification and billing paths. Give it a human-readable title (`"Unavailability Calendar Event Error"`, `_("Appointment Confirmation Message Not Sent")`) and pass `frappe.get_traceback()` or the exception as the message.
+- **File logger** via `frappe.logger().info/error(...)` for operational traces in setup routines and parsing fallbacks (`setup/patient_duplicate_check.py`, appointment time parsing).
+- **Audit trail** relies on Frappe document versioning, comments and timeline. ABDM calls are persisted as `ABDM Request` documents.
+- No `print()` debugging. The `debug-statements` pre-commit hook rejects breakpoints and pdb.
