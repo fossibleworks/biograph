@@ -5,15 +5,10 @@ description: Observability
 alwaysApply: true
 ---
 
-# Observability
+Observability uses Frappe's built-ins only. There is no metrics or tracing library.
 
-The app relies on Frappe's built-in facilities. There is no separate metrics or tracing stack.
-
-- **Error Log doctype.** `frappe.log_error(...)` is the main way to record failures, used ~15 times. Two forms are used:
-  - `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`, where the title is a short human-readable string.
-  - `frappe.log_error(error_msg, "Unavailability Calendar Event Error")`.
-  Use it in `except` blocks around non-critical side effects (messaging, calendar, payments).
-- **Logger.** `frappe.logger().info/error(...)` writes to the bench logs (~9 uses), e.g. setup progress in `setup/patient_duplicate_check.py` and parse warnings in `patient_appointment.py`.
-- **Telemetry.** The portal entry (`www/patient_portal.py`) calls Frappe telemetry `capture("active_site", "patient_portal")`.
-- **Audit trail.** The wildcard submit/cancel hooks write Patient Medical Records. Frappe's version tracking on doctypes provides document history.
-- Do not use `print()` for diagnostics in app code. The pre-commit `debug-statements` hook blocks leftover debuggers.
+- **Error Log:** `frappe.log_error(message_or_traceback, title)` is the main mechanism (~24 uses). Give it a short human title such as "Can't bill Service Unit occupancy" or "Appointment Confirmation Message Not Sent", and pass `frappe.get_traceback()` as the message.
+- **Logger:** `frappe.logger().info/error(...)` appears occasionally (patient duplicate check setup, appointment time parsing).
+- **Avoid:** ~39 stray `print(` calls and ~22 `console.log` calls exist. ESLint warns on `no-console`, and pre-commit `debug-statements` blocks `pdb`/breakpoints. Don't add new ones.
+- **Audit:** document history and medical records are produced by the Patient History Settings hooks. Rely on Frappe versioning instead of custom audit logs.
+- **CI logs:** the bench output goes to `bench_run_logs.txt` in CI.
