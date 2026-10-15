@@ -4,15 +4,12 @@
 applyTo: "**"
 ---
 
-- **Always translatable:** use `_("...")` in Python and `__("...")` in JS. Use `{0}` placeholders with `.format()` rather than concatenation, for example `_("Clinical Procedure {0} already created from service request {1}")`. Strings feed `healthcare/locale/main.pot` and Crowdin.
-- **Terminology** (use the DocType names exactly, in Title Case): Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Medical Department, Lab Test, Sample Collection, Observation, Diagnostic Report, Service Request, Medication Request, Fee Validity, Insurance Payor, Insurance Claim. Use "Practitioner", not "Doctor", in UI copy.
-- **Tone:** short, direct, clinical and administrative.
-  - Buttons and actions use a verb or noun in Title Case: "Create", "Add", "Transfer", "Schedule Admission", "Book", "Pay Your Bill".
-  - Statuses: "Active", "Completed", "Cancelled", "On Hold".
-  - Validation messages are full sentences ending in a period, for example "Appointment end must be after start." Sometimes they use an exclamation mark ("Patient already has an appointment booked for the same day!"). Row errors cite the row ("Invalid Claim Amount, row #{}").
-  - Dialog titles are short nouns, for example `title=_("Not Allowed")`.
-  - Prompts use "Please select patient" / "Please review and cancel the invoice {0}".
-- **Patient portal** (patient-facing, friendlier): "Book an Appointment", "Select a Department", "Select a Practitioner", "Payment Successful".
-  - Empty states: "Looks like you don't have any appointments yet." and "No Records Found".
-  - Labels end with colons in detail views ("Order Date:", "Collected On:").
-- Units use the "Day(s)" / "Years(s)" pattern. Note that "Years(s)" is an existing typo.
+# Content and copy
+
+- **Always translatable**: `_()` in Python and `__()` in desk JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin.
+- **Tone**: short, direct and clinical-administrative. Title Case for labels, dialog titles and actions ("Mark Time as Unavailable", "Reason for Unavailability", "Check Conflicts", "New Clinical Note"). Sentence case for messages and confirmations ("Are you sure you want to mark this time as unavailable?", "From Time must be before To Time").
+- **Errors** name the record and the problem, with placeholders: "Item {0} is not active", "Item with Item Code {0} already exists", "Not allowed to print this document.". Add a short title for modal errors ("Insufficient Stock", "Not Allowed", "Cannot mark as unavailable!").
+- **Empty states**: "No Clinical Notes", "No slots available".
+- **Progress**: "Checking for conflicts...".
+- **Terminology**: use the DocType names exactly as defined: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Inpatient Record, Lab Test, Clinical Procedure, Therapy Session, Insurance Payor. Use FHIR-aligned terms (Service Request, Observation, Diagnostic Report, Code System, Value Set).
+- The product name is **Biograph**. The v16 patch `rebrand_marley_to_biograph` removed "Marley" branding, so do not reintroduce it.
