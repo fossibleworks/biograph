@@ -7,17 +7,14 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
-  - .pre-commit-config.yaml
-  - .github/helper/install.sh
+  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
 ---
 
-Biograph uses only Frappe's built-in observability. There is no metrics or tracing library.
-
-- **`frappe.log_error(...)`** (about 15 call sites) writes to the **Error Log** DocType and is the main way to record failures. Pass a short human `title`, put the traceback in `message` (`frappe.get_traceback(with_context=True)`), and set `reference_doctype` and `reference_name` when a document is involved.
-- **`frappe.logger()`** (a few call sites) writes info or error lines to the site log for setup and parsing diagnostics, e.g. `frappe.logger().info("Starting patient duplicate check rules setup")`.
-- **No `print()`** in production code. About 75 `print(` occurrences exist, mostly in patches and setup scripts. Do not add new ones to request paths. Pre-commit's `debug-statements` hook blocks stray `pdb` and `breakpoint` calls.
-- Background jobs are visible through Frappe's RQ Job and Scheduled Job Log. Use `frappe.enqueue` so jobs show up there.
-- CI captures `bench_run_logs.txt` during test setup.
+There is no metrics or tracing stack. Observability relies on Frappe built-ins:
+- **`frappe.log_error(message=..., title=...)`** writes to the **Error Log** doctype. Use it for caught exceptions in background, scheduler, and integration code, with a short human-readable title (e.g. "Failed to mark Collected!") and the traceback or exception as the message. About 15 call sites.
+- **`frappe.logger()`** (`.info/.debug/.error`) writes to the bench log files. Setup and install routines use it, e.g. `setup/patient_duplicate_check.py`.
+- Documents get Frappe's built-in audit trail (version history, `track_changes`). `frappe.publish_realtime` is used once, for live UI updates.
+- About 40 stray `print(` calls exist in the Python code. Do not add more; use `frappe.logger()` or `log_error` instead.
