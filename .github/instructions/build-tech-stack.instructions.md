@@ -4,27 +4,24 @@
 applyTo: "**"
 ---
 
-**Backend**
-- Python 3.10 or later (`requires-python >=3.10`; ruff targets py310). CI runs Python 3.14.
-- **Frappe Framework** and **ERPNext** (`required_apps = ["frappe/erpnext"]`). CI also installs the `payments` app.
-- The package is built with `flit_core`. Runtime dependencies: `responses`, `python-barcode`.
-- The database is MariaDB (CI uses `mariadb:11.8`). Redis is required, as in any Frappe bench.
-- The app runs under `bench`. It cannot run standalone.
+# Tech stack
 
-**Desk frontend**
-- Plain JavaScript Frappe form scripts: `<doctype>.js`, `*_list.js`, `*_calendar.js`.
-- Shared scripts live in `healthcare/public/js` and are bundled through `healthcare.bundle.js` (`app_include_js`).
-- Jinja HTML templates sit next to the JS (`*.html` in `public/js`).
-- These scripts use the jQuery, Frappe, and moment globals.
+## Backend
+- **Python ≥ 3.10**: ruff targets `py310` and CI runs Python 3.14. Packaged with `flit_core`.
+- **Frappe Framework** (metadata-driven: DocType JSON + Python controller + JS form script) with **ERPNext** as a required app (`required_apps = ["frappe/erpnext"]`). CI also installs the `payments` app.
+- **MariaDB** (CI uses `mariadb:11.8`). Queries go through `frappe.qb` (PyPika query builder), `frappe.get_all` and `frappe.db.*`. Some legacy code uses raw `frappe.db.sql`.
+- Supported Frappe/ERPNext release lines: **v14, v15, v16** (`version-NN` branches).
+- Extra Python deps: `responses`, `python-barcode`.
 
-**Patient Portal SPA** (`patient_portal/`)
-- Vue 3 with `<script setup>`, plus vue-router.
-- **frappe-ui** for components, data resources (`createResource`), and its Tailwind preset.
-- Tailwind CSS 3.4, Vite 4, and feather/lucide icons.
-- The build output is served by Frappe from `/assets/healthcare/...`, with `healthcare/www/patient_portal.html` as the entry page.
+## Desk frontend
+- Plain JavaScript Frappe form scripts (`frappe.ui.form.on(...)`), jQuery, and the bundle `healthcare/public/js/healthcare.bundle.js` loaded through `app_include_js`.
+- Jinja is used for print formats and for `www/` pages.
 
-**Tooling**
-- Yarn workspaces at the root (`yarn.lock`), Node 24 in CI.
-- Linting and formatting: ruff (Python), ESLint 10 flat config, and Prettier.
-- Other checks: pre-commit, semgrep (Frappe rules), detect-secrets, pip-audit, and commitlint.
-- Translations use gettext: `healthcare/locale/main.pot` is synced through Crowdin.
+## Patient portal SPA (`patient_portal/`)
+- **Vue 3** and **vue-router 4**, built with **Vite 4.4.9** and `@vitejs/plugin-vue`.
+- **frappe-ui** (component library and Tailwind preset), **Tailwind CSS 3.4.15**, PostCSS/autoprefixer, feather/lucide icons.
+- Uses a Socket.io client (`src/socket.js`) for realtime updates.
+- Node 24 in CI. **Yarn** workspaces (`yarn.lock`).
+
+## Tooling
+- ruff (lint + format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), pip-audit, detect-secrets, commitlint, semantic-release, Mergify, Codecov, CodeQL, Crowdin.
