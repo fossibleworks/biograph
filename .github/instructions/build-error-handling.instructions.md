@@ -4,22 +4,11 @@
 applyTo: "**"
 ---
 
-This code follows standard Frappe idioms.
+# Error handling
 
-**Validation and user errors:** use `frappe.throw(_("message {0}").format(...), [ExcClass], title=_("..."))`. There are about 181 calls. `frappe.throw` aborts the request, rolls back the transaction and shows a dialog in the desk or portal.
-- Pass `title=` for context, e.g. `title=_("Invalid Healthcare Service Unit")`.
-- Use `get_link_to_form(doctype, name)` in messages so users can jump to the conflicting record.
-
-**Typed errors:** declare a module-level subclass of `frappe.ValidationError` when callers or tests need to tell one failure apart, e.g. `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`. Raise it with `frappe.throw(msg, OverlapError)` and test it with `assertRaises(OverlapError)`.
-
-**Non-blocking warnings:** use `frappe.msgprint(...)` (about 38 uses) to inform without aborting.
-
-**Background and side-effect failures:** in scheduler jobs, notifications, calendar sync, billing jobs and patches, wrap in `try/except` and record with `frappe.log_error(...)` so the main flow continues:
-- `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`
-- `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`
-
-These entries show up in the desk **Error Log**. Do not swallow exceptions silently, and do not use `print`.
-
-**Validate on the server.** The PR template says "All business logic and validations must be on the server-side". Client JS may pre-check, using `frappe.msgprint` / `frappe.throw` in the browser, but the controller must enforce the rule as well.
-
-**Whitelisted API:** `@frappe.whitelist()` functions raise through `frappe.throw` too. Frappe turns that into the HTTP error response, and frappe-ui `createResource` surfaces it via `onError`. Check permissions (`frappe.has_permission` / `has_website_permission` hooks) before returning patient data.
+- **Validation errors** use `frappe.throw(_("message {0}").format(...))`. There are about 181 call sites. Highlight values with `frappe.bold(...)`. Use positional `{0}` placeholders with `.format()` **outside** `_()`, so the string stays translatable. Some legacy code uses f-strings inside `_()`. Do not copy that pattern.
+- **Typed errors:** subclass `frappe.ValidationError` per module and pass the class as the second argument: `frappe.throw(msg, OverlapError)`. Existing examples include `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, and `NoActiveContractError`.
+- **Permissions:** call `frappe.throw(_("Not allowed ..."), frappe.PermissionError)` in whitelisted APIs.
+- **Background or non-fatal failures** (notifications, calendar events, billing jobs): catch the exception and record it with `frappe.log_error(message=..., title=...)` or `frappe.log_error(frappe.get_traceback(), _("Title"))`, so the user flow is not blocked. Do not swallow errors silently.
+- `except Exception` appears about 31 times, mainly around side effects. Keep that pattern limited to non-critical paths.
+- Client side: `frappe.throw(__("..."))` in desk JS for form validation. Keep authoritative validation on the server.
