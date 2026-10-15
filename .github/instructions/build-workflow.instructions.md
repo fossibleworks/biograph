@@ -4,20 +4,27 @@
 applyTo: "**"
 ---
 
-## Engine-tracked work (Interactor Build)
-Every code change goes through a tracked **Goal**:
-1. A Goal must exist before any file is edited. Create it in the Build web UI, by importing a GitHub issue, or with `ibuild engine goal-create "<title>"` + `ibuild engine goal queue <goalId>`.
-2. Work on branch **`goal/<goalId>`** in an isolated worktree. **Never commit to the default branch `biograph-fh` directly.**
-3. The engine opens a single PR per Goal, which must pass review and CI before merging. EngineTasks under a Goal cycle through investigation → execution → review (`ibuild engine work`, `ibuild engine report --yes`, `ibuild engine goal accept`).
+**Tracking (Interactor Build engine):**
+- Every code change belongs to a tracked **Goal**. A Goal maps to one GitHub issue, one branch `goal/<goalId>` and one PR. The engine breaks Goals into EngineTasks. Each task goes through investigation → execution → review.
+- Before writing any file, a Goal must exist and you must be on its branch in an isolated worktree. Never commit to the main branch directly.
+- Create Goals in the Build web UI or with `ibuild engine goal-create "<title>"` / `ibuild engine goal queue <id>`. Work tasks with `ibuild engine work` / `report --yes`.
+- For a small change in an interactive session, `ibuild off` lets you skip the Goal, but the change still goes through its own branch and a hand-opened PR.
+- Standing rules live in `.build/RULES.md`. It is currently a placeholder.
 
-An interactive session may toggle the gate with `ibuild off` / `ibuild on` for small changes. The change still goes on its own branch through a hand-opened PR that runs CI.
+**Branching (inherited from upstream Marley/earthians):**
+- `develop` is the integration branch. `version-14/15/16-hotfix` are hotfix branches. `version-14/15/16` are stable branches.
+- Mergify **auto-closes PRs to stable branches** unless the author is a maintainer or bot.
+- PRs merge automatically after at least one approval and green CI. Use the `squash` label to squash, or `dont-merge` to block.
+- Backports happen through labels such as `backport develop` and `backport version-15-hotfix`.
+- This fork's working default branch is `biograph-fh`.
 
-## Commits and PRs
-- **Conventional Commits** are enforced by commitlint on PRs. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test (lower-case, non-empty subject). Scopes are common, e.g. `feat(appointment): ...`, `fix(linters): ...`.
-- The PR template asks you to name the target branch, follow the commit convention, run tests locally, keep business logic on the server, update docs, add `closes #XXXX`, and attach screenshots or GIFs for UI changes.
-- `feat` PRs need a docs link or `no-docs` (docs checker).
-- Mergify auto-merges after ≥1 approval (merge commit by default, squash with the `squash` label, blocked by `dont-merge`). Backports use the labels `backport develop` and `backport version-1x-hotfix`.
-- Upstream-style PRs to stable `version-14/15/16` branches are auto-closed for non-maintainers.
-
-## Project rules
-`.build/RULES.md` holds the standing rules (currently a template). `AGENTS.md` renders the guide index from `.build/guides/`.
+**Commits and PRs:**
+- Commit titles follow Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. The type is lower-case and the subject must not be empty.
+- The PR template asks you to:
+  - choose the target branch
+  - explain the problem being solved
+  - add screenshots or GIFs
+  - keep business logic server-side
+  - update docs
+  - put `closes #XXXX` in the description
+- CODEOWNERS: `@akurungadam @Sajinsr` review everything.
