@@ -5,30 +5,19 @@ description: CI/CD & Release
 alwaysApply: true
 ---
 
-# CI/CD and release
+**PR checks (GitHub Actions)**
+- `ci.yml` (Server Tests) runs on PRs, skipping changes limited to css/js/md/html/csv, and nightly. It compiles all Python, rejects merge-conflict markers, bootstraps a bench (frappe and erpnext on the matching branch, plus payments) with `.github/helper/install.sh` against MariaDB 11.8, and runs `bench run-parallel-tests --app healthcare`. Coverage is uploaded to Codecov on non-PR runs only.
+- `linters.yml` / `linters.v2.yml` run pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets) and Semgrep with Frappe rules plus `r/python.lang.correctness`.
+- `semantic-commits.yml` runs commitlint over the PR commit range.
+- `docs_checker.yml` requires a docs link on `feat` PRs.
+- `labeller.yml` applies labels, including `needs-tests`.
+- `codeql.yml` runs security scanning.
 
-## On pull requests
-| Workflow | What it does |
-|---|---|
-| `ci.yml` (Server Tests) | Ubuntu, Python 3.14, Node 24, MariaDB 11.8. Runs `compileall` and a merge-conflict-marker check. `.github/helper/install.sh` sets up a bench with frappe, payments, erpnext (same branch as the base) and healthcare. Then `run-parallel-tests`. Skipped for PRs that change only css/js/md/html/csv. Also runs nightly at 00:00 UTC with coverage uploaded to Codecov. |
-| `linters.yml` / `linters.v2.yml` | pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks) and Semgrep with `frappe/semgrep-rules` plus `r/python.lang.correctness` |
-| `semantic-commits.yml` | commitlint over every commit in the PR range |
-| `docs_checker.yml` | `feat` PRs need a docs `/wiki` link or `no-docs` |
-| `labeller.yml` | Adds `needs-tests` when Python changes have no test changes |
-| `codeql.yml` | CodeQL for Python and JS on `develop`, plus a weekly run |
+**Release**
+- `initiate_release.yml` opens a `chore: release vNN` PR from `version-NN-hotfix` → `version-NN` every Tuesday for v14/15/16.
+- `on_release.yml`: pushing to `version-14/15/16` runs **semantic-release** (`.releaserc`, angular preset). It bumps `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release. Breaking changes do not trigger a major release.
+- `release_notes.yml` and `.github/release.yml` build the changelog and exclude `skip-release-notes` labels.
+- `generate-pot-file.yml` regenerates translations weekly, and Crowdin opens `fix: sync translations from crowdin` PRs.
+- Dependabot updates GitHub Actions weekly.
 
-## Merging
-- Mergify merges once there is at least one approval and CI passes, using a merge commit or a squash with the `squash` label. The `dont-merge` label blocks merging. `backport <branch>` labels open backport PRs.
-- In this fork, changes land on `biograph-fh` through the Build engine Goal PR.
-
-## Release (upstream-style)
-- `initiate_release.yml` opens a PR every Tuesday from `version-NN-hotfix` to `version-NN` for NN in 14, 15 and 16.
-- `on_release.yml` runs on push to `version-14/15/16` and executes **semantic-release** (`.releaserc`, angular preset; breaking changes do not trigger a major). It rewrites `__version__` in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates the GitHub release.
-- `release_notes.yml` regenerates the notes and strips chore/ci/test/docs/style entries. PRs labelled `skip-release-notes` are excluded (`.github/release.yml`).
-- `generate-pot-file.yml` regenerates `main.pot` weekly on `develop`. Crowdin opens `fix: sync translations from crowdin` PRs.
-- Dependabot is configured in `.github/dependabot.yml`.
-
-The workflows reference `earthians/biograph` and `develop` from the upstream. Check the targets before relying on release automation in this fork.
-
-## Deployment
-There is no deploy pipeline in the repo. Sites pick up releases with `bench update` / `bench get-app` plus `bench migrate` (Frappe Cloud signup is linked from the README).
+Deployment is outside this repo. Users install via `bench get-app` or Frappe Cloud.
