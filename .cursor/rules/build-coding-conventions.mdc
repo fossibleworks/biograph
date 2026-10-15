@@ -5,31 +5,24 @@ description: Coding Conventions
 alwaysApply: true
 ---
 
+# Coding conventions
+
 ## Python (ruff, `pyproject.toml`)
-- **Tabs** for indentation, **double quotes**, line length 110 (E501 is ignored).
-- Lint set: `F, E, W, I, UP, B, RUF`, with Frappe-friendly ignores (F401, F403/F405, E402, B904, …).
-- **Import order:** future → stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local, each as a separate block. Example from `test_patient_appointment.py`:
-  ```python
-  import frappe
-  from frappe.tests.utils import FrappeTestCase
+- **Tabs** for indentation, **double quotes**, line length 110 (E501 ignored), target py310.
+- Lint rule sets: F, E, W, I, UP, B, RUF (several ignores, e.g. F401, B904, E402).
+- **Import order**: stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party/local, with a blank line between each section.
+- Use absolute imports from the dotted path: `from healthcare.healthcare.doctype.patient_appointment.patient_appointment import ...`.
+- File header: `# Copyright (c) <year>, <owner> and contributors` + `# For license information, please see license.txt`.
+- DocType controllers: `class PascalCaseName(Document)` in `doctype/<snake_name>/<snake_name>.py`, using Frappe lifecycle methods (`validate`, `on_submit`, `on_cancel`, `onload`). Helpers are module-level `snake_case` functions. RPC endpoints use `@frappe.whitelist()`.
+- Wrap every user-facing string in `_()` and use positional `{0}` formatting: `_("Configure a service Item for {0}").format(item)`.
+- Prefer `frappe.db.get_value` / `get_all` / `frappe.qb` over raw `frappe.db.sql`. Use parameterised SQL when raw SQL is unavoidable. Frappe semgrep rules enforce this.
+- Keep business logic and validation **server-side** (PR template).
 
-  from erpnext... import ...
-
-  from healthcare.healthcare.doctype... import ...
-  ```
-- `typing-modules = ["frappe.types.DF"]`: doctype controllers use Frappe's auto-generated type hints.
-- Use absolute dotted module paths everywhere (`healthcare.healthcare.doctype.<snake>.<snake>`), including hooks.
-- Whitelisted endpoints use `@frappe.whitelist()`. Prefer `frappe.qb` for new queries; raw `frappe.db.sql` still exists in older code.
-- Wrap every user-facing string in `_()` and use positional `{0}` formatting: `_("Patient {0} ...").format(...)`.
-
-## Frappe naming
-- Doctype folders and files are `snake_case` of the DocType name: `doctype/patient_appointment/{patient_appointment.py,.js,.json,test_patient_appointment.py,patient_appointment_list.js}`.
-- DocType names are Title Case with spaces ("Patient Appointment"). Controller classes are PascalCase.
-- Patches go in `healthcare/patches/v<major>_0/<descriptive_snake>.py` and are registered in `patches.txt` under `[pre_model_sync]` or `[post_model_sync]`.
-
-## JavaScript
-- Desk JS uses ESLint flat config (`eslint:recommended`) with Frappe globals (`frappe`, `cur_frm`, `__`, …). Prettier settings: tabs, width 4, printWidth 88, `arrowParens: avoid`.
-- The patient portal is excluded from root Prettier. Its own `.prettierrc.json` sets `semi: false, singleQuote: true`. Vue SFCs use `<template>` with Tailwind utility classes.
+## JavaScript (ESLint flat config + Prettier)
+- Prettier: **tabs**, tabWidth 4, printWidth 88, `arrowParens: avoid`.
+- `eslint:recommended`, with Frappe globals (`frappe`, `erpnext`, `__`, `$`, `moment`, …).
+- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})`. Wrap strings in `__()`.
+- `patient_portal/` is excluded from Prettier and has its own `.prettierrc.json`. Vue SFCs use `<script setup>`, frappe-ui components and Tailwind utility classes.
 
 ## Commits
-Conventional Commits, enforced by commitlint. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, lower-case, and the subject must not be empty.
+Conventional commits, enforced by commitlint: `feat|fix|perf|refactor|chore|docs|test|ci|build|style|revert`, lower-case type, non-empty subject.
