@@ -5,10 +5,11 @@ description: Observability
 alwaysApply: true
 ---
 
-There are no metrics or tracing libraries. Observability relies on Frappe's built-in facilities:
+Observability relies on Frappe's built-in facilities. The repo has no external metrics or tracing SDKs.
 
-- **`frappe.log_error(...)`** (about 15 uses) writes to the **Error Log** doctype. It is the main way failures in background or side-effect code are recorded. Pass a descriptive `title`, plus the traceback or exception as the message: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-- **`frappe.logger()`** writes to bench log files. It is used for setup and migration progress at `info`/`debug` and for parse failures at `error`. Examples are `setup/patient_duplicate_check.py` and the v15 patch `setup_patient_duplicate_check_rules`.
-- Scheduled jobs show up in Frappe's Scheduled Job Log, and CodeQL and Semgrep give security visibility in CI.
-- **JS:** ESLint warns on `console.*` (`no-console: warn`). Don't leave `console.log` in desk or portal code. Report user-visible problems with `frappe.msgprint`/`frappe.throw` instead.
-- Don't log PHI (patient-identifying clinical data) in log messages. Log document names and IDs instead.
+- **Error Log doctype** (`frappe.log_error`, 15 call sites) is the main signal. Use it for caught failures in background or side-effect code. Give it a descriptive `title`, the traceback (`frappe.get_traceback(with_context=True)`), and `reference_doctype` / `reference_name` so the entry links to the record.
+- **`frappe.logger()`** (9 call sites) is used for informational setup and progress logging. Examples are `frappe.logger().info("Starting patient duplicate check rules setup")` and `.error(...)` for parse failures. Use it when the event is not something an admin needs to act on.
+- **Realtime and UI feedback**: `doc.notify_update()` and `frappe.publish_realtime` push changes to open forms and the portal (`patient_portal/src/socket.js`).
+- **Document timeline**: Frappe versioning and comments record status changes. Status fields (appointment status, fee validity status) are updated by scheduler jobs.
+- **Avoid `print()`** in non-test code. There are roughly 70 leftover prints under `doctype/`. Pre-commit's `debug-statements` hook blocks `pdb`/`breakpoint`.
+- CI captures coverage and uploads it to Codecov on nightly runs. CodeQL runs weekly and on develop.
