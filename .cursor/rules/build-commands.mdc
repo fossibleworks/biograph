@@ -5,48 +5,40 @@ description: Commands
 alwaysApply: true
 ---
 
-This is a Frappe app, so most commands run from a **bench** with ERPNext installed, not from this repo alone.
-
-**Install**
+## Setup (inside a bench)
 ```sh
-bench get-app <repo-url>
+bench get-app https://github.com/Tacten/biograph
 bench --site <site> install-app healthcare
 ```
 
-**Run server tests** (as CI does)
+## Frontend (Patient Portal)
 ```sh
-bench --site test_site run-parallel-tests --app healthcare
-# single DocType
-bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"
-```
-The tests need a site with `allow_tests` enabled (see `.github/helper/site_config.json`).
-
-**Migrate after schema or patch changes**
-```sh
-bench --site <site> migrate
-```
-
-**Patient Portal**
-```sh
-yarn install       # root; postinstall installs patient_portal
-yarn build         # = cd patient_portal && yarn build
+yarn install                 # root postinstall runs `cd patient_portal && yarn install --check-files`
+yarn build                   # root: cd patient_portal && yarn build
 cd patient_portal && yarn dev   # vite dev server
+# patient_portal build: vite build --base=/assets/healthcare/patient_portal/
 ```
 
-**Lint and format**
+## Lint / format
 ```sh
 pip install pre-commit && pre-commit install
 npm install
-pre-commit run --all-files   # ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit
-```
+pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
 
-**Semgrep** (also runs in CI)
-```sh
+# Frappe semgrep rules (CI job `semgrep`)
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
 pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-**Sanity checks that CI runs**
-- `python -m compileall -f .`
-- A grep for leftover `<<<<<<< ` conflict markers.
+## Tests (server)
+```sh
+bench --site test_site run-parallel-tests --app healthcare   # what CI runs
+bench --site <site> run-tests --app healthcare --module healthcare.healthcare.doctype.<name>.test_<name>
+```
+CI bootstraps the bench with `.github/helper/install.sh`.
+
+## Commit-message check
+```sh
+npx commitlint --from <base> --to <head>
+```
