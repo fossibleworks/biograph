@@ -8,37 +8,28 @@ binding: required
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/healthcare/utils.py
-  - healthcare/controllers/service_request_controller.py
-  - healthcare/public/js/mark_unavailable.js
-  - patient_portal/src/components/Payment.vue
+  - healthcare/healthcare/doctype/clinical_procedure/clinical_procedure.py
+  - healthcare/healthcare/api/patient_portal.py
+  - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
+  - healthcare/healthcare/doctype/inpatient_medication_entry/inpatient_medication_entry.py
+  - healthcare/healthcare/doctype/patient/patient.js
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
-## User-facing validation errors
+## Validation errors go to the user through `frappe.throw`
 
-- Raise errors with **`frappe.throw(_("message"), ExcClass, title=_("Title"))`**. There are about 180 call sites. Frappe rolls back the transaction and shows a dialog.
-- When callers or tests need to tell errors apart, define a domain exception in the DocType module that subclasses `frappe.ValidationError`. Examples are `OverlapError` and `MaximumCapacityError` (patient_appointment), `CoverageNotFoundError` and `NoActiveContractError` (patient_insurance_coverage), and `CoverageOverlapError`. Pass the class as the second argument to `frappe.throw`.
-- Titles are short title-case nouns, for example `title=_("Missing Configuration")` or `title=_("Not Allowed")`. Use `get_link_to_form()` in messages that point at a record.
-- For non-blocking warnings, use `frappe.msgprint(_("..."), indicator="orange")`.
+- Server-side validation is the norm. The PR template says "All business logic and validations must be on the server-side". The codebase has about 180 `frappe.throw` calls.
+- Always translate messages and use a title where it helps: `frappe.throw(_("Price List is mandatory"), title=_("Price List Not Set"))`. Pass an exception class to get the right HTTP status, e.g. `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)`.
+- For domain-specific failures, define a subclass of **`frappe.ValidationError`** in the DocType module and raise it via `frappe.throw(msg, OverlapError)`. Examples: `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`. Tests can then `assertRaises` the specific class.
+- Long or tabular errors may use `is_minimizable=True, wide=True` (see inpatient medication entry).
 
-## Side effects that must not block the transaction
+## Background and non-critical failures are logged, not raised
 
-For SMS, calendar events, payment sync, and scheduler billing, wrap the call in `try/except Exception` and record it with **`frappe.log_error`**. Then optionally `msgprint` a warning:
-
-```python
-except Exception:
-	frappe.log_error(
-		title="Failed to sync Payment Record",
-		message=f"Exception:\n{frappe.get_traceback(with_context=True)}\n",
-		reference_doctype=self.doctype,
-		reference_name=self.name,
-	)
-```
-
-Prefer this keyword form (title, traceback, reference doc) over positional `frappe.log_error(msg)`.
+- In scheduler jobs, notifications, patches and integrations, catch the exception and record it with **`frappe.log_error`**, giving a title (`frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`, `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`). This keeps one bad record from aborting a whole batch.
+- Avoid bare `except Exception:` that swallows errors silently. If you catch, log with a descriptive title.
 
 ## Client side
 
-Desk JS uses `frappe.throw(__('...'))` for input validation and `frappe.msgprint({...})` for notices. The Vue portal shows API errors with frappe-ui's `ErrorMessage` component.
+- Desk JS uses `frappe.throw(__("..."))` to block an action and `frappe.msgprint(__("..."))` for information.
+- Whitelisted portal APIs return `None` or empty results for "not found" cases (e.g. `get_logged_in_patient`) and throw for permission violations.
