@@ -4,25 +4,26 @@
 applyTo: "**"
 ---
 
-**Biograph** (named *fossibleHIS* in Interactor Build) is an open-source **Hospital Information System (HIS)**. It is a fork of Marley Health with extra features, maintained by Tacten/Fossibleworks. Upstream copyright belongs to earthians Health Informatics. It ships as a **Frappe app named `healthcare`** that adds a health domain to **ERPNext**. Most of its data model follows **HL7 FHIR**.
+## What Biograph is
 
-**Users:** hospitals, clinics and healthcare practitioners. Inside the system that means receptionists, practitioners, nurses, lab staff, insurance and billing staff, and hospital administrators. Patients use a separate **Patient Portal** at `/patient-portal`.
+Biograph (published as *fossibleHIS* / *Biograph – by Tacten*) is an open-source **Hospital Information System (HIS)**. It is a fork of Marley Health with added features. It is a **Frappe app** (Python package name `healthcare`, app title `Biograph`) that adds a healthcare domain to **ERPNext**. Most of the domain design follows **HL7 FHIR** resources (Observation, Service Request, Medication Request, Diagnostic Report, and so on).
 
-**Main features:**
-- Patient management, including configurable duplicate-patient checks
-- Outpatient work: appointments (slot-based and block-based booking), encounters, fee validity
-- Inpatient work: admissions, service-unit occupancy billing, inpatient medication
-- Clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions)
-- Laboratory and diagnostics: lab tests, observations, sample collection, diagnostic reports
-- Insurance: coverage, contracts and claims
-- Medical code standards / code systems (FHIR terminology)
-- India regional support for ABDM
+## Who uses it
 
-ERPNext supplies pharmacy, stock, purchasing, HR, accounts and assets. Healthcare documents create Sales Invoices and Payment Entries in ERPNext.
+- **Clinical staff** (practitioners, nurses, lab technicians) use Frappe Desk at `/desk/healthcare`. The `on_login` hook sends each role to its own home page.
+- **Front-desk and billing staff** handle patient registration, appointments, fee validity, insurance, and invoicing through ERPNext's Sales Invoice and Payment Entry.
+- **Patients** use the **Patient Portal** at `/patient-portal`, which needs the `Patient` role. There they can see appointments, diagnostics and payments, and book appointments.
 
-**Top-level surfaces:**
-- Desk workspaces: Healthcare, Outpatient, Inpatient, Diagnostics, Insurance, Rehabilitation, Practitioner, Reception, Hospital Administrator, Setup
-- Desk pages: `patient_history`, `patient_progress`
-- Reports, web forms, and the Vue patient portal
+## Main feature areas
 
-When proposing work, keep it consistent with the FHIR-aligned model and with ERPNext integration. Don't re-implement features ERPNext already provides.
+- Patient management, including duplicate-patient detection (`wiki/PATIENT-DUPLICATE.md`)
+- Outpatient work: Patient Appointment, Patient Encounter, Fee Validity, and block-based therapy appointment booking
+- Inpatient work: Inpatient Record, Inpatient Medication Orders and Entries, service-unit occupancy billing
+- Clinical Procedures, Rehabilitation and Physiotherapy (Therapy Plan / Session / Type), Exercise
+- Laboratory: Lab Test, Sample Collection, Observation, Diagnostic Report
+- Medical code standards, Medical Departments, and Healthcare Service Units (a tree view)
+- Insurance: payors, contracts, policies, coverage, claims
+- India regional support: **ABDM** integration (`healthcare/regional/india/abdm`)
+- Dashboards, number cards, script reports, and print formats
+
+Pharmacy, purchasing, HR, accounts and assets come from ERPNext and are not re-implemented here.
