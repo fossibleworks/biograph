@@ -4,24 +4,18 @@
 applyTo: "**"
 ---
 
-# Biograph (fossibleHIS)
+**Biograph** (the fossibleworks fork is called fossibleHIS) is an open-source **Hospital Information System (HIS)**. It started as a fork of Marley Health and adds to it. It ships as a Frappe app named `healthcare` and adds a health domain to **ERPNext**. Much of the data model follows **HL7 FHIR**, for example Service Request, Observation, Medication Request and Diagnostic Report.
 
-Biograph is an open-source **Hospital Information System (HIS)**. It started as a fork of Marley Health, with further enhancements by Tacten / FossibleWorks. It ships as a **Frappe app** named `healthcare` (app title "Biograph") and runs inside ERPNext. Most of its domain model follows **HL7 FHIR**.
+**Who uses it:** healthcare practitioners, clinics, hospitals and their administrative and billing staff, who work in the Frappe Desk UI. Patients use a separate **Patient Portal** at `/patient-portal`, where they book appointments, view orders and test reports, and pay bills.
 
-## Who uses it
-- **Clinical and administrative staff** at clinics and hospitals: practitioners, nurses, lab staff, front desk and billing. They work in the Frappe Desk UI (`/desk/healthcare`), using workspaces such as Healthcare, Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance and Setup.
-- **Patients** use the Vue-based **Patient Portal** (`/patient-portal`). There they book appointments, view orders and lab results, and pay bills. The portal requires the `Patient` role and a linked active Patient record.
+**Key capabilities** (from the README and the doctypes):
+- Patient management, including duplicate-patient detection
+- Outpatient and inpatient flows: Patient Appointment, Patient Encounter, Inpatient Record, block-based therapy appointment booking
+- Clinical Procedures, Rehabilitation/Physiotherapy (Therapy Plan/Session), Laboratory (Lab Test, Sample Collection, Observation)
+- Multiple Medical Code Standards and a FHIR terminology service
+- Insurance (payors, contracts, policies, coverage, claims)
+- Healthcare Service Units mapped to facilities, and Medical Departments mapped to specialities
+- Billing through ERPNext Sales Invoice and Payment Entry, plus fee validity
+- India regional support for ABDM (`healthcare/regional/india`)
 
-## Key capabilities
-- Patient management, including duplicate detection (`wiki/PATIENT-DUPLICATE*.md`)
-- Outpatient work: Patient Appointment (slot and block-time booking, recurring appointments, practitioner unavailability), Patient Encounter, Fee Validity
-- Inpatient work: Inpatient Record, medication orders and entries, service unit occupancy billing, nursing tasks and checklists
-- Clinical procedures, rehabilitation and physiotherapy (Therapy Plan, Exercise)
-- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
-- Medication and medication requests, plus Service Requests (FHIR-style orders)
-- Insurance: payors, contracts, eligibility plans, coverage and claims
-- Medical code standards (Code System, Code Value), aiming at FHIR terminology parity
-- India regional support: ABDM integration (`healthcare/regional/india/abdm`)
-- Billing goes through ERPNext Sales Invoice and Payment Entry. Pharmacy, HR, accounts and similar functions come from ERPNext.
-
-The app is installed with `bench get-app` and `bench --site <site> install-app healthcare`. It requires `frappe/erpnext`.
+Pharmacy, purchasing, HR, accounts and assets come from ERPNext itself.
