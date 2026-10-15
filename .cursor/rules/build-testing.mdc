@@ -5,12 +5,9 @@ description: Testing
 alwaysApply: true
 ---
 
-# Testing
-
-- **Framework:** Frappe's test runner on top of unittest. New tests subclass `frappe.tests.IntegrationTestCase` (about 69 files). Older tests still use `frappe.tests.utils.FrappeTestCase` (7 files).
-- **Layout:** tests are co-located as `healthcare/healthcare/doctype/<doctype>/test_<doctype>.py` (85 test files). Shared bootstrap data is in `healthcare/tests/utils.py` (`BootStrapTestData`, built on ERPNext's `ERPNextTestSuite`).
-- **Style:** these are integration tests against a real MariaDB site. `setUp` often clears tables with `frappe.db.sql("delete from `tabX`")`. Tests reuse fixture factories from other test modules (for example `create_appointment`, `create_healthcare_docs` from `test_patient_appointment`). Declare record dependencies with `EXTRA_TEST_RECORD_DEPENDENCIES`.
-- **Running:** use `bench --site <site> run-tests --app healthcare [--doctype "X"]`. CI runs `run-parallel-tests` on `test_site`.
-- There are no JS or Cypress unit tests in the repo.
-- **Coverage:** Codecov requires **85% patch coverage** on PRs to `develop`. Project coverage may drop at most 0.5%. Coverage is captured on scheduled and non-PR runs.
-- **Labeler:** a PR that touches `healthcare/**/*.py` but no `test*.py` file is labelled `needs-tests`.
+- **Framework:** Frappe's test runner on top of unittest. Most test classes subclass `frappe.tests.IntegrationTestCase` and run against a real MariaDB site. There are about 110 test files.
+- **Layout:** each DocType keeps `test_<doctype>.py` next to its controller, for example `doctype/fee_validity/test_fee_validity.py`. Cross-cutting tests and fixtures live in `healthcare/tests/` (`utils.py` has the `BootStrapTestData` master-data builder built on ERPNext's `ERPNextTestSuite`). Regional tests sit beside the module (`regional/india/abdm/test_abdm.py`).
+- **Fixtures:** `hooks.py` sets `before_tests = healthcare.healthcare.utils.before_tests`. Tests declare `EXTRA_TEST_RECORD_DEPENDENCIES = ["Company"]`, reuse helper factories from other test modules (for example `create_appointment` and `create_healthcare_docs` from `test_patient_appointment`), and use `_Test ...` names for records. `setUp` often clears tables with `frappe.db.sql("delete from `tab...`")`.
+- **Running:** use `bench --site test_site run-parallel-tests --app healthcare`. CI runs it on every PR (except PRs that only touch css/js/md/html/csv) and nightly.
+- **Coverage:** collected on non-PR runs and uploaded to Codecov. The **patch target is 85%** on PRs, and project coverage may drop by at most 0.5%.
+- There is no JS or Vue test suite in the repo.
