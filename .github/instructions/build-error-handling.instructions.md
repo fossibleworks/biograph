@@ -4,12 +4,31 @@
 applyTo: "**"
 ---
 
-# Error handling
+## Validation and user errors
 
-- **User-facing validation:** `frappe.throw(_("message {0}").format(x))`, sometimes with `title=_("Missing Configuration")` or an explicit exception class (`frappe.ValidationError`, `frappe.PermissionError`). There are about 180 call sites.
-- **Domain exceptions:** subclass `frappe.ValidationError`, for example `OverlapError` in `insurance_payor_contract.py` and `CoverageOverlapError` in `item_insurance_eligibility.py`.
-- **Permission checks** in portal and API code raise `frappe.PermissionError` (`"Not allowed to print this document."`).
-- **Background, scheduler and integration failures** must not crash the job. Catch them and record them with `frappe.log_error(message=..., title=...)`, often passing `frappe.get_traceback()`. Examples: unbillable inpatient occupancy, appointment confirmation not sent, ABDM API calls.
-- **Defensive lookups:** guard against `None` from `frappe.db.get_value` before using the result (a recent fix pattern: "guard against None return").
-- **Client side:** `frappe.msgprint({title: __("Not Allowed"), message: ...})` for blocking info, and `frappe.show_alert({message, indicator})` for toasts. In the portal, frappe-ui `<ErrorMessage :message="error" />`.
-- Avoid a bare `except Exception` that swallows errors silently. Always log, or re-throw with a translated message.
+Raise user and validation errors with **`frappe.throw(_("..."), <ExcType>, title=_("..."))`**. This is the dominant pattern, with about 180 uses.
+
+- The message is translatable and uses `{0}` placeholders with `.format(...)`.
+- Add a specific exception class where callers or tests need one, for example `frappe.PermissionError` ("Not allowed to print this document."), `frappe.DoesNotExistError` or `frappe.MandatoryError`.
+- Define domain exceptions as subclasses of `frappe.ValidationError` near the controller: `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`.
+- Use `title=` for grouped messages (e.g. `title=_("Missing Configuration")` in `utils.py`).
+
+## Non-fatal messages
+
+Use `frappe.msgprint(_(...))` for informational or non-blocking feedback.
+
+## Background and side-effect failures
+
+Inside `try/except` around non-critical side effects (notifications, calendar events, billing of occupancy), log with **`frappe.log_error(...)`** and do not re-raise. This writes an Error Log doc. Example:
+
+```python
+frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
+```
+
+## Client side
+
+Desk JS uses `frappe.throw(__("..."))` and `frappe.msgprint`. Whitelisted APIs return plain data or `None` rather than error envelopes; exceptions become standard Frappe HTTP error responses.
+
+## Rule
+
+Keep validations server-side in `validate()`/`before_submit()` so that API and import paths are protected too.
