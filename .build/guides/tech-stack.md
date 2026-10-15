@@ -4,7 +4,7 @@ category: tech-stack
 layer: project
 applies_to: []
 inclusion: always
-binding: reference
+binding: required
 source: inferred
 evidence:
   - pyproject.toml
@@ -16,21 +16,20 @@ evidence:
   - yarn.lock
 ---
 
+# Tech stack
+
 ## Backend
-- **Python ≥ 3.10** (`requires-python`, ruff `target-version = py310`). CI runs Python **3.14**.
-- **Frappe framework** app that depends on **ERPNext** (`required_apps = ["frappe/erpnext"]`). Supported release lines are v14/v15/v16, and there are patches for `v15_0` and `v16_0`.
-- Packaging uses **flit_core** (`pyproject.toml`). Extra runtime dependencies: `responses`, `python-barcode`.
-- Database: **MariaDB** (CI uses `mariadb:11.8`). Queries go through `frappe.qb` (pypika query builder), `frappe.db.*` and raw `frappe.db.sql`.
-- Background and realtime work uses `frappe.enqueue`, `scheduler_events` and `frappe.publish_realtime`.
+- **Python ≥ 3.10** (`pyproject.toml`). CI runs **Python 3.14**. Packaged with **flit_core**.
+- **Frappe Framework**: metadata-driven DocTypes, whitelisted RPC, hooks, scheduler, patches. **ERPNext** is a required app.
+- **MariaDB** (CI uses `mariadb:11.8`) and Redis, managed with **bench**.
+- Python dependencies: `responses`, `python-barcode`.
 
-## Desk frontend
-- Plain JavaScript form scripts (`<doctype>.js`) built on Frappe Desk globals (`frappe`, `cur_frm`, `__`, jQuery, `moment`).
-- These are bundled through `healthcare/public/js/healthcare.bundle.js`, which `app_include_js` includes.
+## Desk UI
+- Plain JavaScript Frappe form controllers (`<doctype>.js`, `<doctype>_list.js`) and Jinja/HTML templates. Bundled through `healthcare/public/js/healthcare.bundle.js` (`app_include_js`).
 
-## Patient portal SPA (`patient_portal/`)
-- **Vue 3** with **vue-router 4**, built with **Vite 4.4.9** and `@vitejs/plugin-vue`.
-- UI comes from **frappe-ui** (^0.1.176) plus **Tailwind CSS 3.4.15** using the frappe-ui preset, and `feather-icons`/lucide icons.
-- **Yarn** workspaces (`yarn.lock` at the root). Node **24** in CI.
+## Patient Portal SPA (`patient_portal/`)
+- **Vue 3** + **vue-router 4**, **frappe-ui** (components, Tailwind preset, Vite plugin), **Tailwind CSS 3.4**, **Vite 4.4.9**, feather/lucide icons, socket.io (`src/socket.js`).
+- **Yarn** workspaces (root `package.json` workspaces: `patient_portal`, `frappe-ui`). `yarn.lock` is committed.
 
 ## Tooling
-ruff (lint and format), ESLint 10 (flat config), Prettier, pre-commit, Semgrep (Frappe rules), CodeQL, detect-secrets, pip-audit, commitlint, semantic-release, Mergify, Crowdin (translations), Codecov.
+ruff (lint and format), ESLint 10 flat config, Prettier, pre-commit, Frappe semgrep rules, detect-secrets, pip-audit, commitlint (conventional commits), semantic-release, Codecov, Mergify, Crowdin (translations).
