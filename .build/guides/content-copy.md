@@ -1,0 +1,30 @@
+---
+title: Content & Copy
+category: content-copy
+layer: project
+applies_to: []
+inclusion: always
+binding: recommended
+source: inferred
+evidence:
+  - healthcare/healthcare/utils.py
+  - healthcare/public/js/observation.js
+  - healthcare/public/js/patient_quick_entry.js
+  - patient_portal/src/components/Payment.vue
+  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
+  - healthcare/locale/main.pot
+---
+
+- **Tone:** short, direct, clinical and administrative. Use sentence-style phrases with Title Case doctype names. Avoid exclamation marks in product UI, except success states like "Payment Successful".
+- **Terminology:** use the DocType names exactly and capitalized: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Lab Test, Item Code, Price List, Insurance Payor, Code Value. The product name is **Biograph**. Patch `rebrand_marley_to_biograph` shows that "Marley" was renamed, so don't reintroduce it.
+- **Error messages** state the problem, sometimes followed by the fix:
+  - "Price List is mandatory" (title "Price List Not Set")
+  - "Start Date should be before End Date"
+  - "User {0} is disabled"
+  - "Configure a service Item for {0}"
+  - "Not permitted. Please disable the Service Unit Type"
+  - "Item with Item Code {0} already exists"
+  - Use `{0}` placeholders, never f-strings inside `_()`.
+- **Dialog titles and buttons** are verb + noun in Title Case: "Add Observation", "Edit Observation", "Edit", "Book an Appointment", "Select a Department", "Select a Practitioner".
+- **Portal copy** is patient-friendly: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients", "Available Slots", "Payment Successful". The empty state is "No Records Found".
+- **Translation:** every string goes through `_()` / `__()`. Strings are extracted into `healthcare/locale/main.pot` and translated on Crowdin. Some JS uses template literals inside `__()` (form.js). Avoid that, because those strings can't be extracted.
