@@ -1,5 +1,5 @@
 ---
-title: Error Handling
+title: Error handling
 category: error-handling
 layer: project
 applies_to: []
@@ -7,16 +7,26 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - healthcare/healthcare/utils.py
+  - healthcare/healthcare/api/patient_portal.py
+  - healthcare/healthcare/doctype/healthcare_settings/healthcare_settings.py
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
   - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
-  - patient_portal/src/components/BookAppointmentModel.vue
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
 ---
 
-- **Validation errors:** raise them with `frappe.throw(_("Message"))` (about 180 call sites). Frappe turns these into a user-visible dialog and an HTTP error, and rolls back the transaction.
-- **Typed errors:** subclass `frappe.ValidationError` per domain condition, defined at the top of the controller module (`OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`, `CoverageOverlapError`), and pass them as the second argument: `frappe.throw(_("..."), OverlapError)`. Tests assert on these classes.
-- **Non-blocking notices:** use `frappe.msgprint(_("..."))`.
-- **Background/integration failures** (scheduler jobs, notifications, billing side effects, calendar events) are caught and recorded with `frappe.log_error(message/traceback, title)`, so one bad record doesn't abort the batch. Example: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-- **Client side:** desk JS uses `frappe.throw(__("..."))` / `frappe.msgprint` for form validation. The portal shows server errors with `toast.error(err.messages?.[0] || err)`.
-- Validation belongs on the server (PR template). Client checks are only for UX.
+**Validation and user errors (server):**
+- Raise with `frappe.throw(_("message"), [exc_class], title=_("..."))`. The codebase has about 180 calls.
+- Messages are translated and use `{0}` formatting, for example `frappe.throw(_("Configure a service Item for {0}").format(item))`.
+- Use the `title=` kwarg for grouped errors, such as `title=_("Missing Configuration")`.
+- Permission failures pass `frappe.PermissionError`: `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)`.
+
+**Custom exception types** subclass `frappe.ValidationError` and live in the doctype module that raises them, for example `OverlapError`, `CoverageOverlapError`, `MaximumCapacityError`, `NoActiveContractError`. Callers and tests can then catch specific cases.
+
+**Non-blocking warnings:** use `frappe.msgprint(...)` (about 40 in Python), and `frappe.msgprint(__(...))` / `frappe.throw(__(...))` in desk JS.
+
+**Background and side-effect failures:**
+- Notifications, calendar events, scheduled billing and similar work wrap the failing call in `try/except Exception` and record it with `frappe.log_error(...)`, so the main transaction continues. Examples: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` and `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`.
+- Don't swallow exceptions without logging them.
+
+**API responses:** whitelisted endpoints return plain data (dicts or lists, or `None` when nothing is found, as in `get_logged_in_patient`) and rely on `frappe.throw` for errors. There is no custom error envelope. Frappe serialises the exception to the client.
