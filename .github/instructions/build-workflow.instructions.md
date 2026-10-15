@@ -4,20 +4,33 @@
 applyTo: "**"
 ---
 
-# Workflow
-
 ## Build engine (this fork)
-Work is tracked as an Interactor Build **Goal**. A GitHub issue becomes a Goal only after an explicit import. A Goal owns one branch, `goal/<goalId>`, and one PR, and the engine generates EngineTasks underneath it.
 
-- **Before editing any file**, a Goal must exist (`ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <goalId>`, or use the web UI).
-- Work on `goal/<goalId>` in an isolated worktree. **Never commit to the default branch `biograph-fh`.** Remote examples: `goal/remove-mandatory-flag-validation-...`.
-- Changes ship only through the goal's PR, which must pass review and CI. Interactive sessions may use `ibuild off` for small changes, but those still go on their own branch through a hand-opened PR.
-- Read `.build/vision.md` before planning, and flag any work that doesn't fit it. Do not put `[interactor-sync]` in your own commit messages.
+Per `CLAUDE.md`, every code change ships through **Interactor Build**.
+
+1. A tracked **Goal** must exist before any file is edited. Create one with `ibuild engine goal-create "<title>"` and admit it with `ibuild engine goal queue <goalId>`, or use the Build web UI. You can also import a GitHub issue as a Goal; creating the issue alone does not do this.
+2. Work on the branch **`goal/<goalId>`** in an isolated worktree, **never on the default branch** (`biograph-fh` in this fork; `main`/`develop` upstream).
+3. Changes land through the goal's single PR, which must pass review and CI. No direct pushes.
+
+EngineTasks under a Goal cycle through investigation → execution → review (`ibuild engine work`, `ibuild engine report --yes`, `ibuild engine goal accept`). An interactive session may use `ibuild off` for a small change. That change still goes through its own branch and a hand-opened PR.
 
 ## Commits and PRs
-- **Conventional Commits** are enforced by commitlint on every PR. The allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, all lower-case, with an optional scope: `fix(linters): ...`, `feat(appointment): ...`.
-- The PR body should explain the problem, include screenshots or GIFs for UI changes, and say `closes #N`.
-- Code owners are @akurungadam and @Sajinsr.
 
-## Upstream-inherited rules (Mergify)
-PRs against the stable branches `version-14/15/16` are auto-closed unless a maintainer opened them; target `develop` or a `version-N-hotfix` branch. Merging is automatic after one approval plus CI (a `squash` label switches to a squash merge, and `dont-merge` blocks it). Labels named `backport <branch>` trigger backports.
+- **Conventional Commits** are enforced by commitlint. Types are `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, lower-case, with a non-empty subject.
+- Follow the PR template:
+  - choose the target branch
+  - make sure the tests pass
+  - keep business logic server-side
+  - update docs
+  - add `closes #XXXX`
+  - include screenshots for UI changes
+
+## Upstream branching
+
+Upstream branching is enforced by Mergify:
+
+- Feature and fix PRs target `develop` or a `version-N-hotfix` branch. PRs against the stable `version-14/15/16` branches from non-maintainers are auto-closed.
+- Labels `backport develop` and `backport version-N-hotfix` trigger backports.
+- PRs are auto-merged after ≥1 approval and CI. Add the `squash` label to squash, or `dont-merge` to block merging.
+
+Project-specific rules belong in `.build/RULES.md`, which is currently an unfilled template.
