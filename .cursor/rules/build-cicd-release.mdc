@@ -6,18 +6,24 @@ alwaysApply: true
 ---
 
 ## On pull requests
-- **CI / Server Tests** (`ci.yml`): checks that the Python compiles and that there are no merge-conflict markers. It then uses `.github/helper/install.sh` to set up frappe-bench with frappe, payments and erpnext on the matching branch, installs `healthcare` on `test_site` (MariaDB 11.8), and runs `bench run-parallel-tests --app healthcare`. PRs that only change css/js/md/html/csv skip it. It also runs nightly with coverage uploaded to Codecov.
-- **Linters** (`linters.yml`, `linters.v2.yml`): pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) plus Semgrep with the Frappe rules and `r/python.lang.correctness`.
-- **Semantic Commits:** commitlint over the PR commit range.
-- **Documentation Required:** the `feat` docs-link check.
-- **CodeQL:** Python and JavaScript, on PRs and pushes to `develop` and weekly.
-- **Labeler:** applies `needs-tests`. Dependabot updates GitHub Actions weekly.
 
-## Release
-- Branch model: `develop` → `version-N-hotfix` → stable `version-N` (N = 14, 15, 16).
-- `initiate_release.yml` (Tuesdays 09:30 UTC) opens `version-N-hotfix → version-N` release PRs.
-- `on_release.yml`: pushes to `version-14/15/16` run **semantic-release** (`.releaserc`, angular preset; breaking changes don't trigger a release). It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
-- `release_notes.yml` regenerates the notes and strips chore/ci/test/docs/style entries. Anything labelled `skip-release-notes` is excluded (`.github/release.yml`).
-- `generate-pot-file.yml` refreshes the translations POT weekly. Crowdin opens `fix: sync translations from crowdin` PRs.
-- Deployment is via bench / Frappe Cloud. There is no deploy job in this repo.
-- Several workflows still point at the upstream `earthians/biograph` repo and its bot tokens.
+| Workflow | What it does |
+|---|---|
+| `ci.yml` (Server Tests) | Skips PRs that only touch css/js/md/html/csv. Brings up a bench through `.github/helper/install.sh`: frappe and erpnext on the **same branch name as the PR base**, plus the payments app, MariaDB 11.8 and Python 3.14. Then it runs `bench run-parallel-tests --app healthcare`. It also runs nightly at 00:00 UTC; nightly runs upload coverage to Codecov. |
+| `linters.yml` / `linters.v2.yml` | pre-commit (ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit, file checks) and Semgrep with the Frappe rules plus `r/python.lang.correctness`. |
+| `semantic-commits.yml` | commitlint over the PR's commits. |
+| `docs_checker.yml` | `feat` PRs need a wiki docs link (or `no-docs`). |
+| `labeller.yml` | Adds the `needs-tests` label. |
+| `codeql.yml` | CodeQL for Python and JS on `develop` and weekly. |
+
+The default branch of this fork is `biograph-fh`. Several workflows still reference upstream `earthians/biograph` and its `develop` / `version-*` branches.
+
+## Release (upstream model)
+
+- **Weekly** (Tuesday 09:30 UTC), `initiate_release.yml` opens `version-NN-hotfix → version-NN` PRs for 14, 15 and 16.
+- When a `version-*` branch receives a push, `on_release.yml` runs **semantic-release** (`.releaserc`, angular preset; breaking changes do not trigger a major release). It rewrites the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and publishes a GitHub release.
+- `release_notes.yml` regenerates release notes and strips chore/ci/test/docs/style entries. PRs labelled `skip-release-notes` are excluded (`.github/release.yml`).
+- `generate-pot-file.yml` regenerates `main.pot` every week. Crowdin opens `fix: sync translations from crowdin` PRs.
+- Dependabot updates GitHub Actions weekly.
+
+There is no deploy step. Users install the app onto Frappe benches (Frappe Cloud or self-hosted) with `bench get-app` and `bench migrate`.
