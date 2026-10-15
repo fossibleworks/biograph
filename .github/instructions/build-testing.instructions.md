@@ -6,21 +6,15 @@ applyTo: "**"
 
 ## Framework
 
-Server tests use Frappe's integration test runner (`unittest`-based) against a real MariaDB site. Base classes are `frappe.tests.IntegrationTestCase` in newer files and `FrappeTestCase` in older ones. Shared bootstrapping uses `erpnext.tests.utils.ERPNextTestSuite`. There is no JS or Vue unit-test setup in the repo.
+Tests are Frappe server-side integration tests run with `bench run-tests` or `run-parallel-tests` against a real MariaDB site. No JS or unit test runner is set up for the portal.
 
-## Layout
+- New tests subclass **`frappe.tests.IntegrationTestCase`** (about 69 files). Older files use `frappe.tests.utils.FrappeTestCase` (about 7). Use `IntegrationTestCase` for new code.
+- Layout: `test_<doctype>.py` sits next to the controller in `healthcare/healthcare/doctype/<doctype>/`. Shared fixtures are in `healthcare/tests/utils.py` (`BootStrapTestData`, which builds company, items, practitioners, service units, templates and insurance payors) and `healthcare/tests/test_utils.py`. `hooks.py` sets `before_tests = "healthcare.healthcare.utils.before_tests"`.
+- Style: `setUp` clears the relevant tables (`frappe.db.sql("delete from `tabX`")`). Module-level `create_*` factory helpers build documents. Test records are prefixed `_Test ...`. Assertions use `assertEqual` and `assertTrue`. Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`.
 
-- Each DocType keeps its test next to the controller: `doctype/<name>/test_<name>.py`, with class `Test<DocType>`. There are about 110 test files. Many are empty stubs (`pass`).
-- Shared fixtures live in `healthcare/tests/utils.py`. `BootStrapTestData` builds the master data: company, items, departments, practitioners, service units, templates, insurance payors, and so on.
-- Test record names use the `_Test` prefix (for example `_Test Insurance Payor`).
-- `hooks.before_tests` → `healthcare.healthcare.utils.before_tests` prepares the site.
-- Regional tests live with their code (`healthcare/regional/india/abdm/test_abdm.py`).
+## Expectations
 
-## Assertions
-
-To test validation failures, assert the **specific** exception class with `assertRaises`. Examples are `self.assertRaises(OverlapError, contract.save)` and `self.assertRaises(frappe.ValidationError, lab_test.submit)`.
-
-## CI and coverage
-
-- CI runs `bench run-parallel-tests --app healthcare` on every PR (except PRs that change only css/js/md/html/csv) and nightly.
-- Coverage is captured on non-PR runs and uploaded to Codecov. **Patch coverage target is 85%** on PRs into `develop`. Project coverage may not drop more than 0.5%.
+- PRs that change `healthcare/**/*.py` without touching any `healthcare/**/test*.py` are auto-labelled **`needs-tests`**.
+- Codecov: **patch coverage target 85%** on PRs to develop. Project coverage must not drop by more than 0.5%. Coverage is gathered on scheduled and non-PR CI runs.
+- CI runs the full server suite on every PR that changes non-asset files. PRs touching only `*.js`, `*.css`, `*.md`, `*.html` or `*.csv` skip the CI test job.
+- The PR template asks that "All tests pass locally, UI and Unit tests".
