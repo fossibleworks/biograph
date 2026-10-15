@@ -5,31 +5,11 @@ description: Error Handling
 alwaysApply: true
 ---
 
-## Validation and user errors
+Error handling follows Frappe idioms:
 
-Raise user and validation errors with **`frappe.throw(_("..."), <ExcType>, title=_("..."))`**. This is the dominant pattern, with about 180 uses.
-
-- The message is translatable and uses `{0}` placeholders with `.format(...)`.
-- Add a specific exception class where callers or tests need one, for example `frappe.PermissionError` ("Not allowed to print this document."), `frappe.DoesNotExistError` or `frappe.MandatoryError`.
-- Define domain exceptions as subclasses of `frappe.ValidationError` near the controller: `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`.
-- Use `title=` for grouped messages (e.g. `title=_("Missing Configuration")` in `utils.py`).
-
-## Non-fatal messages
-
-Use `frappe.msgprint(_(...))` for informational or non-blocking feedback.
-
-## Background and side-effect failures
-
-Inside `try/except` around non-critical side effects (notifications, calendar events, billing of occupancy), log with **`frappe.log_error(...)`** and do not re-raise. This writes an Error Log doc. Example:
-
-```python
-frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))
-```
-
-## Client side
-
-Desk JS uses `frappe.throw(__("..."))` and `frappe.msgprint`. Whitelisted APIs return plain data or `None` rather than error envelopes; exceptions become standard Frappe HTTP error responses.
-
-## Rule
-
-Keep validations server-side in `validate()`/`before_submit()` so that API and import paths are protected too.
+- **Validation and user errors:** use `frappe.throw(_("message {0}").format(...), [ExcClass], title=_("Title"))`. This is the dominant pattern (~181 calls). It aborts the request and rolls back the transaction.
+- **Typed errors:** subclass `frappe.ValidationError` per domain condition, defined at the top of the controller. Examples: `OverlapError` and `MaximumCapacityError` (patient_appointment), `CoverageNotFoundError` and `NoActiveContractError` (patient_insurance_coverage), `CoverageOverlapError`. Pass the class as the second argument to `frappe.throw` so tests and callers can catch it.
+- **Non-blocking notices:** `frappe.msgprint(_(...), alert=True)` for success or warnings, e.g. "Sales Invoice {0} created".
+- **Use `frappe.bold()` and `get_link_to_form()`** to highlight names and link documents inside messages.
+- **Background and side-effect failures** (notifications, calendar events, scheduled billing) are caught and recorded with `frappe.log_error(message, title)` (often `frappe.get_traceback()`) instead of failing the main transaction. Example: `inpatient_record.py`: `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`.
+- **API (`@frappe.whitelist()`) endpoints** raise with `frappe.throw` as well. Frappe turns this into the HTTP error response, and in the portal the frappe-ui `ErrorMessage` component shows the error.
