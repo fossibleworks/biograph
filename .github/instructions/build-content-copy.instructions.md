@@ -4,13 +4,21 @@
 applyTo: "**"
 ---
 
-- **Translatable always:** Python strings use `_()` and JS uses `__()`. Translations flow through `healthcare/locale/main.pot` and Crowdin. Portal Vue templates currently hard-code English strings.
-- **Terminology** follows the domain models: *Patient*, *Healthcare Practitioner* (shown as "Practitioner"), *Patient Appointment*, *Patient Encounter*, *Service Unit*, *Medical Department*, *Lab Test*, *Observation*, *Diagnostic Report*, *Inpatient Record*, *Fee Validity*, *Therapy Session*. Use DocType names exactly and in Title Case.
-- **Buttons and actions** are short Title Case verbs: "Create", "Add", "Submit", "Start", "Transfer", "Schedule Admission", "Schedule Discharge", "Book".
-- **Errors** are short and direct, often sentence fragments, with the entity name in bold:
-  - "Not allowed, cannot overlap appointment {0}"
-  - "Appointment end must be after start."
-  - "Patient already has an appointment booked for the same day!"
-  - "Please select patient"
-  - Dialog titles such as "Missing Configuration" or "Not Allowed".
-- **Portal tone** is friendly and plain, with empty states like "Looks like you don't have any appointments yet." and "No Records Found". Headings include "Book an Appointment", "Pay Your Bill", "Select a Department" and "Select a Practitioner".
+## Tone
+
+Copy is short, plain and clinical-administrative, aimed at hospital staff and patients. Errors are single sentences that say what is wrong, sometimes with an exclamation mark for conflicts:
+
+- "Appointment Date and Time are required."
+- "Appointment end must be after start."
+- "Patient already has an appointment booked for the same day!"
+- "Booking only allow for today and future date" (an example of the inconsistent grammar in legacy JS; prefer correct English in new strings)
+
+Portal labels are terse single words: **Book**, **Patient**, **When**, **Practitioner**, **Fee**, **Total**, **Test / Result / Reference**, **OK**, with tabs **Appointments** and **Diagnostics**. Helper text is sentence case ("Details of fees").
+
+## Terminology
+
+Use the domain's DocType names, in Title Case, exactly as they appear: Patient, Healthcare Practitioner ("Practitioner" in short UI), Patient Appointment, Patient Encounter, Medical Department, Healthcare Service Unit, Lab Test, Observation, Service Request, Inpatient Record, Fee Validity, Insurance Payor, Healthcare Settings. FHIR terms are preferred where a choice exists. The product name is **Biograph**.
+
+## Translation
+
+Every user-facing string must be translatable: `_()` in Python and `__()` in Desk JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin. Do not build sentences by concatenating strings; use `_("... {0}").format(x)`. The Vue portal currently hardcodes English strings.
