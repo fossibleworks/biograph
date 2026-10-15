@@ -5,11 +5,11 @@ description: Observability
 alwaysApply: true
 ---
 
-Observability relies on Frappe's built-in facilities. The repo has no external metrics or tracing SDKs.
+The app has no metrics or tracing library. It relies on Frappe's built-in facilities.
 
-- **Error Log doctype** (`frappe.log_error`, 15 call sites) is the main signal. Use it for caught failures in background or side-effect code. Give it a descriptive `title`, the traceback (`frappe.get_traceback(with_context=True)`), and `reference_doctype` / `reference_name` so the entry links to the record.
-- **`frappe.logger()`** (9 call sites) is used for informational setup and progress logging. Examples are `frappe.logger().info("Starting patient duplicate check rules setup")` and `.error(...)` for parse failures. Use it when the event is not something an admin needs to act on.
-- **Realtime and UI feedback**: `doc.notify_update()` and `frappe.publish_realtime` push changes to open forms and the portal (`patient_portal/src/socket.js`).
-- **Document timeline**: Frappe versioning and comments record status changes. Status fields (appointment status, fee validity status) are updated by scheduler jobs.
-- **Avoid `print()`** in non-test code. There are roughly 70 leftover prints under `doctype/`. Pre-commit's `debug-statements` hook blocks `pdb`/`breakpoint`.
-- CI captures coverage and uploads it to Codecov on nightly runs. CodeQL runs weekly and on develop.
+- **`frappe.log_error(message, title)`** is the main convention, with about 15 call sites. It writes an **Error Log** record that admins can see in Desk. Use it for caught exceptions in background jobs, notifications, integrations and patches. Always give a short, descriptive `title` (for example "Can't bill Service Unit occupancy" or "Appointment Confirmation Message Not Sent"), and pass `frappe.get_traceback()` as the message when you need the stack.
+- **`frappe.logger()`** with `.info`, `.debug` or `.error` is used for setup and migration progress (e.g. `healthcare/healthcare/setup/patient_duplicate_check.py`, logging rule counts and progress) and for occasional parse failures. Do not use the stdlib `logging` module directly.
+- **Realtime**: `frappe.publish_realtime` sends progress to the browser for long jobs (sample collection).
+- **Release and CI signals**: Codecov coverage, CodeQL weekly scans, Semgrep, pip-audit and detect-secrets.
+
+Do not leave `print()` statements or debuggers behind. The pre-commit `debug-statements` hook fails on `breakpoint`/`pdb`.
