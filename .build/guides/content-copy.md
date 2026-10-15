@@ -1,5 +1,5 @@
 ---
-title: Content & Copy
+title: Content and copy
 category: content-copy
 layer: project
 applies_to: []
@@ -7,24 +7,24 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/healthcare/utils.py
-  - healthcare/public/js/observation.js
-  - healthcare/public/js/patient_quick_entry.js
-  - patient_portal/src/components/Payment.vue
+  - healthcare/healthcare/doctype/clinical_procedure/clinical_procedure.py
+  - healthcare/healthcare/doctype/clinical_procedure_template/clinical_procedure_template.js
+  - healthcare/healthcare/doctype/healthcare_settings/healthcare_settings.py
   - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
   - healthcare/locale/main.pot
+  - crowdin.yml
 ---
 
-- **Tone:** short, direct, clinical and administrative. Use sentence-style phrases with Title Case doctype names. Avoid exclamation marks in product UI, except success states like "Payment Successful".
-- **Terminology:** use the DocType names exactly and capitalized: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Lab Test, Item Code, Price List, Insurance Payor, Code Value. The product name is **Biograph**. Patch `rebrand_marley_to_biograph` shows that "Marley" was renamed, so don't reintroduce it.
-- **Error messages** state the problem, sometimes followed by the fix:
-  - "Price List is mandatory" (title "Price List Not Set")
-  - "Start Date should be before End Date"
-  - "User {0} is disabled"
-  - "Configure a service Item for {0}"
-  - "Not permitted. Please disable the Service Unit Type"
-  - "Item with Item Code {0} already exists"
-  - Use `{0}` placeholders, never f-strings inside `_()`.
-- **Dialog titles and buttons** are verb + noun in Title Case: "Add Observation", "Edit Observation", "Edit", "Book an Appointment", "Select a Department", "Select a Practitioner".
-- **Portal copy** is patient-friendly: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients", "Available Slots", "Payment Successful". The empty state is "No Records Found".
-- **Translation:** every string goes through `_()` / `__()`. Strings are extracted into `healthcare/locale/main.pot` and translated on Crowdin. Some JS uses template literals inside `__()` (form.js). Avoid that, because those strings can't be extracted.
+- **Translation is mandatory.** Wrap every user-facing string: Python `_()`, Desk JS `__()`. Strings flow into `healthcare/locale/main.pot`, then to Crowdin, then to `.po` files. Use positional placeholders (`{0}`, `{1}`) so translators can reorder them.
+- **Tone:** short, plain and direct, in sentence-like Title Case for labels and action buttons:
+  - Buttons: `Change Item Code`, `Sync`, `Print`, `Book`, `OK`.
+  - Freeze messages end with an ellipsis: `Syncing Documents ...`.
+- **Error messages** state the problem and name the record:
+  - `Item {0} is not active`
+  - `User {0} is already assigned to Healthcare Practitioner {1}`
+  - `Registration Fee cannot be negative or zero`
+- **Instruction errors** start with "Please": `Please set Customer in Patient {0}`, `Please enable pop-ups`.
+- **Dialog titles** are short noun phrases in Title Case: `Customer Not Found`, `Price List Not Set`, `Already Exist`, `Google Calendar Required`.
+- **Status labels** are Title Case words (`Pending`, `In Process`, `Completed`, `Open`, `Scheduled`) and must match the DocType Select options exactly.
+- **Terminology:** use the DocType names verbatim: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Service Request, Clinical Procedure, Lab Test, Therapy Session, Inpatient Record. The product name in UI is **Biograph** (a v16 patch rebrands from Marley). Use British/Indian spelling as in the README ("organisations").
+- Highlight record names with `frappe.bold()` in messages.
