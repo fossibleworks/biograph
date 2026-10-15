@@ -5,12 +5,11 @@ description: Observability
 alwaysApply: true
 ---
 
-# Observability
+There is no metrics or tracing stack. Observability relies on Frappe's built-in facilities.
 
-There is no dedicated metrics or tracing stack. The app relies on Frappe built-ins:
+- **Error Log DocType** via `frappe.log_error(message, title)` (about 15 call sites). Use it for caught exceptions in side-effect paths such as notifications, calendar events and billing. Pass `frappe.get_traceback()` as the message when you have an exception.
+- **`frappe.logger()`** for operational info and error logs, e.g. `frappe.logger().info("Starting patient duplicate check rules setup")` in `setup/patient_duplicate_check.py` (9 uses).
+- **Document version history**: key DocTypes set `"track_changes": 1` in their JSON (e.g. Patient Appointment).
+- **Scheduler jobs** are declared in `hooks.py` `scheduler_events` and show up in Frappe's Scheduled Job Log.
 
-- **Error Log DocType** via `frappe.log_error(message, title)`. This is the main channel for failures in scheduled jobs, notifications, patches and external API calls (about 15 call sites). Give each one a short, specific `title` ("Unavailability Calendar Event Error", "Cant complete API call").
-- **App logger** via `frappe.logger().info/debug/error(...)` for progress messages in setup routines (`healthcare/healthcare/setup/patient_duplicate_check.py`) and parsing problems.
-- **Product telemetry:** `frappe.utils.telemetry.capture("active_site", "patient_portal")` when a logged-in user loads the portal.
-- **Realtime:** the portal opens a socket (`patient_portal/src/socket.js`) for live updates.
-- Don't commit stray `print()` calls in non-test code. Use `frappe.logger()` instead.
+Avoid `print()` in new code. There are about 39 legacy `print(` calls, mostly in patches and setup; prefer `frappe.logger()`. In Desk JS, avoid leaving `console.*` calls.
