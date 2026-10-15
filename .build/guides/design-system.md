@@ -1,5 +1,5 @@
 ---
-title: Design system
+title: Design System
 category: design-system
 layer: project
 applies_to: []
@@ -7,26 +7,23 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
+  - patient_portal/package.json
   - patient_portal/tailwind.config.js
   - patient_portal/src/patient_portal.js
-  - patient_portal/src/PatientPortal.vue
+  - patient_portal/src/components/BookAppointmentModel.vue
   - patient_portal/vite.config.js
+  - healthcare/public/js/healthcare_orders.html
 ---
 
-There are two UI surfaces, each with its own system:
+## Patient Portal (Vue)
+- **Component library:** **frappe-ui** (`^0.1.176`). `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `patient_portal.js`. Other pieces such as `Progress` are used directly.
+- **Icons:** feather-icons; Lucide icons are enabled through the frappe-ui vite plugin.
+- **Tokens:** Tailwind 3.4 with the **`frappe-ui/tailwind` preset** as the token source. Use frappe-ui semantic classes such as `text-ink-gray-8` and the Tailwind scale.
+  - `tailwind.config.js` only adds legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`).
+  - Global CSS is in `patient_portal/src/index.css`.
+- **Composition:** feature dialogs are `*Model.vue` components (`BookAppointmentModel`, `AppointmentModel`, `DiagnosticModel`) built from selector components (`DepartmentSelector`, `PractitionerSelector`, `Calendar`, `Payment`).
 
-**1. Frappe Desk (staff UI)**
-- Use the stock Frappe Desk components through DocType JSON (fields, sections, tabs) and form scripts.
-- Build controls with Frappe APIs: `frm.add_custom_button`, `frappe.ui.Dialog`, `frm.page.set_indicator`, list `get_indicator` returning `[label, color, filter]` with Frappe color names (`orange`, `blue`, `green`, `red`).
-- Shared widgets live in `healthcare/public/js` (`observation_widget.js`, `healthcare_note.js`, `healthcare_orders.html`).
-- Workspaces, number cards, dashboard charts and desktop icons are JSON metadata under `healthcare/healthcare/workspace`, `number_card`, `dashboard_chart` and `healthcare/desktop_icon`.
-- Do not introduce custom CSS frameworks in Desk.
-
-**2. Patient Portal**
-- The component library is **frappe-ui**: `Button`, `Dialog`, `Tabs`, `Badge`, `Card`, `Tooltip`, `FeatherIcon`, registered globally in `src/patient_portal.js`.
-- Icons come from Feather and Lucide (`lucideIcons: true` in the vite plugin).
-- Tokens: Tailwind with **`frappe-ui/tailwind` preset** as the token source. `tailwind.config.js` adds only legacy color aliases (`lightBlue`, `warmGray`, ...).
-- Style with Tailwind utility classes in templates. `src/index.css` holds the Tailwind base.
-- Dialogs use the frappe-ui `options` API (`title`, `message`, `icon: { name, appearance }`, `actions: [{ label, variant: 'solid' }]`).
-
-Reuse frappe-ui components and preset tokens rather than hand-rolled components or hard-coded colors.
+## Desk UI
+- Uses Frappe Desk standard forms and widgets. Custom panels are jQuery plus Bootstrap-style markup in `public/js/*.html` templates (`healthcare_orders.html`, `observation.html`, `healthcare_note.html`). They use Frappe classes (`dropdown-item`, indicators like `frm.page.set_indicator(__("Not Saved"), "orange")`).
+- Navigation is defined declaratively in `healthcare/healthcare/workspace/*`, `healthcare/workspace_sidebar/*.json` and `healthcare/desktop_icon/*.json`.
+- The brand asset is `healthcare/public/images/biograph-app-icon.svg` / `healthcare.svg`.
