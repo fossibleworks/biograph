@@ -4,41 +4,60 @@ category: commands
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - package.json
   - patient_portal/package.json
-  - README.md
   - .github/workflows/ci.yml
   - .github/helper/install.sh
-  - .pre-commit-config.yaml
   - .github/workflows/linters.v2.yml
+  - README.md
+  - .pre-commit-config.yaml
 ---
 
-All server commands run from a frappe-bench, with this repo installed as `apps/healthcare`.
+This is a Frappe app, so most commands run from a **bench** with ERPNext installed, not from this repo alone.
 
-**Install / setup**
-- `bench get-app <repo-url>` and then `bench --site <site> install-app healthcare`
-- `bench --site <site> migrate`: applies DocType JSON and `patches.txt`
-- Node deps: `yarn install` at the repo root. Its `postinstall` script runs `cd patient_portal && yarn install --check-files`.
+**Install**
+```sh
+bench get-app <repo-url>
+bench --site <site> install-app healthcare
+```
 
-**Build**
-- Patient portal: `yarn build` at the repo root, which runs `cd patient_portal && vite build --base=/assets/healthcare/patient_portal/`
-- Portal dev server: `cd patient_portal && yarn dev`
-- Desk assets: `bench build --app healthcare`
+**Run server tests** (as CI does)
+```sh
+bench --site test_site run-parallel-tests --app healthcare
+# single DocType
+bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"
+```
+The tests need a site with `allow_tests` enabled (see `.github/helper/site_config.json`).
 
-**Test**
-- `bench --site <site> run-tests --app healthcare`. Add `--doctype "Patient Appointment"` or `--module ...` to narrow the run.
-- CI uses `bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1`.
+**Migrate after schema or patch changes**
+```sh
+bench --site <site> migrate
+```
 
-**Lint / format**
-- `pip install pre-commit && pre-commit install && npm install && pre-commit run --all-files`
-  - pre-commit runs trailing-whitespace, check-yaml/ast/json/toml, debug-statements, prettier, eslint, pip-audit, ruff, ruff-format and detect-secrets.
-- Semgrep:
-  - `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules && pip install semgrep`
-  - `semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
-- Commit titles: `npx commitlint --from <base> --to <head>`
+**Patient Portal**
+```sh
+yarn install       # root; postinstall installs patient_portal
+yarn build         # = cd patient_portal && yarn build
+cd patient_portal && yarn dev   # vite dev server
+```
 
-**Translations**
-- `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`. A weekly workflow runs it.
+**Lint and format**
+```sh
+pip install pre-commit && pre-commit install
+npm install
+pre-commit run --all-files   # ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit
+```
+
+**Semgrep** (also runs in CI)
+```sh
+git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
+pip install semgrep
+semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
+```
+
+**Sanity checks that CI runs**
+- `python -m compileall -f .`
+- A grep for leftover `<<<<<<< ` conflict markers.
