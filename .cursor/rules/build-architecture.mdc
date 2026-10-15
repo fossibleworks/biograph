@@ -5,30 +5,36 @@ description: Architecture
 alwaysApply: true
 ---
 
-# Architecture
-
-This is a single Frappe app (`healthcare`) installed on a bench next to `frappe` and `erpnext`.
-
 ## Layout
-- `healthcare/hooks.py`: the app wiring. It sets `doc_events` (on core and ERPNext DocTypes such as Sales Invoice, Payment Entry and Company, plus a `*` wildcard that creates Patient Medical Records), `scheduler_events` (appointment reminders, daily status updates), `override_doctype_class` (Sales Invoice → `HealthcareSalesInvoice`), `doctype_js`, Jinja methods, `on_login`, and `before_tests`.
-- `healthcare/healthcare/` is the module (`modules.txt` → `Healthcare`):
-  - `doctype/<snake_name>/`: about 138 DocTypes. Each folder holds `<name>.json` (schema), `<name>.py` (controller class), `<name>.js` (form script), an optional `<name>_list.js`, and `test_<name>.py`.
-  - `custom_doctype/`: overrides and hooks for ERPNext docs (`sales_invoice.py`, `payment_entry.py`).
-  - `api/patient_portal.py`: whitelisted endpoints that the Vue portal calls.
-  - `utils.py`: a large shared module (≈1.9k lines) covering billing, invoice hooks and test bootstrap.
-  - `report/`, `dashboard_chart(_source)/`, `number_card/`, `workspace/`, `print_format/`, `web_form/`, `page/`, `onboarding_step/`, `setup/`.
-- `healthcare/controllers/`: shared base classes, for example `ServiceRequestController(Document)`, which Service Request and Medication Request use.
-- `healthcare/regional/india/abdm/`: country-specific integration, hooked from `doc_events["Patient"]`.
-- `healthcare/patches/v0_0|v15_0|v16_0/`: data migrations, registered in `healthcare/patches.txt` (pre-sync and `[post_model_sync]` sections).
-- `healthcare/www/`: website routes. `patient_portal.py/.html` serves the built SPA.
-- `healthcare/public/`: desk JS bundle, images, and built portal assets.
-- `patient_portal/`: Vue source. Vite builds it into `healthcare/public/...` and rewrites `healthcare/www/patient_portal.html`.
-- `healthcare/workspace_sidebar/`, `healthcare/desktop_icon/`: desk navigation JSON.
-- `wiki/`: design notes and usage docs.
-- `.build/`: Interactor Build project metadata.
 
-## Call flow
-- Desk UI → form JS → `frappe.call` to `@frappe.whitelist()` methods in DocType controllers or `utils.py`.
-- Portal SPA → `frappe-ui` `frappeRequest` → `healthcare.healthcare.api.patient_portal.*`.
-- ERPNext documents → `doc_events` hooks → healthcare utils (billing, insurance claims, fee validity).
-- Cross-module imports always use absolute dotted paths (`healthcare.healthcare.doctype.x.x`).
+This is a standard **Frappe app** (`healthcare`) plus a separate Vue SPA.
+
+- `healthcare/hooks.py` is the integration hub. It registers:
+  - `doc_events`: on ERPNext Sales Invoice, Payment Entry and Company, and wildcard `*` handlers that maintain Patient Medical Records
+  - `override_doctype_class` for Sales Invoice
+  - `scheduler_events`: appointment reminders, daily status updates, IP billables
+  - jinja methods, `standard_queries`, web-form permissions
+  - install, migrate and uninstall hooks
+- `healthcare/healthcare/` is the single module (`modules.txt`: `Healthcare`). It contains:
+  - `doctype/<snake_name>/`: each DocType has `<name>.json` (schema), `<name>.py` (controller class), `<name>.js` (Desk form script), optional `_list.js` and `_dashboard.py`, and `test_<name>.py`
+  - `custom_doctype/`: overrides and hooks for ERPNext doctypes (`sales_invoice.py`, `payment_entry.py`)
+  - `api/patient_portal.py`: `@frappe.whitelist()` endpoints called by the portal SPA
+  - `utils.py`: shared billing and invoice helpers called from hooks
+  - `report/`, `page/`, `dashboard_chart*/`, `number_card/`, `workspace/`, `web_form/`, `print_format/`, `setup/`
+- `healthcare/controllers/`: shared controllers (`service_request_controller.py`, `queries.py` for link-field search queries)
+- `healthcare/regional/india/abdm/`: country-specific integration
+- `healthcare/patches/` + `healthcare/patches.txt`: versioned data migrations (`v0_0`, `v15_0`, `v16_0`), split into `[pre_model_sync]` and `[post_model_sync]` sections
+- `healthcare/public/js/`: Desk JS bundled via `healthcare.bundle.js` (`app_include_js`) and `doctype_js` extensions
+- `healthcare/www/`: website routes (`patient_portal.html/.py`, `patient-portal/`)
+- `patient_portal/`: Vue 3 + frappe-ui SPA. Vite builds it into `healthcare/public/...` and injects it into `healthcare/www/patient_portal.html`. It calls the backend through frappe-ui resources against `healthcare.healthcare.api.patient_portal.*` and uses socket.io (`src/socket.js`).
+- `wiki/`: feature design and usage docs.
+
+## Dependency direction
+
+ERPNext and Frappe core do not depend on this app. Healthcare extends them through hooks and overrides.
+
+Rules for new code:
+
+- Put business logic and validation **server-side** in DocType controllers. The PR template requires this.
+- Expose logic to JS through `@frappe.whitelist()` functions.
+- Change the behaviour of ERPNext doctypes through `hooks.py`, not by editing core code.
