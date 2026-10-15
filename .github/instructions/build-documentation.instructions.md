@@ -4,12 +4,17 @@
 applyTo: "**"
 ---
 
-- **User and product docs live outside the repo.** The README links to DeepWiki (`deepwiki.com/Tacten/biograph`), and `context7.json` registers the repo with Context7.
-- **Feature design and usage docs** go in **`wiki/`** as UPPER-KEBAB markdown. Examples: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `insurance-parity-report.md`, and an FHIR terminology implementation plan. They are structured with numbered sections and a table of contents, and can include screenshots (`patient-duplicatecheck-thumbnail.png`).
-- **The PR docs gate:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails any PR whose title starts with `feat` unless one of these applies:
-  - the body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`
-  - the body contains `no-docs`
-  - it is a backport
-- The PR template asks contributors to "Update necessary Documentation" and to add screenshots or GIFs.
-- **Build-managed docs:** `CLAUDE.md`, `AGENTS.md` and `.build/` (vision, RULES, guides) are managed by Interactor Build. Edit the source files under `.build/`, not the generated "BEGIN BUILD GUIDES" blocks.
-- **In-code documentation** is light. Comments in `hooks.py` explain hook intent, and docstrings are sparse.
+## Where docs live
+
+- **`README.md`**: product intro, bench install, pre-commit and semgrep setup. It links to the external docs on **DeepWiki** (`deepwiki.com/Tacten/biograph`) and the Telegram community.
+- **`wiki/`**: feature design and usage documents in Markdown. File names are UPPER-KEBAB-CASE (`PATIENT-DUPLICATE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`). The pattern is a **DESIGN-** document (problem statement, proposed solution, data elements) paired with a **USAGE** document for end users. Images sit next to them (`patient-duplicatecheck-thumbnail.png`).
+- **`patient_portal/README.md`** covers the SPA.
+- **`AGENTS.md`, `CLAUDE.md`, and `.build/`** hold AI and workflow guides. The Guides block in AGENTS.md is managed by Build. Edit `.build/` sources, not the rendered block.
+
+## PR documentation gate
+
+The `docs_checker.yml` workflow runs `.github/helper/documentation.py`. It requires PRs whose **title starts with `feat`** to include a docs link (a `/wiki` URL on `biograph.frappe.cloud` or `biograph.io`) in the body. The check is skipped when the body contains `no-docs` or `backport`. The PR template also asks contributors to "Update necessary Documentation".
+
+## In-code docs
+
+Comments are sparse. Each file has a copyright header, and `hooks.py` uses section-banner comments. Docstrings appear mainly on helper functions.
