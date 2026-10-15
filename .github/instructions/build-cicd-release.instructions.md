@@ -4,24 +4,18 @@
 applyTo: "**"
 ---
 
-**On pull requests:**
-- `ci.yml` (Server Tests):
-  - skipped for PRs that only touch css/js/md/html/csv, and for `version-*-beta` branches; also runs nightly on cron
-  - compiles all Python and fails on merge-conflict markers
-  - sets up MariaDB 11.8, Python 3.14 and Node 24, then installs the bench via `.github/helper/install.sh`
-  - runs `bench run-parallel-tests --app healthcare`
-  - on non-PR runs, collects coverage and uploads it to Codecov
-- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, file checks) plus semgrep with the Frappe rules and `r/python.lang.correctness`.
+**On pull requests**
+- `ci.yml`, **Server Tests**: compiles all Python and fails on leftover merge-conflict markers. It then installs bench + frappe + erpnext + payments (branch = PR base), installs `healthcare` on `test_site` (MariaDB 11.8, Python 3.14, Node 24) and runs `bench run-parallel-tests --app healthcare`. It skips PRs that change only css/js/md/html/csv, and also runs nightly. On non-PR runs it collects coverage and uploads it to Codecov (`fail_ci_if_error`).
+- `linters.yml` / `linters.v2.yml`: pre-commit (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks) plus **Semgrep** with Frappe rules and `r/python.lang.correctness`. v2 also runs on push.
 - `semantic-commits.yml`: commitlint over the PR's commits.
-- `docs_checker.yml`: `feat` PRs need a wiki docs link.
-- `labeller.yml`: adds `needs-tests` and similar labels.
-- `codeql.yml`: CodeQL security scanning.
+- `docs_checker.yml`: `feat` PRs need a wiki docs link or `no-docs`.
+- `labeller.yml`: auto-labels PRs. `codeql.yml`: CodeQL for Python/JS on develop, plus weekly.
+- Mergify auto-merges after ≥1 approval and passing checks.
 
-**Merging:** Mergify merges after at least one approval and green CI, and handles backports by label.
+**Release**
+- `initiate_release.yml` (weekly, Tue 09:30 UTC) opens `version-N-hotfix → version-N` release PRs for 14/15/16.
+- `on_release.yml`: on push to `version-14/15/16`, **semantic-release** (angular preset, breaking changes don't trigger a major) bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates the GitHub release.
+- `release_notes.yml` regenerates notes and strips chore/ci/test/docs/style entries. Labels `skip-release-notes` exclude PRs.
+- `generate-pot-file.yml` (weekly) refreshes the translation POT. Crowdin opens `fix: sync translations from crowdin` PRs.
 
-**Release:**
-- `initiate_release.yml` runs every Tuesday at 09:30 UTC. It opens `version-N-hotfix → version-N` release PRs for 14, 15 and 16, targeting `earthians/biograph`.
-- On pushes to `version-14/15/16`, `on_release.yml` runs **semantic-release** (angular preset; breaking changes don't trigger a major release). It bumps the version in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z` and creates a GitHub release. Release notes exclude PRs labelled `skip-release-notes`.
-- Translations: `generate-pot-file.yml` regenerates the POT on `develop` every Sunday. Crowdin opens `fix: sync translations from crowdin` PRs.
-- Dependabot updates GitHub Actions weekly.
-- **Deployment:** users install the app with bench or Frappe Cloud. There is no deploy job in this repo.
+Several workflows still point at `earthians/biograph` and `develop`, but this fork's default branch is `biograph-fh`. Confirm which triggers actually fire here before relying on them. Deployment is by installing the app into a bench or Frappe Cloud. The repo has no deploy pipeline.
