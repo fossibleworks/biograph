@@ -5,13 +5,21 @@ description: Product context
 alwaysApply: true
 ---
 
-**Biograph** (tracked in Interactor Build as *fossibleHIS*) is an open-source **Hospital Information System (HIS)**. It ships as a Frappe app named `healthcare` (app title "Biograph"). It is a fork of, and adds to, Marley Health / earthians `healthcare`, and is maintained by Tacten / fossibleworks.
+**Biograph** (shipped here as *fossibleHIS*, repo `fossibleworks/biograph`) is an open-source hospital information system (HIS). It is a fork of Marley Health with extra features, built as a **Frappe app named `healthcare`** that adds a healthcare domain to **ERPNext**. Most of its data model follows **HL7 FHIR**.
 
-- **Users:** healthcare practitioners, clinics and hospitals (desk users such as practitioners, nurses, lab and billing staff), plus **patients** through a self-service Patient Portal.
-- **Core domains:** Patient management, Outpatient (Patient Appointment, Patient Encounter, Fee Validity), Inpatient (Inpatient Record, medication orders/entries, service-unit occupancy billing), Clinical Procedures, Rehabilitation/Physiotherapy (therapy plans and sessions), Laboratory/Diagnostics (Lab Test, Observation, Diagnostic Report, Sample Collection), Insurance (payor contracts, policies, coverage, claims), Healthcare Packages, and medical code standards (Code System / Code Value, following HL7 FHIR).
-- **ERPNext integration:** it relies on ERPNext for billing (Sales Invoice, Payment Entry), pharmacy and stock, HR, and accounts. `required_apps = ["frappe/erpnext"]`.
-- **Regional:** India ABDM integration (`healthcare/regional/india/abdm`).
-- **Entry points:** desk home `/desk/healthcare`, workspace sidebars (Healthcare, Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance, Setup), and the patient portal at `/patient_portal` (Vue SPA) and `/patient-portal`.
-- Recent fork features have usage docs in `wiki/`: block-based therapy appointment booking, patient duplicate checker, FHIR terminology service parity, and insurance parity.
+**Who uses it:** clinics, hospitals and individual practitioners. That covers front-desk and registration staff, physicians, nurses, lab and diagnostic technicians, therapists, billing and insurance staff, and patients. Patients use the Vue patient portal at `/patient-portal` and the web forms.
 
-Design rule from the PR template: **all business logic and validations live on the server side**.
+**Main areas** (see `healthcare/modules.txt` and the workspace sidebars `healthcare`, `outpatient`, `inpatient`, `diagnostics`, `rehabilitation`, `insurance`, `setup`):
+- Patient management, including configurable duplicate-patient checks
+- Outpatient care: practitioner schedules, Patient Appointment (slot-based and block-time booking, recurring appointments, practitioner unavailability), Patient Encounter, Fee Validity
+- Inpatient care: Inpatient Record, admission and discharge, service unit occupancy billing, Inpatient Medication Orders and Entries
+- Clinical Procedures, Service Requests and Medication Requests
+- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
+- Rehabilitation and physiotherapy: Therapy Plan, Therapy Session, Exercise Types
+- Insurance: payor contracts, patient insurance policies and coverage, claims
+- Medical coding: Code System, Code Value and Codification Table, moving toward FHIR terminology parity
+- Regional: India ABDM integration (`healthcare/regional/india`)
+
+Billing, accounts, stock and pharmacy, HR and assets come from ERPNext. Biograph hooks into ERPNext doctypes such as Sales Invoice, Payment Entry and Company.
+
+The license is GNU GPL v3.
