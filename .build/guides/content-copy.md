@@ -1,5 +1,5 @@
 ---
-title: Content & copy
+title: Content & Copy
 category: content-copy
 layer: project
 applies_to: []
@@ -7,17 +7,17 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - healthcare/public/js/mark_unavailable.js
-  - healthcare/healthcare/doctype/healthcare_settings/healthcare_settings.py
-  - healthcare/healthcare/doctype/lab_test/lab_test.py
-  - patient_portal/src/components/BookAppointmentModel.vue
-  - healthcare/patches/v16_0/rebrand_marley_to_biograph.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
   - healthcare/locale/main.pot
+  - crowdin.yml
+  - healthcare/patches.txt
 ---
 
-- **Tone:** short, direct and operational, written for clinical and billing staff. Use Title Case for labels and buttons ("Add Observation", "Get Items From", "Book an Appointment"). Use sentence case for messages ("Please select a Patient to be invoiced", "Registration Fee cannot be negative or zero").
-- **Terminology:** capitalise DocType names when referring to records: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Service Unit, Medical Department, Fee Validity, Lab Test, Observation, Service Request. Follow FHIR-style clinical terms (Observation, Diagnostic Report, Code Value).
-- **Errors:** say what is wrong plus the fix ("Configure a service Item for {0}"). Prefix row errors as `Row #{0}: ...`. Use short titles ("Missing Configuration", "Not Allowed", "Mandatory", "Warning").
-- **Confirmations** are questions ("Are you sure you want to mark this time as unavailable?"). Progress messages end with an ellipsis ("Creating unavailability record...").
-- **i18n:** every string goes through `_()` or `__()` with `{0}` placeholders, not f-strings inside the translatable text. Translations come through Crowdin from `healthcare/locale/main.pot`.
-- **Branding:** the product name is "Biograph". Marley branding was replaced by the `rebrand_marley_to_biograph` patch.
+**Tone:** short, direct, sentence-style statements in clinical/administrative language. Validation messages state the rule ("Appointment end must be after start.", "From Time must be before To Time"). Conflicts and duplicates sometimes end in `!` ("Patient already has an appointment booked for the same day!", "Cannot book time block appointment!").
+
+**Buttons/actions** are Title Case verbs or nouns: "Reschedule", "Confirm", "Check In", "Make Payment", grouped under menus like "Status". Progress messages use an ellipsis: "Checking for conflicts...".
+
+**Terminology** (use these exact DocType names in copy): Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Medical Department, Lab Test, Observation, Diagnostic Report, Service Request, Medication Request, Inpatient Record, Fee Validity, Insurance Payor, Healthcare Settings. The product name is **Biograph** (rebranded from Marley; see patch `rebrand_marley_to_biograph`).
+
+**i18n:** every string is wrapped in `_()` / `__()`, extracted to `healthcare/locale/main.pot`, and translated through Crowdin. Don't build sentences by concatenating translated fragments when one translatable string with placeholders works.
