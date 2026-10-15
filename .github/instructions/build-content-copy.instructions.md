@@ -4,12 +4,13 @@
 applyTo: "**"
 ---
 
-- **Terminology:** use clinical and HIS terms that match the DocType names: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Healthcare Service Unit, Fee Validity, Inpatient Record, Insurance Payor, Service Request. The product is **Biograph** (the `rebrand_marley_to_biograph` patch shows it was renamed from Marley). Keep "Healthcare" as the module/workspace name.
-- **Error messages** are short, sentence case, and name the documents involved:
-  - "Patient already has an appointment booked for the same day!"
-  - "Not allowed, cannot overlap appointment {}"
-  - "Please set a Customer linked to the Patient"
-  - Use Title Case dialog titles: "Customer Not Found", "Not Available", "Practitioner Schedule Not Found".
-- **Success notices** report what happened: "Sales Invoice {0} created", "Appointment Cancelled."
-- **Patient portal copy** is friendly and direct with simple headings: "Pay Your Bill", "Consultation Fee", "One-time registration for new patients", button "Book".
-- **i18n:** all backend strings go through `_()`, Desk JS through `__()`, with `{0}` placeholders so Crowdin can translate them (`healthcare/locale/main.pot`). Portal Vue copy is currently hard-coded English.
+# Content and copy
+
+- **Translatable always:** Python `_("...")`, desk JS `__("...")`. Use `{0}` placeholders instead of string concatenation, so translators see whole sentences (`_("No Inpatient Record found against patient {0}")`). Strings flow into `healthcare/locale/main.pot` and are translated through Crowdin.
+- **Tone:** short, direct, imperative, plain clinical/admin vocabulary, no exclamation marks.
+  - Errors state the problem: `"Registration Fee cannot be negative or zero"`, `"Item {0} is not active"`, `"Price List is mandatory"`.
+  - Instructions start with *Please*: `"Please select Patient to get prescribed procedure"`, `"Please enable pop-ups"`.
+  - Configuration problems use the title `"Missing Configuration"`.
+- **Labels and buttons:** Title Case nouns or verb phrases, e.g. `"Add Observation"`, `"Add Medication Orders"`, `"Admission Scheduled"`, `"Appointment Duration (mins)"`.
+- **Terminology:** use the DocType names exactly: Patient, Healthcare Practitioner, Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Medical Department, Lab Test, Observation, Service Request, Insurance Payor, Fee Validity. Write "Practitioner", not "Doctor". Product name: **Biograph** (the v16 patch rebrands Marley).
+- **Patient portal** copy is friendlier and second-person: `"Book an Appointment"`, `"Payment Successful"`, `"Your appointment with {name} has been confirmed."`, placeholder `"Choose a patient"`.
