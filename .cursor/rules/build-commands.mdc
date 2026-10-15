@@ -5,24 +5,30 @@ description: Commands
 alwaysApply: true
 ---
 
-All commands assume a Frappe bench with ERPNext installed and this app added. Bench commands run from the `frappe-bench` directory.
+All app commands run from inside a Frappe bench (`~/frappe-bench`), with the app at `apps/healthcare`.
 
-**Install**
-- `bench get-app <repo-url>` then `bench --site <site> install-app healthcare`
+**Install and run**
+- `bench get-app https://github.com/Tacten/biograph`
+- `bench --site <site> install-app healthcare`
+- `bench start`
+- `bench --site <site> migrate` runs the patches in `healthcare/patches.txt` and the `after_migrate` hook.
 
-**Tests** (same as CI)
-- `bench --site <site> run-parallel-tests --app healthcare` (CI: `--total-builds 1 --build-number 1`)
-- Single module or DocType: `bench --site <site> run-tests --app healthcare --doctype "<DocType>"`. This is standard Frappe and is not run in CI.
+**Tests**
+- In CI: `bench --site test_site run-parallel-tests --app healthcare`
+- Locally: `bench --site <site> run-tests --app healthcare`. Add `--doctype "Patient Appointment"` or `--module healthcare.healthcare.doctype.<name>.test_<name>` to narrow the run.
+- CI sets the bench up with `.github/helper/install.sh`.
 
-**Lint / format**
-- `pip install pre-commit && pre-commit install`, then `npm install`, then `pre-commit run --all-files`. This runs ruff (`--fix`), ruff-format, prettier, eslint, pip-audit, detect-secrets and basic hygiene hooks.
-- Semgrep: `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules && pip install semgrep && semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
-- CI sanity check: `python -m compileall -f .`
+**Lint and format** (one-time setup is `pip install pre-commit && pre-commit install && npm install`)
+- `pre-commit run --all-files` runs ruff (with `--fix`), ruff-format, prettier, eslint, pip-audit, detect-secrets, and basic yaml/json/toml/ast checks.
+- Semgrep:
+  - `git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules`
+  - `semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness`
+- Commit messages: `npx commitlint --from <base> --to <head>`
 
-**Frontend (patient portal)**
-- Root: `yarn install` (postinstall installs `patient_portal`) and `yarn build` (runs `cd patient_portal && yarn build`)
-- In `patient_portal/`: `yarn dev` (Vite dev server) and `yarn build` (`vite build --base=/assets/healthcare/patient_portal/`)
-- Desk assets: `bench build --app healthcare`
+**Patient portal**
+- `yarn install` (root; its postinstall installs `patient_portal`)
+- `yarn build` (root) runs `cd patient_portal && vite build --base=/assets/healthcare/patient_portal/`
+- `cd patient_portal && yarn dev` starts the Vite dev server, which proxies to Frappe.
 
 **Translations**
-- `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`. A scheduled workflow runs it.
+- `.github/helper/update_pot_file.sh` regenerates `healthcare/locale/main.pot`.
