@@ -4,30 +4,24 @@
 applyTo: "**"
 ---
 
-## Python
+## Python (ruff, configured in `pyproject.toml`)
 
-- **Format with ruff-format**: **tabs** for indentation, **double quotes**, line length 110. The `E501`, `W191`, `F401`, and `B904` rules are ignored, as listed in `pyproject.toml`.
-- **Import order** (ruff isort) uses custom sections in this order: stdlib → third-party → `frappe` → `erpnext` → `healthcare` → local, with a blank line between groups. See `patient_appointment.py`.
-- Translate user-facing strings with `from frappe import _` and `_("...")`.
-- **DocType naming:** title-case names with spaces (`Patient Appointment`). The folder and module are snake_case (`doctype/patient_appointment/patient_appointment.py`). The class is PascalCase (`PatientAppointment(Document)`).
-- Module paths are long and dotted: `healthcare.healthcare.doctype.<x>.<x>.<fn>`. This is how hooks and `frappe.call` refer to methods.
-- Expose server methods with `@frappe.whitelist()`. Prefer `frappe.qb` for new queries. Raw `frappe.db.sql` is common in older code.
-- Use Frappe utilities (`getdate`, `get_datetime`, `flt`, `cint`, `get_link_to_form`) rather than plain datetime and float handling.
-- Files start with a copyright/license header comment.
+- **Indent with tabs.** Use double quotes. Line length is 110, though E501 is ignored. Target py310.
+- Lint selection: `F, E, W, I, UP, B, RUF`, with Frappe-friendly ignores such as F401, F403/F405 and B904.
+- **Import order** uses custom isort sections: future → stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local. Each block is separated by a blank line, as in `test_patient_appointment.py` and `api/patient_portal.py`.
+- Use `typing-modules = ["frappe.types.DF"]` for DocType type annotations.
+- Naming: modules and folders are `snake_case` versions of DocType names (`patient_appointment/patient_appointment.py`). Controllers are `class PatientAppointment(Document)`. Custom exceptions use PascalCase and the `...Error` suffix.
+- Write queries with **`frappe.qb`** or `frappe.db.get_all/get_value/exists`. Build raw SQL only with parameters.
+- Wrap every user-facing string in `_()`. Use positional `{0}` with `.format()`, not f-strings inside `_()`.
+- Expose server methods to JS or the portal with `@frappe.whitelist()`.
 
-## JavaScript (Desk)
+## JavaScript (ESLint flat config + Prettier)
 
-- Prettier settings: **tabs** (tabWidth 4), printWidth 88, `arrowParens: avoid`.
-- ESLint flat config extends `eslint:recommended` and declares the Frappe globals (`frappe`, `__`, `cur_frm`, `$`, `moment`, ...).
-- Wrap strings with `__('...')`. Form scripts use `frappe.ui.form.on('<DocType>', {...})`.
-- A few large form scripts are excluded from prettier (`patient.js`, `medication_request.js`, `service_request.js`). Do not reformat them wholesale.
+- `eslint:recommended`, with Frappe and ERPNext globals declared in `eslint.config.mjs` (`frappe`, `cur_frm`, `__`, `flt`, `cint`, `$`, …).
+- Desk JS Prettier settings (`.prettierrc.yaml`): `useTabs: true`, `tabWidth: 4`, `printWidth: 88`, `arrowParens: avoid`. `patient_portal/` is excluded from root Prettier and has its own `.prettierrc.json` (`semi: false`, `singleQuote: true`).
+- Form scripts use `frappe.ui.form.on("<DocType>", { refresh(frm) {...}, <field>(frm) {...} })`. Wrap UI strings in `__()`.
+- Vue: use `<script setup>`, frappe-ui components and `createResource` for API calls. Import aliases use `@/`.
 
-## Vue (patient_portal)
+## Legacy exclusions
 
-- Its own `.prettierrc.json`: **no semicolons, single quotes**. It is excluded from the root prettier hook.
-- SFC `<script>` blocks import from `vue` and `frappe-ui` and use the `@/` alias for `src/`.
-- Component file names are PascalCase (`BookAppointmentModel.vue`, `PractitionerSelector.vue`).
-
-## Commits
-
-Conventional commits are enforced by commitlint. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`. The type is lower-case and the subject must not be empty.
+`.pre-commit-config.yaml` has a very large `exclude:` list of legacy files that are not yet linted or formatted. **New files must not be added to it.** If you touch a listed file, you may remove it from the list and format it in the same PR. Mass reformat commits are listed in `.git-blame-ignore-revs`.
