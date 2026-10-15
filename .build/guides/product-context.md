@@ -9,17 +9,28 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
+  - patient_portal/src/PatientPortal.vue
 ---
 
-**Biograph** (by Tacten / FossibleWorks; its Frappe app id is `healthcare`, branded "fossibleHIS" in Build) is an open-source **Hospital Information System (HIS)**. It is a fork and extension of *Marley Health*. It runs as a **Frappe app on top of ERPNext**. `hooks.py` declares `required_apps = ["frappe/erpnext"]`, so ERPNext must be installed first.
+## What Biograph is
 
-**Who uses it:** healthcare practitioners, clinics and hospitals. The desk workspaces show the main roles: Reception, Outpatient, Inpatient, Practitioner, Diagnostics, Rehabilitation, Insurance, Hospital Administrator and Setup. Patients use a separate **Patient Portal** at `/patient-portal`, restricted to the `Patient` role.
+Biograph (by Tacten / fossibleworks; the repo is called **fossibleHIS** in Build) is an open-source **Hospital Information System (HIS)**. It started as a fork of Marley Health, and the Python app is still called `healthcare`. It is a **Frappe app that requires ERPNext** (`required_apps = ["frappe/erpnext"]`). Its data model follows **HL7 FHIR** in many places: Observation, Service Request, Diagnostic Report, Code System / Code Value, Medication Request, Specimen.
 
-**Main features (README):** patient management, outpatient and inpatient care (admission, transfer, discharge), clinical procedures, rehabilitation and physiotherapy (therapy plans and sessions), lab and diagnostics (lab tests, sample collection, observations, diagnostic reports), medication requests, insurance (payors, coverage, claims), and support for several medical code standards. Facilities are modelled as **Healthcare Service Units** and specialities as **Medical Departments**. Much of the data design follows **HL7 FHIR**, for example Service Request, Observation and Diagnostic Report.
+## Who uses it
 
-**ERPNext does the back office:** billing goes through Sales Invoice and Payment Entry hooks, and ERPNext also covers pharmacy and stock, HR, accounts and assets.
+- **Clinical and front-desk staff** work in the Frappe Desk (`app_home = "/desk/healthcare"`, app title "Biograph"). Workspaces and desktop icons cover Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance and Setup.
+- **Patients** use the **Patient Portal** (`/patient-portal`, role `Patient`). It is a Vue SPA with Appointments and Diagnostics tabs, appointment booking and payment.
+- **Administrators** configure Healthcare Settings, Medical Departments, Service Units (a tree), Practitioner Schedules, code systems and insurance payors.
 
-**Regional:** the India ABDM integration lives in `healthcare/regional/india/abdm`.
+## Key feature areas (from the README and doctypes)
 
-**Recent fork-specific work** (see `wiki/`): block-based appointment booking, a patient duplicate checker, insurance parity, and FHIR terminology service parity.
+- Patient management, including duplicate-patient detection (rule-based)
+- Outpatient: Patient Appointment (with recurring and block/therapy booking), Patient Encounter, Fee Validity
+- Inpatient: Inpatient Record, Inpatient Medication Order/Entry, Discharge Summary, Nursing Tasks
+- Diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
+- Clinical Procedures, Therapy Plans/Sessions (rehabilitation and physiotherapy)
+- Insurance: Payor, Contract, Policy, Coverage, Claim
+- Billing through ERPNext Sales Invoice / Payment Entry hooks
+- Regional: India ABDM integration (`healthcare/regional/india`)
+
+ERPNext supplies pharmacy/stock, accounts, HR and assets. Biograph adds the health domain on top.
