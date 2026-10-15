@@ -9,31 +9,36 @@ source: inferred
 evidence:
   - pyproject.toml
   - .prettierrc.yaml
-  - patient_portal/.prettierrc.json
   - eslint.config.mjs
+  - patient_portal/.prettierrc.json
   - .pre-commit-config.yaml
-  - commitlint.config.js
-  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - .semgrepignore
+  - healthcare/healthcare/doctype/fee_validity/fee_validity.py
+  - healthcare/healthcare/api/patient_portal.py
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
 ---
 
 # Coding conventions
 
-## Python (ruff, configured in `pyproject.toml`)
-- **Tabs** for indentation, **double quotes**, line length 110. Formatted with `ruff format`.
-- Lint rule sets: F, E, W, I, UP, B, RUF. Several rules are ignored, including E501, F401, F403/F405 and B904.
-- Import order is enforced with custom isort sections: future, stdlib, third-party, then `frappe`, then `erpnext`, then `healthcare`, then first-party/local. Separate the groups with blank lines (see `test_patient_appointment.py`).
-- Use `frappe.types.DF` for typing.
-- Naming: DocType folders and modules use snake_case of the DocType name (`patient_appointment/patient_appointment.py`). Controllers are PascalCase classes. Fully qualified dotted paths appear in hooks (`healthcare.healthcare.doctype.x.x.func`).
-- Server functions callable from the client use `@frappe.whitelist()`; there are about 180 of them. Prefer `frappe.qb` for new queries; older code also uses `frappe.db.sql`.
-- Wrap user-facing strings in `_()` with positional `{0}` formatting: `_("Item {0} is not active").format(code)`.
-- Many files start with a copyright header comment.
+## Python
+- **ruff** handles both lint and format. Line length is 110, target is py310, rules are `F,E,W,I,UP,B,RUF` with the ignores listed in `pyproject.toml`.
+- Indent with **tabs**. Use **double quotes**.
+- Group imports in this order: stdlib, third-party, `frappe`, `erpnext`, `healthcare`, then first-party/local. Separate groups with blank lines (enforced by isort sections).
+- Use absolute dotted imports, for example `from healthcare.healthcare.utils import ...`.
+- DocType controllers subclass `frappe.model.document.Document` with a PascalCase class named after the DocType (`class FeeValidity(Document)`). Put logic in lifecycle methods (`validate`, `before_submit`, `on_submit`, `on_cancel`).
+- Module-level functions are snake_case. Anything called from the client is decorated with `@frappe.whitelist()`.
+- Prefer `frappe.qb` (query builder) and `frappe.db.get_value` / `get_cached_value` over raw `frappe.db.sql`.
+- Wrap user-facing strings in `_()` and use `.format()` placeholders: `_("Item {0} is not active").format(code)`.
+- Files start with a copyright/license header comment.
+- Business logic and validation belong on the server (PR template).
 
-## JavaScript
-- **Desk JS**: Prettier with tabs, tabWidth 4, printWidth 88 and `arrowParens: avoid` (`.prettierrc.yaml`). ESLint `eslint:recommended` with Frappe globals (`frappe`, `cur_frm`, `__`, `$`). Wrap strings in `__()`.
-- **Patient portal**: its own `.prettierrc.json` (no semicolons, single quotes). It is excluded from the root prettier hook. Vue 3 SFCs with PascalCase component names (`BookAppointmentModel.vue`).
+## JavaScript (desk)
+- Prettier settings: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. ESLint runs `eslint:recommended` with Frappe globals (`frappe`, `__`, `cur_frm`, …).
+- Form scripts use `frappe.ui.form.on("DocType Name", {...})`. Wrap strings in `__()`.
 
-## Legacy exclusions
-`.pre-commit-config.yaml` and `.semgrepignore` list many existing files that are exempt from the hooks. New files are linted by default; do not add new files to these exclusion lists.
+## Vue (patient_portal)
+- Use `<script setup>` SFCs with PascalCase component files in `src/components/`, the `@` alias for `src`, Tailwind utility classes, and frappe-ui components.
+- `patient_portal/.prettierrc.json`: no semicolons, single quotes. This folder is excluded from the root Prettier hook.
 
-## Commits
-Use Conventional Commits, enforced by commitlint. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. The type must be lower-case.
+## Legacy-file exemption
+`.pre-commit-config.yaml` and `.semgrepignore` list almost every file that existed before the linters were introduced, so those files skip lint. **New files are fully linted.** When you edit a listed file, do not reformat it wholesale; keep the diff focused.
