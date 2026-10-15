@@ -4,24 +4,17 @@
 applyTo: "**"
 ---
 
-## Interactor Build engine (this fork)
+# Workflow
 
-This repo (`fossibleworks/biograph`, default branch **`biograph-fh`**) is connected to Interactor Build. The rules from `CLAUDE.md` are:
-
-1. **No code edits without a tracked Goal.** Create one in the Build web UI, with `ibuild engine goal-create "<title>"` + `ibuild engine goal queue <goalId>`, or by importing a GitHub issue. Opening an issue does not create a Goal on its own.
-2. **Work on branch `goal/<goalId>` in an isolated worktree.** Never commit to the default branch directly.
-3. **Every change ships through the Goal's single PR**, which must pass review and CI. Under a Goal, the engine creates EngineTasks that go through investigation → execution → review. Use `ibuild engine work`, `ibuild engine report --yes` and `ibuild engine goal accept`.
-4. Interactive sessions may use `ibuild off` for a small change if the project allows it. The change still goes on its own branch with a hand-opened PR that runs CI.
-
-Standing rules are in `.build/RULES.md`, which is still a template, and are mirrored to `.claude/rules/`, `.cursor/rules/` and `.github/instructions/`. Edit the source, not the mirrors.
+## Work tracking (Interactor Build engine)
+- Every change needs a tracked **Goal** (issue → Goal). Create it in the Build web UI or with `ibuild engine goal-create`.
+- Work on branch `goal/<goalId>` in an isolated worktree. Never commit to the default branch (`biograph-fh` here).
+- Each Goal ships through **one PR**, opened by the engine, which must pass review and CI. Engine tasks cycle through investigation → execution → review.
+- For small interactive changes, `ibuild off` is allowed. The change must still go through its own branch and a hand-opened PR.
 
 ## Commits and PRs
-
-- **Conventional Commits** are enforced by commitlint on every PR commit. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`. Types are lower-case and the subject is required. Release notes drop `chore/ci/test/docs/style` entries.
-- The PR template asks you to choose the target branch, use a conventional title, run tests locally, keep business logic on the server, update docs, add `closes #XXXX`, and explain the change with screenshots or GIFs.
-- `feat` PRs need a wiki docs link or `no-docs` (docs checker).
-- Labels: `needs-tests` is added automatically. Others include `squash`, `dont-merge`, `backport <branch>` and `skip-release-notes`.
-
-## Upstream branch model (inherited)
-
-Upstream work targets **`develop`** or **`version-NN-hotfix`**. Stable branches `version-14/15/16` accept only release PRs; Mergify auto-closes other PRs to them. Mergify merges after one approval (squash if labelled `squash`) and backports through `backport develop` / `backport version-NN-hotfix` labels. CODEOWNERS: `@akurungadam @Sajinsr`.
+- **Conventional commits** are enforced by commitlint on PRs. Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. Use a lower-case type and a non-empty subject.
+- PR template: choose the target branch, give a conventional title, and confirm tests pass. Business logic goes server-side; update docs; add `closes #N`; include screenshots for UI changes.
+- Upstream branch model: `develop` plus `version-1x-hotfix`. PRs to stable `version-14/15/16` are auto-closed by Mergify. Backports use `backport <branch>` labels.
+- Mergify auto-merges after 1 approval and green CI. Add the `squash` label to squash, or `dont-merge` to block.
+- CODEOWNERS: @akurungadam @Sajinsr.
