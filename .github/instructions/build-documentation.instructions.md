@@ -4,8 +4,13 @@
 applyTo: "**"
 ---
 
-- **User documentation** lives outside the repo. The README links to DeepWiki (`deepwiki.com/Tacten/biograph`), and the upstream docs live on `biograph.frappe.cloud` / `biograph.io` `/wiki`.
-- **The docs check is enforced for features:** `.github/workflows/docs_checker.yml` runs `.github/helper/documentation.py`. Any PR whose title starts with `feat` must include a docs link to `biograph.frappe.cloud` or `biograph.io` under `/wiki` in its body. Write `no-docs` in the body to opt out explicitly, and backports are exempt.
-- **In-repo `wiki/`** holds design docs and usage guides for larger features, as UPPER-KEBAB-CASE markdown: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, the FHIR terminology implementation plan and the insurance parity report. They typically pair a design or plan doc with a user guide, opening with an H1, then an Overview/Context section and a TOC.
-- The PR template asks for problem details, screenshots or GIFs, and `closes #XXXX`.
-- `hooks.py` uses Frappe's commented-template style. Code comments are sparse.
+# Documentation
+
+- **README.md** covers the overview, install steps (bench), dev setup (pre-commit, semgrep), and a link to the external docs on DeepWiki and the Telegram group.
+- **wiki/** holds in-repo feature docs as UPPER-KEBAB markdown. Two kinds are paired:
+  - *Design* docs: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`.
+  - *Usage* guides: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`.
+  - Usage guides are written for end users. They have an Introduction, a Quick Start, step-by-step sections with bold UI paths (**Healthcare > Patient Appointment**), and tables.
+- **PR docs gate**: the `docs_checker.yml` workflow runs `.github/helper/documentation.py`. It requires any PR titled `feat...` to link to docs on `biograph.frappe.cloud`/`biograph.io` under `/wiki`. Add `no-docs` to the PR body to opt out; backports are skipped.
+- The PR template asks contributors to update the relevant documentation and add screenshots or GIFs.
+- Build guides live under `.build/` (`RULES.md`, guides). They are rendered into AGENTS.md between the managed markers, so do not edit that block by hand.
