@@ -5,30 +5,16 @@ applyTo: "**"
 ---
 
 ## Work tracking (Interactor Build engine)
+Per `CLAUDE.md`, every code change goes through a tracked **Goal**:
+1. No Goal means no edits. Create one in the Build web UI, by importing a GitHub issue, or with `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`.
+2. Work on branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch (currently `biograph-fh`).
+3. Changes ship through the Goal's single PR, which must pass review and CI before merging. EngineTasks under a Goal cycle through investigation → execution → review.
 
-- Every code change belongs to a tracked **Goal** in Interactor Build. A GitHub issue maps to a Goal only after an explicit import.
-- The engine generates **EngineTasks** under the Goal. Each task goes through investigation → execution → review.
-- **The gate:** before writing any file, a Goal must exist. Work then happens on branch **`goal/<goalId>`** in an isolated worktree, never on the default branch, and ships through the goal's single PR. Direct pushes to the default branch are not allowed.
-- CLI commands:
-  - `ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <id>`
-  - `ibuild engine work <task>`, then `ibuild engine report --yes`
-  - `ibuild engine goal accept <id>`
-- For small changes, an interactive session may run `ibuild off`. The change still goes on its own branch through a hand-opened PR with CI.
-- Standing rules are in `.build/RULES.md`, which is mirrored to `.claude/rules`, `.cursor/rules` and `.github/instructions`.
+An interactive session may run `ibuild off` for a small change, if the project allows it. That change still goes on its own branch with a hand-opened PR that runs CI.
 
-## Branches
-
-- **This fork's default/integration branch is `biograph-fh`.** Goal branches are `goal/<slug>-<id>`.
-- Upstream conventions are inherited in `.mergify.yml` and the workflows: `develop`, `version-14/15/16` stable, and `version-N-hotfix`.
-  - Mergify auto-closes PRs against stable branches and supports `backport <branch>` labels.
-  - Upstream auto-merges after one approval. The `squash` label selects squash merge, and `dont-merge` blocks merging.
-
-## Commits & PRs
-
-- **Conventional Commits** are enforced by commitlint. Allowed types are `build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test`, lowercase, with a non-empty subject.
-- Follow the PR template:
-  - Explain the problem being solved, and add screenshots/GIFs for UI changes.
-  - Make sure tests pass and keep business logic server-side.
-  - Update docs, and use `closes #N` to link issues.
-- `feat:` PRs need a docs link or `no-docs` in the body.
-- CODEOWNERS (upstream) is `@akurungadam @Sajinsr`.
+## Commits and PRs
+- **Conventional Commits**, enforced by commitlint in CI. Allowed types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, lower-case, with a non-empty subject.
+- PR titles follow the same convention. `feat` PRs need a docs link or `no-docs`.
+- PR template: pick the target branch, make sure tests pass, keep logic server-side, update docs, and add `closes #XXXX`.
+- Mergify auto-merges after one approval and green CI. The `squash` label switches to squash merge and `dont-merge` blocks merging. PRs against stable `version-14/15/16` branches from non-maintainers are closed automatically, so target `develop` or a `version-N-hotfix` branch. Backports are requested with labels like `backport version-16-hotfix`.
+- CODEOWNERS: `@akurungadam @Sajinsr`.
