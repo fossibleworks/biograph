@@ -6,10 +6,10 @@ applyTo: "**"
 
 # Error handling
 
-- **Validation errors shown to users**: use `frappe.throw(_("message {0}").format(x))`, normally inside controller `validate`/`before_submit` methods. Pass an exception class when the meaning matters, for example `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)`. Optional kwargs include `title=_("Insufficient Stock")`, `is_minimizable=True` and `wide=True`.
-- Format the message with `.format()` after `_()`, not with an f-string inside `_()`. Some legacy code does `_(f"...")`, which breaks translation; do not copy it.
-- **Background or integration failures**: catch, then record with `frappe.log_error(title=..., message=..., reference_doctype=..., reference_name=...)`. Use `frappe.get_traceback(with_context=True)` for detail, as in `healthcare_payment_record.py`. Short titles are the norm ("Cant complete API call", "Failed to sync Payment Record").
-- **External APIs (ABDM)**: the request/response and traceback are persisted on an `ABDM Request` doc with a status (Granted/Revoked) and also logged through `frappe.log_error`. The function then returns a safe fallback instead of raising.
-- Broad `except Exception` appears in about 30 places, mostly around notifications, calendar events and history updates, so a failure there does not block the primary transaction. Do not use it around core validation.
-- **Whitelisted APIs**: enforce permissions server-side. Allow-list the doctypes, and raise `frappe.PermissionError` otherwise.
-- **Portal (Vue)**: resource `onError` handlers surface `err.messages?.[0]` through `toast.error` or an `<ErrorMessage>` component.
+- **User-facing validation:** `frappe.throw(_("message {0}").format(x))`, sometimes with `title=_("Missing Configuration")` or an explicit exception class (`frappe.ValidationError`, `frappe.PermissionError`). There are about 180 call sites.
+- **Domain exceptions:** subclass `frappe.ValidationError`, for example `OverlapError` in `insurance_payor_contract.py` and `CoverageOverlapError` in `item_insurance_eligibility.py`.
+- **Permission checks** in portal and API code raise `frappe.PermissionError` (`"Not allowed to print this document."`).
+- **Background, scheduler and integration failures** must not crash the job. Catch them and record them with `frappe.log_error(message=..., title=...)`, often passing `frappe.get_traceback()`. Examples: unbillable inpatient occupancy, appointment confirmation not sent, ABDM API calls.
+- **Defensive lookups:** guard against `None` from `frappe.db.get_value` before using the result (a recent fix pattern: "guard against None return").
+- **Client side:** `frappe.msgprint({title: __("Not Allowed"), message: ...})` for blocking info, and `frappe.show_alert({message, indicator})` for toasts. In the portal, frappe-ui `<ErrorMessage :message="error" />`.
+- Avoid a bare `except Exception` that swallows errors silently. Always log, or re-throw with a translated message.
