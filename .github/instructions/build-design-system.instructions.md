@@ -4,15 +4,6 @@
 applyTo: "**"
 ---
 
-# Design system
-
-## Desk (staff UI)
-- Uses the **Frappe Desk** UI as-is: DocType forms, list/calendar views, workspaces (`healthcare/healthcare/workspace`, `workspace_sidebar`), number cards, dashboard charts and print formats. There are no custom design tokens. UI is configured through DocType JSON and `frappe.ui.form` APIs (buttons via `frm.add_custom_button`, dialogs via `frappe.ui.Dialog`).
-- Shared HTML templates and widgets live in `healthcare/public/js/*.html` and `*.js` (e.g. `observation_widget.js`, `healthcare_orders.html`).
-- App icon/logo: `/assets/healthcare/images/healthcare.svg`.
-
-## Patient portal
-- **frappe-ui** is the component library (Buttons, Dialogs, ErrorMessage, resources). Its **Tailwind preset** (`frappe-ui/tailwind`) is the token source.
-- `tailwind.config.js` only adds legacy color aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Use Tailwind utility classes and the frappe-ui palette. Do not add bespoke CSS.
-- Icons come from feather-icons and lucide (`lucideIcons: true` in the Vite frappeui plugin).
-- Components are PascalCase SFCs in `patient_portal/src/components` (`BookAppointmentModel.vue`, `Calendar.vue`, `Payment.vue`, ...). Global styles are in `src/index.css`.
+- **Desk UI:** Frappe desk's built-in form, list and dialog components (`frappe.ui.Dialog`, form scripts, HTML templates such as `healthcare/public/js/healthcare_note.html` and `observation.html`). There is no custom token source. Rely on Frappe's styles.
+- **Patient portal:** **frappe-ui** is the component library. `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip` and `Card` are registered globally in `src/patient_portal.js`, and `ErrorMessage` is imported locally. Icons come from feather-icons and lucide (frappe-ui vite `lucideIcons`).
+- **Tokens:** Tailwind with `presets: [frappeUIPreset]` (`frappe-ui/tailwind`) is the design-token source, extended only with legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`). Components use stock Tailwind utilities (`text-gray-900`, `rounded-xl`, `shadow-sm`, `text-green-600`). Keep to frappe-ui and Tailwind tokens rather than custom CSS.
