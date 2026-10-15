@@ -5,11 +5,14 @@ description: Observability
 alwaysApply: true
 ---
 
-Observability relies on what Frappe provides. There is no metrics or tracing library.
+There are no metrics or tracing libraries. Observability relies on Frappe's built-ins:
 
-- **`frappe.log_error(title=..., message=...)`** (about 15 call sites) writes to the **Error Log** DocType. This is the main way failures in background jobs, payment records, sample collection and medication requests become visible. Give it a short, descriptive `title` (for example `"Failed to mark Collected!"`) and pass the exception or traceback as `message`.
-- **`frappe.logger()`** (about 9 call sites) writes to file-based site logs, at `.info` for setup progress (`setup/patient_duplicate_check.py`) and `.error` for parse failures.
-- Some legacy code uses `print`. Do not add more, and use `frappe.logger()` instead. Pre-commit `debug-statements` blocks leftover debuggers.
-- **Realtime:** `frappe.publish_realtime` is used sparingly. The portal consumes socket.io events through `patient_portal/src/socket.js`.
-- **Audit trail:** Frappe document versioning and the healthcare **Patient Medical Record** (created through the wildcard doc_events) form the clinical activity history.
-- **CI and security signals:** Codecov coverage, CodeQL (python and javascript), semgrep, pip-audit and detect-secrets.
+- **`frappe.log_error(...)`** is the main mechanism, with about 24 call sites. It writes an **Error Log** doctype record visible in Desk.
+  - Preferred form: `frappe.log_error(message=<exception or traceback>, title="<short human title>")`. Older calls pass positionally (`frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`).
+  - Use it in `except` blocks around side effects such as billing, notifications and calendar events.
+- **`frappe.logger()`** shows up occasionally for diagnostic lines (e.g. unparseable appointment times). It goes to bench log files.
+- **User-visible signals:** `frappe.msgprint(..., alert=True)` for success toasts (e.g. "Sales Invoice {0} created").
+- **Realtime:** the portal listens for socket.io `refetch_resource` events to refresh cached frappe-ui resources.
+- **CI and security signals:** Codecov coverage, CodeQL (python and javascript), Semgrep, pip-audit, detect-secrets.
+
+Give log titles short, specific names for the failed operation, and never include PHI beyond the document name.
