@@ -8,30 +8,31 @@ binding: required
 source: inferred
 evidence:
   - CLAUDE.md
-  - AGENTS.md
   - .build/RULES.md
   - .mergify.yml
-  - .github/CODEOWNERS
   - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
   - commitlint.config.js
+  - .github/CODEOWNERS
+  - .github/workflows/docs_checker.yml
 ---
 
-**Work tracking (Interactor Build engine)**, per CLAUDE.md:
-- Every code change needs a tracked **Goal** first. Create one in the Build web UI or with `ibuild engine goal-create "<title>"`, then admit it with `ibuild engine goal queue <goalId>`.
-- GitHub issues map to Goals only after an explicit import.
-- The engine generates EngineTasks under the Goal. Each task goes through investigation, execution, and review.
-- Work happens on the branch `goal/<goalId>` in an isolated worktree, **never on the default branch**. All changes ship through the goal's single PR, which must pass review and CI.
-- An interactive session may run `ibuild off` for a small change. That change still goes on its own branch through a hand-opened PR with CI.
+# Workflow
 
-**Branches**
-- In this fork the default and integration branch is `biograph-fh`.
-- Upstream conventions are also present: `develop` for features, `version-14/15/16-hotfix` for fixes, and `version-14/15/16` as stable branches. Mergify **auto-closes** PRs against stable branches from anyone outside the maintainer list, and backports go through `backport <branch>` labels.
+## Work tracking: Interactor Build engine (this fork)
+Every code change goes through a tracked **Goal** in Interactor Build (`CLAUDE.md`):
+1. **No Goal, no edits.** Before writing any file, create a Goal in the Build web UI (build.interactor.com) or with `ibuild engine goal-create "<title>"` and `ibuild engine goal queue <goalId>`. A GitHub issue becomes a Goal only after it is explicitly imported.
+2. Work on branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch (`biograph-fh` in this fork).
+3. The engine opens **one PR per Goal**. It must pass review and CI before merge. Do not push directly to the default branch.
+- EngineTasks under a Goal cycle through investigation → execution → review (`ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <goalId>`).
+- For small interactive changes, `ibuild off` may skip the Goal requirement. The change still goes on its own branch and through a hand-opened PR that runs CI.
+- Standing rules are in `.build/RULES.md` (mirrored to `.claude/rules`, `.cursor/rules`, `.github/instructions`).
 
-**PRs**
-- Mergify auto-merges once there is at least one approving review and no `dont-merge` label. The `squash` label makes it squash.
-- The CODEOWNERS are `@akurungadam` and `@Sajinsr`.
-- Commit and PR titles must be Conventional Commits; commitlint enforces this.
-- The PR template asks for an explanation, screenshots or GIFs, passing tests, server-side validation, and `closes #XXXX`.
+## Upstream branching model (inherited)
+- `develop` is the integration branch. `version-14|15|16-hotfix` hold fixes. `version-14|15|16` are stable branches and only accept bot/maintainer release PRs (Mergify auto-closes others).
+- Backports are requested with labels such as `backport develop` or `backport version-15-hotfix`.
+
+## Commits and PRs
+- Use Conventional Commit titles (`feat:`, `fix:`, `chore:`, ...), checked by commitlint.
+- Follow the PR template: target branch, explanation of the problem, screenshots/GIFs, `closes #N`, passing tests, and server-side validation.
 - `feat` PRs need a docs link or `no-docs` in the body.
-
-Standing project rules live in `.build/RULES.md`, which is currently a placeholder, and are mirrored to `.claude/rules/`.
+- Merging: Mergify auto-merges after at least one approving review once CI passes, or squashes when the `squash` label is set. The `dont-merge` label blocks merging. CODEOWNERS: @akurungadam @Sajinsr.
