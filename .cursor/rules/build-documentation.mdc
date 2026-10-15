@@ -5,11 +5,18 @@ description: Documentation
 alwaysApply: true
 ---
 
-# Documentation
+## Where docs live
 
-- **`README.md`** covers the overview, installation via bench, and dev setup (pre-commit, semgrep). It points to external docs on DeepWiki.
-- **`wiki/`** holds in-repo Markdown for features and designs. Files are UPPER-KEBAB-CASE: `DESIGN-<FEATURE>.md` for design and problem statements, `<FEATURE>-USAGE[-DOC].md` for user guides, and parity or implementation reports. Images sit next to the docs.
-- Usage docs open with an Introduction, then a bullet list of what the guide covers, then a Quick Start. Design docs open with a Problem statement and then a Proposed Solution.
-- **The docs gate on PRs:** `docs_checker.yml` fails `feat` PRs unless the body links to a `/wiki` URL on `biograph.frappe.cloud` / `biograph.io`, or includes `no-docs` (backports are exempt).
-- The PR template asks contributors to "Update necessary Documentation".
-- `.build/vision.md` is the product north star for Build-managed work.
+- **README.md**: overview, installation, development (pre-commit, semgrep). It links to the external docs on **DeepWiki** (`deepwiki.com/Tacten/biograph`) and the Telegram group.
+- **`wiki/`** holds in-repo feature docs as UPPER-KEBAB markdown:
+  - **design docs** (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`)
+  - **usage docs** (`BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`) with a table of contents, numbered sections, examples and screenshots or demo links stored alongside (`patient-duplicatecheck-thumbnail.png`)
+- `AGENTS.md` is a Build-managed index of `.build/guides/`. Do not edit the managed block.
+
+## Docs gate in CI
+
+`.github/workflows/docs_checker.yml` runs `.github/helper/documentation.py`. Any PR whose title starts with `feat` must include a docs link (a `biograph.frappe.cloud` or `biograph.io` URL with `/wiki` in the path) in its body, unless the body contains `no-docs` or `backport`.
+
+## Practice
+
+New user-facing features get a usage doc in `wiki/`, and a design doc for larger work, plus a docs link in the PR.
