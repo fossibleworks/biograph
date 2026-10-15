@@ -1,5 +1,5 @@
 ---
-title: Coding Conventions
+title: Coding conventions
 category: coding-conventions
 layer: project
 applies_to: []
@@ -8,32 +8,30 @@ binding: required
 source: inferred
 evidence:
   - pyproject.toml
-  - eslint.config.mjs
   - .prettierrc.yaml
-  - patient_portal/.prettierrc.json
+  - eslint.config.mjs
   - .pre-commit-config.yaml
   - healthcare/healthcare/api/patient_portal.py
   - .git-blame-ignore-revs
 ---
 
-## Python (ruff, configured in `pyproject.toml`)
+# Coding conventions
 
-- **Indent with tabs.** Use double quotes. Line length is 110, though E501 is ignored. Target py310.
-- Lint selection: `F, E, W, I, UP, B, RUF`, with Frappe-friendly ignores such as F401, F403/F405 and B904.
-- **Import order** uses custom isort sections: future → stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local. Each block is separated by a blank line, as in `test_patient_appointment.py` and `api/patient_portal.py`.
-- Use `typing-modules = ["frappe.types.DF"]` for DocType type annotations.
-- Naming: modules and folders are `snake_case` versions of DocType names (`patient_appointment/patient_appointment.py`). Controllers are `class PatientAppointment(Document)`. Custom exceptions use PascalCase and the `...Error` suffix.
-- Write queries with **`frappe.qb`** or `frappe.db.get_all/get_value/exists`. Build raw SQL only with parameters.
-- Wrap every user-facing string in `_()`. Use positional `{0}` with `.format()`, not f-strings inside `_()`.
-- Expose server methods to JS or the portal with `@frappe.whitelist()`.
+## Python
+- **ruff** (`pyproject.toml`): line-length 110, target py310, lint sets F/E/W/I/UP/B/RUF with Frappe-style ignores.
+- **Formatting:** `ruff format`, **tabs** for indentation, **double quotes**.
+- **Import sections, in order:** stdlib → third-party → `frappe` → `erpnext` → `healthcare` (each separated by a blank line).
+- Translate every user-facing string with `from frappe import _` and `_("...")`. Use positional `{0}` placeholders with `.format()`.
+- Expose client-callable functions with `@frappe.whitelist()`.
+- Prefer the `frappe.qb` query builder or `frappe.db.get_all/get_value` over raw SQL. Raw `frappe.db.sql` still appears, mostly in tests.
+- DocType controllers are classes named after the DocType in PascalCase (e.g. `PatientAppointment(Document)`) in `snake_case` module folders.
+- Module paths are dotted and fully qualified in hooks (`healthcare.healthcare.doctype.<x>.<x>.<fn>`).
 
-## JavaScript (ESLint flat config + Prettier)
+## JavaScript
+- **prettier:** tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. The patient_portal folder has its own `.prettierrc.json` and is excluded from root prettier.
+- **eslint** flat config (`eslint.config.mjs`) extends `eslint:recommended` with Frappe globals (`frappe`, `__`, `$`, `erpnext`, …).
+- Desk form scripts use `frappe.ui.form.on("<DocType>", {...})`. User-facing strings go in `__("...")`.
+- The Vue portal uses SFCs in `src/components/PascalCase.vue`, frappe-ui components and Tailwind classes.
 
-- `eslint:recommended`, with Frappe and ERPNext globals declared in `eslint.config.mjs` (`frappe`, `cur_frm`, `__`, `flt`, `cint`, `$`, …).
-- Desk JS Prettier settings (`.prettierrc.yaml`): `useTabs: true`, `tabWidth: 4`, `printWidth: 88`, `arrowParens: avoid`. `patient_portal/` is excluded from root Prettier and has its own `.prettierrc.json` (`semi: false`, `singleQuote: true`).
-- Form scripts use `frappe.ui.form.on("<DocType>", { refresh(frm) {...}, <field>(frm) {...} })`. Wrap UI strings in `__()`.
-- Vue: use `<script setup>`, frappe-ui components and `createResource` for API calls. Import aliases use `@/`.
-
-## Legacy exclusions
-
-`.pre-commit-config.yaml` has a very large `exclude:` list of legacy files that are not yet linted or formatted. **New files must not be added to it.** If you touch a listed file, you may remove it from the list and format it in the same PR. Mass reformat commits are listed in `.git-blame-ignore-revs`.
+## Legacy exclusion list
+`.pre-commit-config.yaml` has a long top-level `exclude` that names hundreds of legacy files individually. **New files are linted.** When you significantly touch a legacy file, prefer bringing it into compliance rather than adding new exclusions.
