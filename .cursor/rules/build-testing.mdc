@@ -5,16 +5,26 @@ description: Testing
 alwaysApply: true
 ---
 
-- **Framework:** Frappe's test runner on a real MariaDB site.
-  - Most tests subclass `frappe.tests.IntegrationTestCase` (139 files).
-  - Some older ones use `frappe.tests.utils.FrappeTestCase` (14 files).
-  - New tests should use `IntegrationTestCase`.
-- **Layout:** `test_<doctype>.py` sits next to its controller in `healthcare/healthcare/doctype/<doctype>/`. Shared tests are in `healthcare/tests/`, for example `test_utils.py`, and `custom_doctype/test_sales_invoice.py`.
-- **Fixtures:** `hooks.py` sets `before_tests = healthcare.healthcare.utils.before_tests`. `healthcare/tests/utils.py` has `BootStrapTestData`, which builds master data: company, items, practitioners, patients, service units, templates and insurance payors. Test records use the `_Test ...` naming prefix. Module-level helper factories such as `create_healthcare_docs()` and `create_appointment()` live in test modules and are imported by other tests. Settings are toggled with `frappe.db.set_single_value("Healthcare Settings", ...)`.
-- **Running:** `bench --site test_site run-parallel-tests --app healthcare` (CI). Use `run-tests --doctype "..."` locally.
-- **CI:** server tests run on every PR that touches non-asset files. Coverage is captured on scheduled runs and pushes and uploaded to Codecov.
-- **Coverage expectations** (`codecov.yml`):
-  - patch coverage target **85%** on PRs to `develop`
-  - project coverage may drop at most 0.5%
-  - the labeler adds `needs-tests` when Python files change without any test file changing
-- There are no JS or Vue unit tests.
+**Framework:** Frappe's test runner, which is unittest-based. Test classes subclass `frappe.tests.utils.FrappeTestCase`. Shared fixtures use ERPNext's `ERPNextTestSuite`/`BootStrapTestData` in `healthcare/tests/utils.py`. `hooks.py` registers `before_tests = "healthcare.healthcare.utils.before_tests"` for site setup.
+
+**Layout:**
+- Tests sit next to the code: `healthcare/healthcare/doctype/<name>/test_<name>.py`. There are about 110 `test_*.py` files.
+- There are also `healthcare/tests/test_utils.py` and `healthcare/regional/india/abdm/test_abdm.py`.
+- Tests import ERPNext helpers where needed, for example `make_pos_profile`.
+
+**Style seen in the code:**
+- `setUp` often clears tables with `frappe.db.sql("delete from `tab...`")`.
+- Module-level factory helpers (`create_healthcare_docs`, `create_appointment`, `create_encounter`) are reused across test modules.
+- Settings are toggled with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+- Assertions use `self.assertEqual` / `assertTrue`, often against `frappe.db.get_value` after an action.
+
+**Running:** `bench --site test_site run-parallel-tests --app healthcare`, as in CI. CI needs MariaDB plus a full bench with erpnext and payments, which `.github/helper/install.sh` sets up.
+
+**Coverage expectations:**
+- Codecov **patch target is 85%** on PRs to `develop`.
+- The project status may drop by at most 0.5%.
+- Coverage is only collected on scheduled (non-PR) CI runs.
+- PRs that change `healthcare/**/*.py` without touching any `test*.py` are auto-labelled **`needs-tests`**.
+- The PR template asks for all UI and unit tests to pass locally.
+
+There are no JavaScript or Vue unit tests in the repo.
