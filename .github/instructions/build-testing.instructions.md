@@ -6,10 +6,22 @@ applyTo: "**"
 
 # Testing
 
-- **Framework:** Frappe's unittest-based runner. Tests subclass `frappe.tests.utils.FrappeTestCase`. Shared fixtures use `erpnext.tests.utils.ERPNextTestSuite`.
-- **Layout:** each DocType has `test_<doctype>.py` next to its controller (`healthcare/healthcare/doctype/<name>/test_<name>.py`). The repo has about 85 such files. Cross-cutting helpers and the `BootStrapTestData` master-data loader live in `healthcare/tests/`. `before_tests` in `hooks.py` runs `healthcare.healthcare.utils.before_tests`.
-- **Style:** `setUp` clears relevant tables (`frappe.db.sql("delete from `tabX`")`). Each module has factory helpers (`create_healthcare_docs`, `create_appointment`, …). Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`. Name test records with a `_Test` prefix. Assert with `self.assertEqual` / `assertRaises(<SpecificError>)`.
-- **Running:** `bench --site test_site run-tests --app healthcare` (or `--module ...`). CI runs `run-parallel-tests` against MariaDB 11.8 with Frappe and ERPNext on the PR's base branch.
-- **Coverage:** Codecov. The **patch target is 85%** on PRs to `develop`, and project coverage must not drop by more than 0.5%. Coverage is captured on non-PR (scheduled) runs.
-- **Labeler:** a PR that touches `healthcare/**/*.py` without any `test*.py` change gets the `needs-tests` label automatically.
-- No JS or Cypress test suite is present.
+## Framework
+- Server tests use Frappe's unittest-based runner. Test classes extend `FrappeTestCase` (`frappe.tests.utils`). Some shared fixtures use ERPNext's `ERPNextTestSuite`.
+- Run them with `bench --site <site> run-tests --app healthcare` (filter with `--doctype` or `--module`). CI runs `bench --site test_site run-parallel-tests --app healthcare` against MariaDB.
+- The repo has no JS or Vue unit tests and no Cypress tests (Cypress paths are only excluded in config).
+
+## Layout
+- Put a `test_<doctype>.py` next to each DocType controller (about 110 test files), e.g. `doctype/patient_appointment/test_patient_appointment.py`.
+- Shared master-data bootstrap lives in `healthcare/tests/utils.py` (`BootStrapTestData` creates the company, items, patients, practitioners, service units, templates and insurance payors), plus `healthcare/tests/test_utils.py`.
+- Regional tests sit alongside the code (`regional/india/abdm/test_abdm.py`).
+
+## Conventions
+- Test records are prefixed `_Test ...`. `setUp` often clears tables with `frappe.db.sql("delete from `tabX`")`.
+- Module-level factory helpers (`create_healthcare_docs`, `create_appointment`, `create_encounter`) are imported across tests. Reuse them instead of writing new factories.
+- Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+
+## Expectations
+- The PR labeler adds `needs-tests` when a PR changes `healthcare/**/*.py` without touching any `test*.py`.
+- Codecov: **patch coverage target 85%** on PRs to `develop`, and project coverage may drop by at most 0.5%. Coverage is only collected on scheduled/non-PR CI runs.
+- PR template: all tests must pass locally.
