@@ -4,20 +4,22 @@ category: observability
 layer: project
 applies_to: []
 inclusion: always
-binding: recommended
+binding: reference
 source: inferred
 evidence:
-  - healthcare/healthcare/doctype/medication_request/medication_request.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/doctype/sample_collection/sample_collection.py
+  - healthcare/healthcare/doctype/healthcare_payment_record/healthcare_payment_record.py
   - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - patient_portal/src/socket.js
+  - .github/workflows/codeql.yml
 ---
 
-Observability relies on Frappe's built-in facilities. There is no external metrics or tracing integration.
+Observability relies on what Frappe provides. There is no metrics or tracing library.
 
-- **Error Log:** use `frappe.log_error(...)` (about 24 logging call sites). It writes to the Error Log doctype. Pass a short, descriptive **title** and a traceback **message**:
-  - `frappe.log_error(title=f"Medication Request expiry update failed: {request.name}", message=frappe.get_traceback())`
-  - `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`
-- **Logger:** `frappe.logger().info(...)` / `.error(...)` is used rarely, for setup progress and parse failures (`setup/patient_duplicate_check.py`, `patient_appointment.py`).
-- **Request/integration logs:** ABDM calls are persisted as `ABDM Request` documents. Payments are recorded in `Healthcare Payment Record`.
-- **Desk dashboards:** `dashboard_chart`, `dashboard_chart_source` (department-wise appointments, insurance claim status, admission status) and `number_card` are product analytics, not ops monitoring.
-- **Avoid:** `print()` for diagnostics (about 75 non-test prints exist, mostly legacy) and `console.log` left in JS. Prefer `frappe.log_error` / `frappe.logger()`.
+- **`frappe.log_error(title=..., message=...)`** (about 15 call sites) writes to the **Error Log** DocType. This is the main way failures in background jobs, payment records, sample collection and medication requests become visible. Give it a short, descriptive `title` (for example `"Failed to mark Collected!"`) and pass the exception or traceback as `message`.
+- **`frappe.logger()`** (about 9 call sites) writes to file-based site logs, at `.info` for setup progress (`setup/patient_duplicate_check.py`) and `.error` for parse failures.
+- Some legacy code uses `print`. Do not add more, and use `frappe.logger()` instead. Pre-commit `debug-statements` blocks leftover debuggers.
+- **Realtime:** `frappe.publish_realtime` is used sparingly. The portal consumes socket.io events through `patient_portal/src/socket.js`.
+- **Audit trail:** Frappe document versioning and the healthcare **Patient Medical Record** (created through the wildcard doc_events) form the clinical activity history.
+- **CI and security signals:** Codecov coverage, CodeQL (python and javascript), semgrep, pip-audit and detect-secrets.
