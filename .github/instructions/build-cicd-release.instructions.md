@@ -4,24 +4,23 @@
 applyTo: "**"
 ---
 
-**PR checks** (`.github/workflows`)
-- `ci.yml` (Server Tests):
-  - Runs on PRs, except css/js/md/html/csv-only changes and `version-*-beta` branches, and nightly at 00:00 UTC.
-  - Uses Python 3.14, Node 24, and a MariaDB 11.8 service. It checks `compileall` and scans for merge-conflict markers.
-  - It then runs `.github/helper/install.sh` (frappe-bench with frappe and erpnext on the matching branch, plus payments) and `bench run-parallel-tests --app healthcare`.
-  - Coverage is uploaded to Codecov only on non-PR runs.
-- `linters.yml` and `linters.v2.yml` run pre-commit (ruff, prettier, eslint, pip-audit, detect-secrets) and Frappe semgrep rules plus `r/python.lang.correctness`.
-- `semantic-commits.yml` runs commitlint over the PR commits.
-- `docs_checker.yml` runs the documentation-link check for `feat` PRs.
-- `codeql.yml` runs CodeQL analysis.
-- `labeller.yml` adds labels such as `needs-tests`.
+# CI/CD and release
 
-**Release**
-- `initiate_release.yml` opens a weekly (Tuesday) PR from `version-N-hotfix` into `version-N`, for N = 14, 15, 16.
-- `on_release.yml` runs `semantic-release` on pushes to `version-14/15/16`. It uses the angular preset, and breaking changes do not trigger major releases. The run bumps the version string in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates a GitHub release.
-- `release_notes.yml` regenerates the release notes and strips chore/ci/test/docs/style entries. PRs labeled `skip-release-notes` are excluded.
-- `generate-pot-file.yml` regenerates the translation POT file every week (Sunday). Crowdin opens `fix: sync translations from crowdin` PRs.
-- Dependabot updates GitHub Actions every week.
-- Deployment is done downstream with `bench get-app` and `migrate`, for example on Frappe Cloud. This repo has no deploy job.
+## On every PR / push (GitHub Actions)
+- **CI (`ci.yml`)**: Server Tests on PRs, excluding PRs that change only `.css/.js/.md/.html/.csv` and `version-**-beta` branches. It also runs nightly. Steps: Python 3.14 + Node 24, `compileall` and a merge-conflict-marker scan, `.github/helper/install.sh` (bench + frappe + payments + erpnext + healthcare on MariaDB 11.8), then `bench run-parallel-tests`. Coverage uploads to Codecov on non-PR runs (patch target 85%).
+- **Linters (`linters.yml`, `linters.v2.yml`)**: the pre-commit hooks (ruff, ruff-format, prettier, eslint, pip-audit, detect-secrets, ...) and **Semgrep** with Frappe rules plus `r/python.lang.correctness`.
+- **Semantic Commits**: commitlint over the PR's commit range.
+- **Documentation Required**: `feat` PRs need a wiki docs link or `no-docs`.
+- **CodeQL**: Python + JavaScript on `develop` and weekly.
+- **Labeler**: adds `needs-tests` when Python changes without tests.
+- **Mergify** merges approved PRs after CI passes and handles backports.
+- **Dependabot** is configured in `.github/dependabot.yml`.
 
-Note: several workflows still point at the upstream `earthians/biograph` repo.
+## Release
+- **Weekly** (Tuesday 09:30 UTC, `initiate_release.yml`): opens `chore: release vNN` PRs from `version-NN-hotfix` → `version-NN` for v14, v15 and v16.
+- **semantic-release** (`on_release.yml`, `.releaserc`) runs on pushes to `version-14|15|16`. It uses the angular preset and bumps the version string in `healthcare/__init__.py`, commits `chore(release): Bumped to Version x.y.z`, and creates the GitHub release. Breaking changes do not trigger major releases.
+- **Release notes** (`release_notes.yml`) are generated when a release is published. PRs labelled `skip-release-notes` are excluded (`.github/release.yml`).
+- **Translations**: the POT file is regenerated weekly (Sunday) and Crowdin opens `fix: sync translations from crowdin` PRs.
+- Deployment: users install with `bench get-app` and `install-app`, or through Frappe Cloud. The repo has no deploy step of its own.
+
+Note: several workflows still reference the upstream `earthians/biograph` repo and `develop` branch, while this fork's default branch is `biograph-fh`. Check triggers before relying on them.
