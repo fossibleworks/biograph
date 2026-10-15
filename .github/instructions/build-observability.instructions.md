@@ -4,10 +4,12 @@
 applyTo: "**"
 ---
 
-The project has no dedicated metrics or tracing. Observability relies on Frappe's built-in facilities:
+The app relies only on Frappe's built-in facilities. There are no metrics or tracing libraries.
 
-- **Error Log doctype** through `frappe.log_error` (about 15 call sites). This is the main way to surface failures in background or best-effort code. Use `frappe.log_error(title="<what failed>: <doc name>", message=frappe.get_traceback())`.
-- **`frappe.logger()`** (9 uses) for informational and progress logs in setup and patch code, for example `frappe.logger().info("Starting patient duplicate check rules setup")`.
-- **Realtime** `frappe.publish_realtime` is used sparingly for UI progress.
-- **JS:** `console.log` and `console.error` appear in Desk scripts (27 and 12). Do not add new `console.log` debug calls. ESLint's recommended set plus the pre-commit `debug-statements` hook (Python) guard against leftover debug code.
-- **Coverage** reporting goes to Codecov from scheduled CI runs.
+- **`frappe.log_error(message, title)`** (about 24 call sites) writes to the **Error Log** DocType. It is the main way to record failures in background jobs, notifications, billing side effects and calendar integration. Pass `frappe.get_traceback()` as the message and a short, human-readable (often translated) title, e.g. `"Can't bill Service Unit occupancy"`, `"Unavailability Calendar Event Error"`.
+- **`frappe.logger().error(...)`** is used sparingly for parse-level warnings (e.g. unparseable appointment times).
+- Integration requests (ABDM) are stored as records (`ABDM Request` doctype), which gives you an audit trail of external calls.
+- Document history comes from Frappe's versioning/timeline (track_changes on doctypes).
+- CI keeps `bench_run_logs.txt` from the bench process for debugging.
+
+Don't use `print()` in server code. pre-commit's `debug-statements` hook rejects leftover debugger calls.
