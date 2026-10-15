@@ -1,25 +1,23 @@
 ---
-title: Error Handling
+title: Error handling
 category: error-handling
 layer: project
 applies_to: []
 inclusion: always
-binding: required
+binding: recommended
 source: inferred
 evidence:
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - healthcare/healthcare/doctype/patient_insurance_coverage/patient_insurance_coverage.py
-  - healthcare/healthcare/api/patient_portal.py
   - healthcare/healthcare/doctype/inpatient_record/inpatient_record.py
-  - healthcare/controllers/service_request_controller.py
-  - healthcare/public/js/mark_unavailable.js
+  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - patient_portal/src/components/BookAppointmentModel.vue
 ---
 
-# Error handling
-
-- **Validation errors** use `frappe.throw(_("message {0}").format(...))`. There are about 181 call sites. Highlight values with `frappe.bold(...)`. Use positional `{0}` placeholders with `.format()` **outside** `_()`, so the string stays translatable. Some legacy code uses f-strings inside `_()`. Do not copy that pattern.
-- **Typed errors:** subclass `frappe.ValidationError` per module and pass the class as the second argument: `frappe.throw(msg, OverlapError)`. Existing examples include `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, and `NoActiveContractError`.
-- **Permissions:** call `frappe.throw(_("Not allowed ..."), frappe.PermissionError)` in whitelisted APIs.
-- **Background or non-fatal failures** (notifications, calendar events, billing jobs): catch the exception and record it with `frappe.log_error(message=..., title=...)` or `frappe.log_error(frappe.get_traceback(), _("Title"))`, so the user flow is not blocked. Do not swallow errors silently.
-- `except Exception` appears about 31 times, mainly around side effects. Keep that pattern limited to non-critical paths.
-- Client side: `frappe.throw(__("..."))` in desk JS for form validation. Keep authoritative validation on the server.
+- **Validation errors:** call `frappe.throw(_("Message {0}").format(x), ExcClass, title=_("..."))`. This is the dominant pattern, with about 180 calls in Python.
+- **Domain exceptions:** define small subclasses of `frappe.ValidationError` at the top of the controller module, for example `OverlapError` and `MaximumCapacityError` in `patient_appointment.py`, or `CoverageNotFoundError` in `patient_insurance_coverage.py`. Pass them as the second argument to `frappe.throw` so tests can `assertRaises` them.
+- **Non-blocking notices:** `frappe.msgprint(_(...))`.
+- **Background and best-effort work** (scheduler jobs, notifications, history updates): wrap it in `try/except Exception`, record the problem with `frappe.log_error(message/traceback, title)` (Error Log doctype) and continue. Examples: `inpatient_record.py` ("Can't bill Service Unit occupancy") and `patient_appointment.py` (`frappe.get_traceback()` with "Appointment Confirmation Message Not Sent").
+- **Whitelisted APIs** return `None` or empty results when a lookup finds nothing (`get_logged_in_patient`) and raise `frappe.throw` or `PermissionError` on bad input. Frappe turns these into HTTP error responses.
+- **Desk JS** uses `frappe.throw(__("..."))` and `frappe.msgprint` for client-side validation. Server-side validation is still required (PR template: "All business logic and validations must be on the server-side").
+- **Vue portal:** frappe-ui resources declare `onError(e)` handlers and show `<ErrorMessage :message="error" />` or `toast`.
