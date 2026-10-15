@@ -4,25 +4,13 @@
 applyTo: "**"
 ---
 
-# Product context
+**Biograph** (tracked in Interactor Build as *fossibleHIS*) is an open-source **Hospital Information System (HIS)**. It ships as a Frappe app named `healthcare` (app title "Biograph"). It is a fork of, and adds to, Marley Health / earthians `healthcare`, and is maintained by Tacten / fossibleworks.
 
-**Biograph** (packaged as the Frappe app `healthcare`; this fork is tracked in Build as **fossibleHIS**) is an open-source Hospital Information System (HIS). It is a fork of Marley Health with added features and is maintained by Tacten / FossibleWorks. It adds healthcare to **ERPNext** and runs on the **Frappe** framework. Much of the data model follows **HL7 FHIR**.
+- **Users:** healthcare practitioners, clinics and hospitals (desk users such as practitioners, nurses, lab and billing staff), plus **patients** through a self-service Patient Portal.
+- **Core domains:** Patient management, Outpatient (Patient Appointment, Patient Encounter, Fee Validity), Inpatient (Inpatient Record, medication orders/entries, service-unit occupancy billing), Clinical Procedures, Rehabilitation/Physiotherapy (therapy plans and sessions), Laboratory/Diagnostics (Lab Test, Observation, Diagnostic Report, Sample Collection), Insurance (payor contracts, policies, coverage, claims), Healthcare Packages, and medical code standards (Code System / Code Value, following HL7 FHIR).
+- **ERPNext integration:** it relies on ERPNext for billing (Sales Invoice, Payment Entry), pharmacy and stock, HR, and accounts. `required_apps = ["frappe/erpnext"]`.
+- **Regional:** India ABDM integration (`healthcare/regional/india/abdm`).
+- **Entry points:** desk home `/desk/healthcare`, workspace sidebars (Healthcare, Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance, Setup), and the patient portal at `/patient_portal` (Vue SPA) and `/patient-portal`.
+- Recent fork features have usage docs in `wiki/`: block-based therapy appointment booking, patient duplicate checker, FHIR terminology service parity, and insurance parity.
 
-## Who uses it
-- **Clinical and front-desk staff** at clinics and hospitals (practitioners, nurses, lab staff, receptionists) work in the Frappe Desk at `/desk/healthcare`. `hooks.py` sets `on_login` to send each role to its own home page.
-- **Patients** use the Vue-based **Patient Portal** (`/patient_portal`) to see appointments, book an appointment, view lab/diagnostic reports, and pay bills.
-- **Administrators** set up masters such as Medical Departments, Service Units, Practitioner Schedules, Code Systems and Insurance Payors.
-
-## Key feature areas
-- Patient management, including duplicate-patient detection (`wiki/PATIENT-DUPLICATE*.md`)
-- Outpatient: Patient Appointment (slot-based and block-time booking), Patient Encounter, Fee Validity
-- Inpatient: Inpatient Record, Inpatient Medication Orders/Entries, discharge summary
-- Clinical Procedures, Therapy/Rehabilitation (Therapy Plans, Therapy Sessions)
-- Laboratory and Diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
-- Service Requests / Medication Requests (FHIR-style orders)
-- Medical coding: Code System, Code Value, codification tables (FHIR terminology)
-- Insurance: Insurance Payor, contracts, coverage, claims
-- Billing through ERPNext Sales Invoice and Payment Entry
-- Regional: India ABDM (Ayushman Bharat Digital Mission) integration (`healthcare/regional/india/abdm`)
-
-ERPNext supplies pharmacy/stock, purchasing, HR, accounts and assets.
+Design rule from the PR template: **all business logic and validations live on the server side**.
