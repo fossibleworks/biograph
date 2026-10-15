@@ -4,26 +4,20 @@
 applyTo: "**"
 ---
 
-# Coding conventions
+**Python (ruff, configured in `pyproject.toml`)**
+- Indent with **tabs**, use **double quotes**, line length 110 (E501 ignored), target py310.
+- Lint selects `F,E,W,I,UP,B,RUF` with many ignores (unused imports F401, `*` imports, B904, etc.).
+- Import order is enforced by isort sections: `future`, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate each group with a blank line, as in `patient_appointment.py`.
+- Use the Frappe idioms: `import frappe`, `from frappe import _`, `frappe.get_doc`/`frappe.db.get_value`, and `@frappe.whitelist()` for client-callable functions. DocType controllers are `class PatientAppointment(Document)` with lifecycle methods (`validate`, `before_save`, `on_submit`, …) that delegate to `validate_*` / `set_*` helpers.
+- Naming: modules and functions in snake_case, classes in PascalCase. Doctype folder and file names are the snake_case form of the DocType name.
+- Files begin with a copyright header comment (`# Copyright (c) <year>, ... and contributors` / `# For license information, please see license.txt`).
+- Many legacy files are listed in the global `exclude:` of `.pre-commit-config.yaml` and are not formatted. Don't bulk-reformat them in feature PRs. Mass reformat commits go in `.git-blame-ignore-revs`.
 
-## Python (ruff, `pyproject.toml`)
-- **Tabs** for indentation, **double quotes**, line length 110 (E501 not enforced). Format with `ruff format`.
-- Lint rule sets: `F, E, W, I, UP, B, RUF`, with Frappe-friendly ignores (unused imports, `*` imports, tabs, B904, ...).
-- Import order uses custom isort sections: stdlib → third-party → **frappe** → **erpnext** → **healthcare** → first-party → local, with a blank line between each group.
-- Use absolute dotted imports from the package root, e.g. `from healthcare.healthcare.doctype.patient_appointment.patient_appointment import ...`.
-- Wrap user-facing strings in `_()` (`from frappe import _`). Use positional `{0}` placeholders and call `.format()` outside `_()`.
-- Mark server endpoints with `@frappe.whitelist()`. Prefer `frappe.qb` / `frappe.get_all` over raw SQL.
-- DocTypes: folder and module names are `snake_case` (`patient_appointment`), the DocType name is Title Case (`"Patient Appointment"`), and the controller class is PascalCase (`PatientAppointment(Document)`).
-- Custom exceptions subclass `frappe.ValidationError` and are named `*Error` (`OverlapError`, `MaximumCapacityError`).
-- Files start with a license/copyright header (`# Copyright (c) ..., ESS LLP and Contributors` / `# See license.txt`).
+**JavaScript (desk)**
+- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. ESLint flat config extends `eslint:recommended` with Frappe globals (`frappe`, `__`, `cur_frm`, `flt`, …). `no-console` is a warning.
+- Wrap user-facing strings in `__()`.
 
-## JavaScript (Desk)
-- **Tabs**, width 4, print width 88, `arrowParens: avoid` (Prettier). ESLint `eslint:recommended` with Frappe globals (`frappe`, `erpnext`, `__`, `$`, ...).
-- Form scripts use `frappe.ui.form.on('<DocType>', { setup(frm) {...}, refresh(frm) {...} })`. Translate strings with `__('...')`.
-- A few legacy form scripts are excluded from prettier (`patient.js`, `medication_request.js`, `service_request.js`). Do not mass-reformat them.
+**Vue (patient_portal)**
+- `<script setup>` SFCs, PascalCase component files in `src/components/`, `@/` alias to `src`, frappe-ui components, Tailwind utility classes. The local prettier config uses `semi: false, singleQuote: true`, and prettier pre-commit excludes `patient_portal/`.
 
-## Vue (patient_portal)
-- Vue 3 SFCs in `src/components/PascalCase.vue`, `@/` alias to `src/`, Tailwind utility classes plus frappe-ui components. The portal has its own `.prettierrc.json` and is excluded from the root prettier hook.
-
-## Commits
-- Conventional Commits, enforced by commitlint. Types: `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`, lower-case, non-empty subject.
+**Commits:** Conventional Commits with lower-case type from `build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test`.
