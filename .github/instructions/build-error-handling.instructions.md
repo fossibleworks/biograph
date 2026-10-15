@@ -6,11 +6,23 @@ applyTo: "**"
 
 # Error handling
 
-## Server (Python)
-- **Validation errors** are raised with `frappe.throw(_("Message {0}").format(x))`. The repo has about 180 call sites. Add `title=_("...")` for context (e.g. `title=_("Missing Configuration")`) and pass an exception class when it matters: `frappe.throw(_("Not allowed to print this document."), frappe.PermissionError)`.
-- **Domain exception classes** subclass `frappe.ValidationError` and are defined at the top of the DocType module: `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`, `CoverageOverlapError`. Tests assert on these specific classes.
-- **Background or best-effort work** (schedulers, notifications, billing side effects) catches the exception and records it with `frappe.log_error(...)` instead of failing the transaction. For example: `frappe.log_error(message=e, title="Can't bill Service Unit occupancy")`, `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
-- Validation belongs in controller hooks (`validate`, `before_submit`) on the server, not only in the client.
+## Validation errors (user-facing)
+- Raise with `frappe.throw(_("Message {0}").format(value))` (about 181 call sites). Frappe aborts the transaction and shows a dialog.
+- For errors callers or tests need to tell apart, subclass `frappe.ValidationError` in the DocType module and pass it as the second argument:
+  ```python
+  class OverlapError(frappe.ValidationError):
+  	pass
 
-## Client (desk JS)
-- Use `frappe.throw(__("..."))` to block an action, `frappe.msgprint(__("..."))` for informational dialogs, and `frappe.show_alert({message: __("..."), indicator: "green"|"red"})` for toasts.
+  frappe.throw(_("Patient already has an appointment booked for the same day!"), OverlapError)
+  ```
+  Existing classes: `OverlapError`, `MaximumCapacityError`, `CoverageNotFoundError`, `NoActiveContractError`, `CoverageOverlapError`.
+- Validate on the server in controller hooks (`validate`, `before_submit`). Desk JS checks are only for UX.
+
+## Non-fatal / background failures
+- When a side effect (notifications, calendar events, billing of occupancy, patches) must not block the main flow, wrap it in `try/except` and record it with `frappe.log_error(...)`. Pass a title, usually `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))` or `frappe.log_error(message=e, title="...")`. These land in the Error Log doctype.
+- Do not silently swallow exceptions without `log_error`.
+
+## Client side
+- Desk JS reports problems with `frappe.msgprint(__("..."))` and confirms success with `frappe.show_alert({message: __("..."), indicator: "green"})`.
+- Whitelisted API methods raise via `frappe.throw`. The portal relies on frappe-ui resources to surface `exc` messages.
+- Guard dev-only endpoints with checks like `if not frappe.conf.developer_mode: frappe.throw(...)`.
