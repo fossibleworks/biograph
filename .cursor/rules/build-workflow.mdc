@@ -5,17 +5,25 @@ description: Workflow
 alwaysApply: true
 ---
 
-**This fork (fossibleworks/biograph, "fossibleHIS") is driven by Interactor Build.** See `CLAUDE.md`.
+# Workflow
 
-- Every code change needs a tracked **Goal**. A GitHub issue becomes a Goal only through an explicit import. The engine breaks each Goal into EngineTasks, and each task goes through investigation, execution and review.
-- Work on the branch **`goal/<goalId>`** in an isolated worktree. Never commit straight to the default branch, which is **`biograph-fh`** here.
-- Each Goal ships through a single PR that the engine opens. Review and CI gates must pass before merge.
-- CLI: `ibuild engine goal-create "<title>"`, `ibuild engine goal queue <id>`, `ibuild engine work <task>`, `ibuild engine report --yes`, `ibuild engine goal accept <id>`. The Build web UI always works as well. An interactive session may use `ibuild off` for a small change, but it still needs its own branch and a hand-opened PR.
-- Project rules live in `.build/RULES.md`; it is currently a placeholder. `.claude/rules/`, `.cursor/rules/` and `.github/instructions/` mirror it, and `AGENTS.md` lists the guides.
+## Work tracking (Interactor Build engine)
+- Every code change needs a tracked **Goal**, created in the Build web UI or with `ibuild engine goal-create "<title>"`. A GitHub issue maps to a Goal only after an explicit import.
+- Work happens on the branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch directly. Remote branches already follow this pattern (for example `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8`).
+- Each Goal ships through **one PR** opened by the engine, which must pass review and CI before merge. EngineTasks under a Goal go through investigation, then execution, then review.
+- Exception: an interactive session may run `ibuild off` for a small change, which still lands through its own branch and a hand-opened PR that runs CI.
+- Standing rules live in `.build/RULES.md` (currently placeholders).
 
-**Inherited upstream conventions** (earthians/biograph):
-- Conventional Commit titles, checked by commitlint on every PR.
-- PR template: pick the target branch, keep logic and validations server-side, update docs, and use `closes #XXXX`.
-- Mergify (upstream branches): PRs against stable `version-14/15/16` are auto-closed; target `develop` or `version-N-hotfix` instead. PRs auto-merge after 1 approval (the `squash` label switches to squash merge, and `dont-merge` blocks merging). `backport <branch>` labels open backports.
-- CODEOWNERS: `@akurungadam @Sajinsr`.
-- Use the labels `skip-release-notes` and `translation` where they apply.
+## Branches
+- The default and integration branch for this fork is **`biograph-fh`**.
+- Upstream conventions are still configured in `.mergify.yml`, `.releaserc` and the workflows:
+  - `develop` is the main development line.
+  - `version-14/15/16` are stable branches. PRs to stable branches from non-maintainers are auto-closed.
+  - `version-N-hotfix` branches receive fixes, and labels `backport develop` / `backport version-N-hotfix` trigger Mergify backports.
+- Mergify merges after at least one approval. Add the `squash` label to squash, or `dont-merge` to block.
+
+## Commits and PRs
+- Conventional Commit titles (feat/fix/chore/...) are checked by `semantic-commits.yml`.
+- Fill in the PR template: target branch, details of the problem, screenshots, and `closes #N`.
+- `feat` PRs need a docs link, or `no-docs` in the body.
+- Code owners: @akurungadam and @Sajinsr.
