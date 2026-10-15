@@ -4,10 +4,13 @@
 applyTo: "**"
 ---
 
-- **README.md** gives the product overview, install instructions (bench get-app/install-app) and the developer setup (pre-commit, semgrep). It points to external docs on DeepWiki (`deepwiki.com/Tacten/biograph`) and to a Telegram group.
-- **`wiki/`** holds in-repo docs as UPPER-KEBAB-CASE markdown files of two kinds:
-  - **Usage docs**: `*-USAGE-DOC.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`. These have a numbered table of contents, Overview/Configuration/User Experience/Examples sections, and desk navigation paths in bold (e.g. **Healthcare → Setup → Healthcare Settings**). Images sit next to the doc.
-  - **Design / parity docs**: `DESIGN-*.md`, `insurance-parity-report.md`, the FHIR terminology implementation plan. These have scope tables and branch/status matrices.
-- **PR-level docs:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails `feat` PRs unless the PR body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`. To skip the check, put `no-docs` (or `backport`) in the PR body.
-- The PR template asks contributors to "Update necessary Documentation" and to put `closes #XXXX` in the PR.
-- Code comments are sparse and practical. Docstrings are uncommon. `healthcare/docs/current` is git-ignored.
+- The **README.md** covers the product introduction, install steps (bench), developer pre-commit and semgrep setup, and links to external docs: DeepWiki (`deepwiki.com/Tacten/biograph`), Telegram and the license.
+- **`wiki/`** holds in-repo design and usage documents in UPPER-KEBAB-CASE markdown:
+  - Design docs: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `FHIR Terminology Service Parity — Implementation Plan.md`.
+  - Usage guides: `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`.
+  - Reports: `insurance-parity-report.md`.
+  - Usage guides follow a pattern: a Table of Contents, then numbered sections (Overview → Configuration → User Experience → Examples), with UI navigation paths in bold (`**Healthcare → Setup → Healthcare Settings**`). Images sit next to the doc.
+- **Docs gate in CI:** `docs_checker.yml` fails any PR whose title starts with `feat` unless the body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`, or contains `no-docs` (or `backport`).
+- **In code:** docstrings are sparse and mostly short. DocType JSON `description` fields carry field-level help.
+- `context7.json` registers the repo with Context7 for AI doc lookup.
+- For a new feature, add a usage doc under `wiki/` that follows the existing format, and either link the docs in the PR or state `no-docs`.
