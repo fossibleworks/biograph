@@ -6,11 +6,13 @@ applyTo: "**"
 
 # Design system
 
-## Desk (internal staff UI)
-Use **standard Frappe Desk** components: DocType forms, `frappe.ui.Dialog`, list views, workspaces, number cards, dashboard charts. Do not add custom CSS frameworks. HTML fragments (`healthcare/public/js/*.html`, e.g. `healthcare_note.html`, `observation.html`) use Frappe/Bootstrap classes and are rendered by JS widgets.
+## Desk UI
+The Frappe Desk renders Desk screens from DocType JSON. Do not add custom CSS frameworks. Customise through form scripts, `frm.add_custom_button(__("..."), ..., __("Group"))`, dialogs (`frappe.ui.Dialog`), indicators, and HTML templates in `healthcare/public/js/*.html` (`healthcare_note.html`, `observation.html`, `healthcare_orders.html`). Shared widgets such as `observation_widget.js`, `form.js` and `patient_quick_entry.js` ship in `healthcare.bundle.js`.
 
 ## Patient Portal
-- **Component library:** **frappe-ui** (`Dialog`, `Button`, `FeatherIcon`, Autocomplete, etc.). Icons are feather and lucide (`lucideIcons: true`).
-- **Tokens:** the **frappe-ui Tailwind preset** (`presets: [frappeUIPreset]`) is the token source. Use its semantic classes (`text-ink-gray-8`, `bg-surface-gray-5`, …) before raw Tailwind palette colours. `tailwind.config.js` adds only legacy colour aliases (lightBlue, warmGray, trueGray, coolGray, blueGray).
-- Styling uses Tailwind utility classes inline in Vue SFCs. The global CSS entry is `src/index.css`.
-- App icons live in `healthcare/public/images/` (`biograph-app-icon.svg`, `healthcare.svg`).
+- **Component library: frappe-ui.** These are registered globally in `patient_portal.js`: `Button`, `Dialog`, `Badge`, `FeatherIcon`, `Tooltip`, `Card`. Icons come from feather-icons/lucide (via the frappe-ui Vite plugin).
+- **Tokens:** Tailwind with `frappe-ui/tailwind` as the preset, which is the source of colours, spacing and type. `tailwind.config.js` only adds legacy colour aliases (`lightBlue`, `warmGray`, `trueGray`, `coolGray`, `blueGray`).
+- Global styles in `patient_portal/src/index.css`.
+- Feature components live in `patient_portal/src/components` (`BookAppointmentModel.vue`, `Calendar.vue`, `Payment.vue`, `PractitionerSelector.vue`, ...). Reuse them before adding new ones.
+
+Use frappe-ui components and Tailwind utilities. Do not hard-code colours or add a second component library.
