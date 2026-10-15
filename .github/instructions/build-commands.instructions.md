@@ -4,43 +4,46 @@
 applyTo: "**"
 ---
 
-This is a Frappe app, so it runs inside a **bench**. It does not run standalone.
+This app runs inside a **frappe-bench**. Server commands run from the bench root against a site.
 
-**Install into a bench:**
+## Install / setup
+
 ```sh
 bench get-app https://github.com/Tacten/biograph   # or: bench get-app healthcare <path>
 bench --site <site> install-app healthcare
-bench --site <site> migrate                        # runs patches.txt + model sync
+bench --site <site> migrate                        # runs patches.txt + after_migrate
 ```
 
-**Tests** (the same command CI runs):
+## Tests (server)
+
 ```sh
-cd ~/frappe-bench && bench --site test_site run-parallel-tests --app healthcare
-# single module/doctype (standard Frappe):
-bench --site test_site run-tests --app healthcare --doctype "Patient Appointment"
+bench --site test_site run-parallel-tests --app healthcare --total-builds 1 --build-number 1   # what CI runs
+bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"           # single doctype
 ```
-CI builds its bench with `.github/helper/install.sh`. That script runs `bench init`, `get-app payments`, `get-app erpnext` on the matching branch, then `install-app healthcare` on `test_site`.
 
-**Lint and format** (pre-commit is the single entry point):
+The site needs `allow_tests` turned on (see `.github/helper/site_config.json`).
+
+## Frontend (Patient Portal)
+
+```sh
+yarn install            # root; postinstall runs yarn install in patient_portal
+yarn build              # root -> cd patient_portal && yarn build
+cd patient_portal && yarn dev   # Vite dev server proxied to bench
+bench build --app healthcare    # desk bundles (healthcare.bundle.js)
+```
+
+## Lint / format
+
 ```sh
 pip install pre-commit && pre-commit install
-npm install   # eslint deps
-pre-commit run --all-files   # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
-```
+npm install            # eslint deps for the eslint hook
+pre-commit run --all-files    # ruff --fix, ruff-format, prettier, eslint, pip-audit, detect-secrets, yaml/json/toml/ast checks
 
-**Semgrep** (the same as CI):
-```sh
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
 pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-**Patient portal frontend:**
-```sh
-yarn install          # root postinstall runs yarn install in patient_portal
-yarn build            # = cd patient_portal && yarn build (vite build --base=/assets/healthcare/patient_portal/)
-cd patient_portal && yarn dev   # vite dev server proxied to frappe
-```
-Desk JS is built by Frappe with `bench build --app healthcare`.
+## Translations
 
-**Commit titles** must pass commitlint: `npx commitlint --from <base> --to <head>`.
+The weekly workflow regenerates `healthcare/locale/main.pot` using `.github/helper/update_pot_file.sh`.
