@@ -2,23 +2,18 @@
 
 # Workflow
 
-## Work tracking (Interactor Build engine)
-- Every code change needs a tracked **Goal**, created in the Build web UI or with `ibuild engine goal-create "<title>"`. A GitHub issue maps to a Goal only after an explicit import.
-- Work happens on the branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch directly. Remote branches already follow this pattern (for example `goal/remove-mandatory-flag-validation-on-healthcare-service-unit-339bf0a8`).
-- Each Goal ships through **one PR** opened by the engine, which must pass review and CI before merge. EngineTasks under a Goal go through investigation, then execution, then review.
-- Exception: an interactive session may run `ibuild off` for a small change, which still lands through its own branch and a hand-opened PR that runs CI.
-- Standing rules live in `.build/RULES.md` (currently placeholders).
+## Build engine (this fork)
+Work is tracked as an Interactor Build **Goal**. A GitHub issue becomes a Goal only after an explicit import. A Goal owns one branch, `goal/<goalId>`, and one PR, and the engine generates EngineTasks underneath it.
 
-## Branches
-- The default and integration branch for this fork is **`biograph-fh`**.
-- Upstream conventions are still configured in `.mergify.yml`, `.releaserc` and the workflows:
-  - `develop` is the main development line.
-  - `version-14/15/16` are stable branches. PRs to stable branches from non-maintainers are auto-closed.
-  - `version-N-hotfix` branches receive fixes, and labels `backport develop` / `backport version-N-hotfix` trigger Mergify backports.
-- Mergify merges after at least one approval. Add the `squash` label to squash, or `dont-merge` to block.
+- **Before editing any file**, a Goal must exist (`ibuild engine goal-create "<title>"`, then `ibuild engine goal queue <goalId>`, or use the web UI).
+- Work on `goal/<goalId>` in an isolated worktree. **Never commit to the default branch `biograph-fh`.** Remote examples: `goal/remove-mandatory-flag-validation-...`.
+- Changes ship only through the goal's PR, which must pass review and CI. Interactive sessions may use `ibuild off` for small changes, but those still go on their own branch through a hand-opened PR.
+- Read `.build/vision.md` before planning, and flag any work that doesn't fit it. Do not put `[interactor-sync]` in your own commit messages.
 
 ## Commits and PRs
-- Conventional Commit titles (feat/fix/chore/...) are checked by `semantic-commits.yml`.
-- Fill in the PR template: target branch, details of the problem, screenshots, and `closes #N`.
-- `feat` PRs need a docs link, or `no-docs` in the body.
-- Code owners: @akurungadam and @Sajinsr.
+- **Conventional Commits** are enforced by commitlint on every PR. The allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, all lower-case, with an optional scope: `fix(linters): ...`, `feat(appointment): ...`.
+- The PR body should explain the problem, include screenshots or GIFs for UI changes, and say `closes #N`.
+- Code owners are @akurungadam and @Sajinsr.
+
+## Upstream-inherited rules (Mergify)
+PRs against the stable branches `version-14/15/16` are auto-closed unless a maintainer opened them; target `develop` or a `version-N-hotfix` branch. Merging is automatic after one approval plus CI (a `squash` label switches to a squash merge, and `dont-merge` blocks it). Labels named `backport <branch>` trigger backports.
