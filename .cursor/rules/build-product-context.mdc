@@ -5,25 +5,24 @@ description: Product Context
 alwaysApply: true
 ---
 
-## What Biograph is
+# Biograph (fossibleHIS)
 
-Biograph (by Tacten / fossibleworks; the repo is called **fossibleHIS** in Build) is an open-source **Hospital Information System (HIS)**. It started as a fork of Marley Health, and the Python app is still called `healthcare`. It is a **Frappe app that requires ERPNext** (`required_apps = ["frappe/erpnext"]`). Its data model follows **HL7 FHIR** in many places: Observation, Service Request, Diagnostic Report, Code System / Code Value, Medication Request, Specimen.
+Biograph is an open-source **Hospital Information System (HIS)**. It started as a fork of Marley Health, with further enhancements by Tacten / FossibleWorks. It ships as a **Frappe app** named `healthcare` (app title "Biograph") and runs inside ERPNext. Most of its domain model follows **HL7 FHIR**.
 
 ## Who uses it
+- **Clinical and administrative staff** at clinics and hospitals: practitioners, nurses, lab staff, front desk and billing. They work in the Frappe Desk UI (`/desk/healthcare`), using workspaces such as Healthcare, Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance and Setup.
+- **Patients** use the Vue-based **Patient Portal** (`/patient-portal`). There they book appointments, view orders and lab results, and pay bills. The portal requires the `Patient` role and a linked active Patient record.
 
-- **Clinical and front-desk staff** work in the Frappe Desk (`app_home = "/desk/healthcare"`, app title "Biograph"). Workspaces and desktop icons cover Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance and Setup.
-- **Patients** use the **Patient Portal** (`/patient-portal`, role `Patient`). It is a Vue SPA with Appointments and Diagnostics tabs, appointment booking and payment.
-- **Administrators** configure Healthcare Settings, Medical Departments, Service Units (a tree), Practitioner Schedules, code systems and insurance payors.
+## Key capabilities
+- Patient management, including duplicate detection (`wiki/PATIENT-DUPLICATE*.md`)
+- Outpatient work: Patient Appointment (slot and block-time booking, recurring appointments, practitioner unavailability), Patient Encounter, Fee Validity
+- Inpatient work: Inpatient Record, medication orders and entries, service unit occupancy billing, nursing tasks and checklists
+- Clinical procedures, rehabilitation and physiotherapy (Therapy Plan, Exercise)
+- Laboratory and diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
+- Medication and medication requests, plus Service Requests (FHIR-style orders)
+- Insurance: payors, contracts, eligibility plans, coverage and claims
+- Medical code standards (Code System, Code Value), aiming at FHIR terminology parity
+- India regional support: ABDM integration (`healthcare/regional/india/abdm`)
+- Billing goes through ERPNext Sales Invoice and Payment Entry. Pharmacy, HR, accounts and similar functions come from ERPNext.
 
-## Key feature areas (from the README and doctypes)
-
-- Patient management, including duplicate-patient detection (rule-based)
-- Outpatient: Patient Appointment (with recurring and block/therapy booking), Patient Encounter, Fee Validity
-- Inpatient: Inpatient Record, Inpatient Medication Order/Entry, Discharge Summary, Nursing Tasks
-- Diagnostics: Lab Test, Sample Collection, Observation, Diagnostic Report
-- Clinical Procedures, Therapy Plans/Sessions (rehabilitation and physiotherapy)
-- Insurance: Payor, Contract, Policy, Coverage, Claim
-- Billing through ERPNext Sales Invoice / Payment Entry hooks
-- Regional: India ABDM integration (`healthcare/regional/india`)
-
-ERPNext supplies pharmacy/stock, accounts, HR and assets. Biograph adds the health domain on top.
+The app is installed with `bench get-app` and `bench --site <site> install-app healthcare`. It requires `frappe/erpnext`.
