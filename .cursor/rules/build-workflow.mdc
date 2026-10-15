@@ -8,22 +8,20 @@ alwaysApply: true
 # Workflow
 
 ## Work tracking (Interactor Build engine)
-This repo is connected to Interactor Build (`CLAUDE.md`):
-1. **No Goal, no edits.** Every change needs a tracked **Goal**, created in the Build web UI, by importing a GitHub issue, or with `ibuild engine goal-create "<title>"` followed by `ibuild engine goal queue <goalId>`.
-2. Work on the branch **`goal/<goalId>`** in an isolated worktree, **never on the default branch**.
-3. Changes ship through the **Goal's single PR**, which the engine opens and which must pass review and CI. Each EngineTask under a Goal cycles through investigation → execution → review.
-4. An interactive session may run `ibuild off` for a small change. That change still goes on its own branch with a hand-opened PR that runs CI.
+This repo is connected to Interactor Build. Every code change needs a tracked **Goal**:
+1. **No Goal, no edits.** Create one in the Build web UI, by importing a GitHub issue, or with `ibuild engine goal-create "<title>"`, then admit it with `ibuild engine goal queue <goalId>`.
+2. Work on the branch **`goal/<goalId>`** in an isolated worktree. Never commit to the default branch (`biograph-fh`).
+3. All changes ship through the Goal's single PR, which the engine opens and which must pass review and CI. The engine breaks each Goal into EngineTasks (investigation → execution → review). Use `ibuild engine work` / `report --yes` / `goal accept`.
+4. An interactive session may run `ibuild off` for a small change. That change still lands on its own branch through a hand-opened PR that runs CI.
 
-Standing rules are in `.build/RULES.md` (currently a placeholder template).
+Standing rules for AI sessions live in `.build/RULES.md`, which is mirrored to `.claude/rules`, `.cursor/rules`, `.github/instructions` and `AGENTS.md`. Edit the source, not the mirrors.
 
-## Branching (upstream conventions)
-- `develop` is the integration branch. `version-14|15|16-hotfix` are hotfix branches. `version-14|15|16` are stable branches. Mergify **auto-closes PRs to stable branches** from non-maintainers.
-- Backports are done by adding a label (`backport develop`, `backport version-15-hotfix`, …), which Mergify handles.
-- Mergify merges after ≥1 approval and passing CI. The `squash` label squashes, and `dont-merge` blocks merging.
-- In this fork, the checked-out default branch is `biograph-fh`.
+## Commits & PRs
+- **Conventional commits**, enforced by commitlint in CI: `type(scope): subject`, with a lower-case type from `build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test`. Example from history: `feat(appointment): honor add_video_conferencing on portal book`.
+- Fill in the PR template: explain the problem being solved, attach screenshots or GIFs for UI changes, put `closes #XXXX`, make sure tests pass locally, and update docs.
+- `feat` PRs need a docs link or `no-docs` in the body.
 
-## Commits and PRs
-- Use conventional commit titles (commitlint on every PR): `feat: …`, `fix: …`, etc.
-- `feat` PRs need a wiki docs link or `no-docs` in the body.
-- Fill in the PR template: details of the change, screenshots, `closes #NNN`.
-- Default code owners are `@akurungadam @Sajinsr`.
+## Branching model inherited from upstream (Mergify, .releaserc)
+- `develop` is the integration branch. Stable lines are `version-14/15/16`, and fixes go to `version-NN-hotfix`. Mergify auto-closes PRs against stable branches from non-maintainers.
+- Mergify merges after at least one approval plus green CI. Add the `squash` label to squash-merge, or `dont-merge` to block. Labels `backport develop` / `backport version-NN-hotfix` create backports.
+- CODEOWNERS: `@akurungadam @Sajinsr` own everything.
