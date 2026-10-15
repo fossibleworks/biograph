@@ -10,21 +10,16 @@ evidence:
   - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
   - healthcare/tests/utils.py
   - codecov.yml
-  - .github/labeler.yml
   - .github/workflows/ci.yml
   - healthcare/hooks.py
+  - .github/helper/site_config.json
 ---
 
-- **Framework:** Frappe's test runner (unittest-based), run with `bench --site <site> run-tests --app healthcare`. CI runs `run-parallel-tests` against MariaDB.
-- **Base class:** most tests use `from frappe.tests import IntegrationTestCase` (69 files). Some older ones use `FrappeTestCase` from `frappe.tests.utils` (7 files). Use `IntegrationTestCase` for new tests.
-- **Layout:** tests sit next to the code they cover, as `healthcare/healthcare/doctype/<name>/test_<name>.py`. There are about 85 test files. Overrides are tested in `custom_doctype/test_sales_invoice.py`. Cross-cutting tests live in `healthcare/tests/`.
-- **Fixtures:**
-  - `healthcare/tests/utils.py` provides `BootStrapTestData`, which creates master data (company, items, patients, practitioners, service units, templates, insurance payors) with `_Test ...` names.
-  - `hooks.py` sets `before_tests = healthcare.healthcare.utils.before_tests`.
-  - Tests often define module-level `create_*` helpers (e.g. `create_healthcare_docs`, `create_appointment`) and reuse them from other test modules.
-  - `setUp` frequently clears tables (`frappe.db.sql("delete from `tabPatient Appointment`")`) and toggles `Healthcare Settings` with `frappe.db.set_single_value`.
-- **Coverage:**
-  - Codecov patch target is **85%** on PRs (against `develop`). The project threshold is 0.5%.
-  - Coverage is captured on non-PR (scheduled) runs.
-  - The labeler adds a `needs-tests` label when a PR touches `healthcare/**/*.py` without touching any `test*.py`.
-- There is no JS or Vue test suite. Frontend changes are verified manually (the PR template asks for screenshots/GIFs).
+- **Framework:** Frappe's test runner on top of unittest. New tests subclass **`frappe.tests.IntegrationTestCase`**, which about 69 test files already use. Older files use `frappe.tests.utils.FrappeTestCase`. Do not use either for new code.
+- **Layout:** each DocType has `test_<doctype>.py` next to its controller in `healthcare/healthcare/doctype/<name>/`. There are about 120 test files. Shared helpers live in `healthcare/tests/utils.py` (for example `create_encounter`), which carries a TODO to centralise more of them. Many tests also import factory helpers such as `create_healthcare_docs` and `create_appointment` from sibling test modules.
+- **Setup:** `before_tests = healthcare.healthcare.utils.before_tests` in `hooks.py` prepares fixtures. Tests run against a real MariaDB site and commonly clean tables in `setUp` with `frappe.db.sql("delete from ...")`. Test records use the `_Test ...` naming prefix.
+- **Running tests:** `bench --site test_site run-parallel-tests --app healthcare` (CI), or `bench run-tests --doctype "<DocType>"` locally.
+- **CI:** the `CI` workflow runs server tests on PRs, except PRs that only touch css/js/md/html/csv, and nightly. Coverage is collected on non-PR runs only.
+- **Coverage:** Codecov enforces **85% patch coverage** on PRs to `develop`, and project coverage must not drop by more than 0.5%.
+- There are no JS or portal unit tests. `cypress/` is referenced only in ignore lists.
+- When adding a controller or whitelisted API, add or extend the matching `test_<name>.py`.
