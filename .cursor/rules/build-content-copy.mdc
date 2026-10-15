@@ -5,21 +5,19 @@ description: Content & Copy
 alwaysApply: true
 ---
 
+# Content and copy
+
+## Terminology (use the domain terms exactly as they appear in DocTypes)
+Patient, Healthcare Practitioner ("Practitioner" in the portal), Patient Appointment, Patient Encounter, Medical Department, Healthcare Service Unit, Inpatient Record, Lab Test, Sample Collection, Observation, Diagnostic Report, Service Request, Medication Request, Clinical Procedure, Therapy Plan, Fee Validity, Insurance Payor, Healthcare Settings. The product name is **Biograph**. A v16 patch renamed "Marley" to Biograph, so do not reintroduce "Marley" in UI copy.
+
 ## Tone
+- Short and direct, in Title Case for buttons, labels and dialog titles: "Add Observation", "Cancel Admission", "Browse Medication", "Book an Appointment", "Pay Your Bill", "Select a Practitioner".
+- Errors are plain sentences that name the record and often start with "Please": "Please set Customer in Patient {0}", "Please select a service request.", "User {0} is disabled", "Not allowed to print this document."
+- Confirmations are phrased as questions: "Are you sure you want to cancel this unavailability record?"
+- Progress messages use a gerund and an ellipsis: "Cancelling unavailability record..."
+- Empty states in the portal are friendly: "Looks like you don't have any appointments yet.", "No Records Found".
+- Patient-facing access errors tell the user what to do: "You are not linked to any patient. Please contact the administration."
 
-Copy is short, plain and clinical-administrative, aimed at hospital staff and patients. Errors are single sentences that say what is wrong, sometimes with an exclamation mark for conflicts:
-
-- "Appointment Date and Time are required."
-- "Appointment end must be after start."
-- "Patient already has an appointment booked for the same day!"
-- "Booking only allow for today and future date" (an example of the inconsistent grammar in legacy JS; prefer correct English in new strings)
-
-Portal labels are terse single words: **Book**, **Patient**, **When**, **Practitioner**, **Fee**, **Total**, **Test / Result / Reference**, **OK**, with tabs **Appointments** and **Diagnostics**. Helper text is sentence case ("Details of fees").
-
-## Terminology
-
-Use the domain's DocType names, in Title Case, exactly as they appear: Patient, Healthcare Practitioner ("Practitioner" in short UI), Patient Appointment, Patient Encounter, Medical Department, Healthcare Service Unit, Lab Test, Observation, Service Request, Inpatient Record, Fee Validity, Insurance Payor, Healthcare Settings. FHIR terms are preferred where a choice exists. The product name is **Biograph**.
-
-## Translation
-
-Every user-facing string must be translatable: `_()` in Python and `__()` in Desk JS. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin. Do not build sentences by concatenating strings; use `_("... {0}").format(x)`. The Vue portal currently hardcodes English strings.
+## Mechanics
+- Every user-facing string must be translatable: `_()` in Python, `__()` in desk JS. Use positional placeholders `{0}`, `{1}`; do not use concatenation or f-strings. Strings are extracted to `healthcare/locale/main.pot` and translated through Crowdin.
+- Wrap DocType names and field labels in `<b>` when emphasizing them in messages.
