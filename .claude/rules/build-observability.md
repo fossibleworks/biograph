@@ -2,9 +2,12 @@
 
 # Observability
 
-There is no metrics or tracing stack. Observability comes from Frappe's built-in facilities:
+The app has no dedicated metrics or tracing stack. It uses Frappe's built-in facilities:
 
-- **Error Log DocType** via `frappe.log_error(message, title)`. This is the main mechanism (about 15 call sites), used in scheduler, notification and billing paths. Give it a human-readable title (`"Unavailability Calendar Event Error"`, `_("Appointment Confirmation Message Not Sent")`) and pass `frappe.get_traceback()` or the exception as the message.
-- **File logger** via `frappe.logger().info/error(...)` for operational traces in setup routines and parsing fallbacks (`setup/patient_duplicate_check.py`, appointment time parsing).
-- **Audit trail** relies on Frappe document versioning, comments and timeline. ABDM calls are persisted as `ABDM Request` documents.
-- No `print()` debugging. The `debug-statements` pre-commit hook rejects breakpoints and pdb.
+- **Error Log doctype** via `frappe.log_error(message, title)`. This is the main way to record failures that must not interrupt the user (about 15 call sites). Give a human-readable title and include `frappe.get_traceback()` when catching exceptions.
+- **Frappe logger** via `frappe.logger().info/debug/error(...)`, for setup routines and patches (e.g. patient duplicate-check rule setup) and parse failures. Use f-strings with context (counts, rule names).
+- **Product telemetry** via `frappe.utils.telemetry.capture("active_site", "patient_portal")` in the portal page context.
+- **Realtime** via `frappe.publish_realtime` (rarely used) and the portal's socket.io `refetch_resource` listener, for UI refreshes rather than monitoring.
+- **Coverage reporting** to Codecov from scheduled CI runs.
+
+Do not use `print()` or the stdlib `logging` module directly. The pre-commit `debug-statements` hook blocks leftover debuggers.
