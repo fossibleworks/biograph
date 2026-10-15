@@ -1,5 +1,5 @@
 ---
-title: Content & Copy
+title: Content and copy
 category: content-copy
 layer: project
 applies_to: []
@@ -7,16 +7,17 @@ inclusion: always
 binding: recommended
 source: inferred
 evidence:
-  - patient_portal/src/components/BookAppointmentModel.vue
-  - patient_portal/src/PatientPortal.vue
-  - healthcare/healthcare/api/patient_portal.py
-  - healthcare/healthcare/doctype/clinical_procedure_template/clinical_procedure_template.py
+  - healthcare/public/js/observation.js
+  - healthcare/public/js/mark_unavailable.js
+  - patient_portal/src/components/DiagnosticModel.vue
+  - healthcare/healthcare/doctype/insurance_payor_contract/insurance_payor_contract.py
   - healthcare/locale/main.pot
-  - crowdin.yml
+  - healthcare/patches.txt
 ---
 
-- **Terminology** follows the domain doctypes and FHIR/clinical vocabulary: Patient, Practitioner (Healthcare Practitioner), Medical Department, Healthcare Service Unit, Patient Appointment, Encounter, Inpatient Record, Lab Test, Observation, Service Request, Insurance Payor, Fee Validity. Use the DocType names exactly in messages.
-- **Tone:** short, plain and Title Case for labels and headings ("Book an Appointment", "Select a Department", "Pay Your Bill", "Payment Successful", "Consultation Fee"). Errors are direct statements, e.g. "Item {0} is not active", "Not allowed to print this document.", "You do not have permission to delete records." Use a title such as "Missing Configuration" for configuration errors.
-- **Empty states** in the portal are friendly and conversational, e.g. "Looks like you don't have any appointments yet." or "No Records Found".
-- Field labels use a trailing colon in detail views ("Order Date:", "Collected On:").
-- **i18n is mandatory.** Use `_()` in Python and `__()` in JS with `{0}` placeholders so strings are extracted into `healthcare/locale/main.pot` and translated through Crowdin. Do not build sentences by concatenating translated fragments.
+- **Translation:** every user-facing string goes through `_()` (Python) or `__()` (JS) with `{0}`/`{1}` positional placeholders, e.g. `__("Permanently Submit {0}?", [this.docname])`. Strings are collected into `healthcare/locale/main.pot` and translated through Crowdin.
+- **Tone:** short, factual, clinical and admin wording. No exclamation marks or chatty phrasing in product copy. Errors name the entity and the conflicting record, e.g. "An active contract for this Insurance Payor already exists: {0}", "Abbreviation is mandatory", "An Inpatient Medication Order {0} against Patient Encounter {1} already exists." Dialog titles group errors, e.g. `title=_("Missing Configuration")`. Light inline HTML such as `<b>Valid From</b>` is used to highlight field labels.
+- **Terminology:** use DocType names exactly and in Title Case: Patient, Healthcare Practitioner (not "doctor"), Patient Appointment, Patient Encounter, Inpatient Record, Healthcare Service Unit, Medical Department, Lab Test, Clinical Procedure, Insurance Payor (spelled "Payor"), Service Request, Observation. Statuses follow FHIR-style wording such as Admitted.
+- **Buttons and actions:** Title-Case verbs: "Create", "Add Observation", "Edit Observation", "Mark Time as Unavailable", "Book".
+- **Empty states (portal):** a short Title-Case heading such as "No Records Found".
+- Product name in UI is **Biograph**. The internal app and module name stays `healthcare`. A patch renamed Marley to Biograph, so don't reintroduce "Marley".
