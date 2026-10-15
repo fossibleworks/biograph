@@ -5,14 +5,9 @@ description: Documentation
 alwaysApply: true
 ---
 
-# Documentation
-
-- **README.md** gives the product overview, install steps (bench), and the development setup (pre-commit, semgrep). It points to the hosted docs on DeepWiki (`deepwiki.com/Tacten/biograph`) and a Telegram group.
-- **`wiki/`** holds in-repo feature docs as Markdown. Each feature usually gets two kinds of document:
-  - a **design/plan** doc (`DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE.md`, `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md`), and
-  - a **user guide** (`*-USAGE.md` / `*-USAGE-DOC.md`) with an introduction, quick start, tables, and numbered steps that use Desk navigation paths in bold (e.g. **Healthcare > Patient Appointment**).
-  - Images sit next to the docs (`patient-duplicatecheck-thumbnail.png`).
-- File naming is UPPER-KEBAB-CASE for feature docs.
-- **PR rule:** the `Documentation Required` workflow fails `feat` PRs unless the body links docs (`/wiki` on `biograph.frappe.cloud` or `biograph.io`), or says `no-docs`, or is a `backport`.
-- The PR template asks contributors to "Update necessary Documentation".
-- `AGENTS.md` contains a Build-managed guide index (do not edit inside the managed block).
+- **End-user and design docs** go in top-level `wiki/` as UPPER-KEBAB-CASE markdown (`PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`), plus plans and parity reports. Usage docs have a table of contents, numbered sections, click paths in bold (**Healthcare → Setup → Healthcare Settings**), tables, and optional screenshots or video thumbnails stored next to the doc.
+- **Public docs** are on DeepWiki (`deepwiki.com/Tacten/biograph`), linked from the README, with Context7 configured in `context7.json`.
+- **PR docs gate:** `docs_checker.yml` fails `feat` PRs unless the body links to a `/wiki` page on `biograph.frappe.cloud` / `biograph.io`, or says `no-docs` (backports are exempt). Its API call targets `earthians/biograph`.
+- The PR template asks you to "Update necessary Documentation" and to reference issues with `closes #XXXX`.
+- `healthcare/docs/current` is git-ignored.
+- `AGENTS.md` holds a Build-managed guides index that points to `.build/RULES.md`.
