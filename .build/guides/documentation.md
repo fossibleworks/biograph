@@ -8,21 +8,15 @@ binding: recommended
 source: inferred
 evidence:
   - README.md
-  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - wiki/DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md
-  - wiki/insurance-parity-report.md
-  - .github/workflows/docs_checker.yml
+  - wiki/PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md
   - .github/helper/documentation.py
-  - .github/ISSUE_TEMPLATE/PULL_REQUEST_TEMPLATE.md
+  - .github/workflows/docs_checker.yml
+  - AGENTS.md
 ---
 
-# Documentation
-
-- **README.md** covers the product overview, installation, development setup (pre-commit, semgrep), the community Telegram group and the license. It points to the full documentation on **DeepWiki** (`deepwiki.com/Tacten/biograph`).
-- **`wiki/`** holds in-repo Markdown docs for larger features. Files are named in UPPER-KEBAB-CASE:
-  - Design docs: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md` (Overview, then Core Features, then numbered sections)
-  - Usage guides: `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md` (table of contents, configuration steps as **Menu → Path** navigation, examples and best practices, an optional demo video thumbnail stored next to the doc)
-  - Implementation plans and parity reports: `FHIR Terminology Service Parity — Implementation Plan.md`, `insurance-parity-report.md` (scope table, executive summary)
-- **Feature PR rule**: the `Documentation Required` workflow (`.github/helper/documentation.py`) fails any PR whose title starts with `feat` unless the body links a docs URL on `biograph.frappe.cloud` / `biograph.io` with `/wiki` in the path, or contains `no-docs` or `backport`.
-- The PR template asks contributors to "Update necessary Documentation" and links the ERPNext docs page-format guidelines.
-- Code comments are sparse. Short inline `#` comments explain validation steps. Docstrings are uncommon.
+- **README.md** covers the overview, installation, development setup (pre-commit, semgrep), the license, and links to external docs ([DeepWiki](https://deepwiki.com/Tacten/biograph)) and the Telegram group.
+- **`wiki/`** holds in-repo markdown design docs and user guides, named in UPPER-KEBAB-CASE, e.g. `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, plus parity reports and implementation plans. They use numbered `##` sections (Overview, Configuration, Workflow…). Add a design doc and/or a usage guide here for significant features.
+- **PR docs gate:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails any `feat` PR whose body lacks a wiki link on `biograph.frappe.cloud`/`biograph.io`. To skip the check, include `no-docs` (or the PR is a backport).
+- **Code docs:** comments and docstrings are sparse. Doctype field descriptions live in the doctype JSON.
+- Agent guide files are managed under `.build/` (`RULES.md`, guides) and mirrored to `AGENTS.md`, `.claude/rules`, `.cursor/rules` and `.github/instructions`. Edit the `.build/` source, not the mirrors.
