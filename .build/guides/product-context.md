@@ -9,32 +9,25 @@ source: inferred
 evidence:
   - README.md
   - healthcare/hooks.py
-  - healthcare/modules.txt
+  - pyproject.toml
   - patient_portal/src/PatientPortal.vue
-  - healthcare/regional/india/abdm/utils.py
   - wiki/PATIENT-DUPLICATE.md
 ---
 
 ## What Biograph is
 
-Biograph (published as *fossibleHIS* / *Biograph – by Tacten*) is an open-source **Hospital Information System (HIS)**. It is a fork of Marley Health with added features. It is a **Frappe app** (Python package name `healthcare`, app title `Biograph`) that adds a healthcare domain to **ERPNext**. Most of the domain design follows **HL7 FHIR** resources (Observation, Service Request, Medication Request, Diagnostic Report, and so on).
+Biograph ("Biograph - by Tacten", repo `fossibleworks/biograph`, shipped as **fossibleHIS**) is an open source **Hospital Information System (HIS)**. It is a fork of **Marley Health** with extra features. It is built as a **Frappe app named `healthcare`**, needs **ERPNext** (`required_apps = ["frappe/erpnext"]`), and adds the health domain to ERPNext. Much of the data model follows **HL7 FHIR** (Service Request, Observation, Diagnostic Report, Medication Request, code systems).
 
 ## Who uses it
 
-- **Clinical staff** (practitioners, nurses, lab technicians) use Frappe Desk at `/desk/healthcare`. The `on_login` hook sends each role to its own home page.
-- **Front-desk and billing staff** handle patient registration, appointments, fee validity, insurance, and invoicing through ERPNext's Sales Invoice and Payment Entry.
-- **Patients** use the **Patient Portal** at `/patient-portal`, which needs the `Patient` role. There they can see appointments, diagnostics and payments, and book appointments.
+- **Clinical and front-desk staff in the Frappe Desk** (`app_home = "/desk/healthcare"`). Workspaces cover Healthcare, Outpatient, Inpatient, Diagnostics, Rehabilitation, Insurance and Setup (`healthcare/workspace_sidebar/*.json`, `healthcare/desktop_icon/*.json`). Main records include Patient, Patient Appointment, Patient Encounter, Healthcare Practitioner, Healthcare Service Unit, Lab Test, Clinical Procedure, Inpatient Record, Therapy Plan/Session, Observation, Insurance Claim and Medical Code.
+- **Patients, through the Patient Portal** (`/patient-portal`, role `Patient`). This is a Vue/frappe-ui SPA where patients book and view appointments and view diagnostics. There are also web forms for lab tests, prescriptions, appointments and personal details.
+- **Billing and finance users**: Biograph hooks into ERPNext's Sales Invoice and Payment Entry for billing, insurance claims and fee validity.
 
-## Main feature areas
+## Key feature areas (from README)
 
-- Patient management, including duplicate-patient detection (`wiki/PATIENT-DUPLICATE.md`)
-- Outpatient work: Patient Appointment, Patient Encounter, Fee Validity, and block-based therapy appointment booking
-- Inpatient work: Inpatient Record, Inpatient Medication Orders and Entries, service-unit occupancy billing
-- Clinical Procedures, Rehabilitation and Physiotherapy (Therapy Plan / Session / Type), Exercise
-- Laboratory: Lab Test, Sample Collection, Observation, Diagnostic Report
-- Medical code standards, Medical Departments, and Healthcare Service Units (a tree view)
-- Insurance: payors, contracts, policies, coverage, claims
-- India regional support: **ABDM** integration (`healthcare/regional/india/abdm`)
-- Dashboards, number cards, script reports, and print formats
+Patient management, Outpatient and Inpatient management, Clinical Procedures, Rehabilitation and Physiotherapy, Laboratory/Diagnostics, Insurance, and support for several Medical Code Standards. Facilities are modelled as Service Units and specialities as Medical Departments. ERPNext covers pharmacy and supplies, purchasing, HR, accounts and assets. There is an India regional module for **ABDM** (`healthcare/regional/india/abdm`).
 
-Pharmacy, purchasing, HR, accounts and assets come from ERPNext and are not re-implemented here.
+## Domain vocabulary to reuse
+
+Use these terms: Patient, Practitioner (Healthcare Practitioner), Encounter, Appointment, Service Unit, Medical Department, Service Request, Observation, Diagnostic Report, Inpatient Record, Fee Validity, Insurance Payor/Policy/Coverage/Claim. Do not invent synonyms.
