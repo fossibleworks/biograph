@@ -4,29 +4,17 @@
 applyTo: "**"
 ---
 
-## Framework
-
-Tests are Frappe **integration tests** that run against a real site and database (MariaDB) through bench.
-
-- Newer tests subclass `frappe.tests.IntegrationTestCase`. Older ones use `frappe.tests.utils.FrappeTestCase`.
-- `before_tests` in `hooks.py` calls `healthcare.healthcare.utils.before_tests` to set up fixtures.
-
-## Layout
-
-- Each DocType folder contains `test_<doctype>.py` with a class `Test<DocType>`. There are about 110 test files.
-- Override tests live next to their code (e.g. `custom_doctype/test_sales_invoice.py`). Regional tests do the same (`regional/india/abdm/test_abdm.py`).
-- Shared helpers are in `healthcare/tests/utils.py` and `healthcare/tests/test_utils.py`.
-- Tests often define module-level factories such as `create_healthcare_docs()` and `create_appointment(...)`. They clean tables in `setUp` with `frappe.db.sql("delete from `tab...`")` and toggle settings with `frappe.db.set_single_value`.
-
-## Coverage
-
-Codecov (`codecov.yml`) enforces two checks:
-
-- **Patch** coverage must reach **85%** on PRs against `develop`.
-- **Project** coverage may not drop by more than 0.5%.
-
-Coverage is captured on scheduled and non-PR runs. On PRs the CI tests run without coverage.
-
-## Running
-
-`bench --site <site> run-tests --app healthcare [--doctype "<DocType>"]`. CI uses `run-parallel-tests`.
+- **Framework:** Frappe's test runner (unittest-based). Classes extend `frappe.tests.utils.FrappeTestCase`. Shared bootstrap lives in `healthcare/tests/utils.py` (`BootStrapTestData`, built on `erpnext.tests.utils.ERPNextTestSuite`). `before_tests = healthcare.healthcare.utils.before_tests` in hooks.
+- **Layout:** tests sit next to the code as `test_<name>.py` inside each doctype folder (≈110 test files), e.g. `doctype/patient_appointment/test_patient_appointment.py`, and `custom_doctype/test_sales_invoice.py`.
+- **Style:**
+  - `setUp` cleans tables, e.g. `frappe.db.sql("delete from `tabPatient Appointment`")`.
+  - Module-level helper factories (`create_healthcare_docs`, `create_appointment`) build fixtures.
+  - Fixture names use the `_Test ...` prefix.
+  - Settings are toggled with `frappe.db.set_single_value`.
+  - Assertions use `assertEqual`/`assertTrue`.
+- **Running:** `bench --site test_site run-parallel-tests --app healthcare`, against MariaDB in CI.
+- **Coverage expectations (codecov.yml):**
+  - **85% patch coverage** on PRs into `develop`.
+  - Project coverage may drop at most 0.5%.
+  - Coverage is collected on scheduled/non-PR runs.
+- **Labeler:** PRs that touch `healthcare/**/*.py` without touching any `test*.py` get the `needs-tests` label.
