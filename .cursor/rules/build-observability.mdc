@@ -5,12 +5,10 @@ description: Observability
 alwaysApply: true
 ---
 
-The app relies only on Frappe's built-in facilities. There are no metrics or tracing libraries.
+There are no metrics or tracing libraries. Observability relies on Frappe's built-in facilities:
 
-- **`frappe.log_error(message, title)`** (about 24 call sites) writes to the **Error Log** DocType. It is the main way to record failures in background jobs, notifications, billing side effects and calendar integration. Pass `frappe.get_traceback()` as the message and a short, human-readable (often translated) title, e.g. `"Can't bill Service Unit occupancy"`, `"Unavailability Calendar Event Error"`.
-- **`frappe.logger().error(...)`** is used sparingly for parse-level warnings (e.g. unparseable appointment times).
-- Integration requests (ABDM) are stored as records (`ABDM Request` doctype), which gives you an audit trail of external calls.
-- Document history comes from Frappe's versioning/timeline (track_changes on doctypes).
-- CI keeps `bench_run_logs.txt` from the bench process for debugging.
-
-Don't use `print()` in server code. pre-commit's `debug-statements` hook rejects leftover debugger calls.
+- **`frappe.log_error(...)`** (about 15 uses) writes to the **Error Log** doctype. It is the main way failures in background or side-effect code are recorded. Pass a descriptive `title`, plus the traceback or exception as the message: `frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`.
+- **`frappe.logger()`** writes to bench log files. It is used for setup and migration progress at `info`/`debug` and for parse failures at `error`. Examples are `setup/patient_duplicate_check.py` and the v15 patch `setup_patient_duplicate_check_rules`.
+- Scheduled jobs show up in Frappe's Scheduled Job Log, and CodeQL and Semgrep give security visibility in CI.
+- **JS:** ESLint warns on `console.*` (`no-console: warn`). Don't leave `console.log` in desk or portal code. Report user-visible problems with `frappe.msgprint`/`frappe.throw` instead.
+- Don't log PHI (patient-identifying clinical data) in log messages. Log document names and IDs instead.
