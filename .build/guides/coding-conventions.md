@@ -12,25 +12,34 @@ evidence:
   - eslint.config.mjs
   - patient_portal/.prettierrc.json
   - .pre-commit-config.yaml
+  - .semgrepignore
   - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
   - commitlint.config.js
   - .git-blame-ignore-revs
 ---
 
-**Python (ruff, configured in `pyproject.toml`)**
-- Indent with **tabs**, use **double quotes**, line length 110 (E501 ignored), target py310.
-- Lint selects `F,E,W,I,UP,B,RUF` with many ignores (unused imports F401, `*` imports, B904, etc.).
-- Import order is enforced by isort sections: `future`, stdlib, third-party, **frappe**, **erpnext**, **healthcare**, first-party, local. Separate each group with a blank line, as in `patient_appointment.py`.
-- Use the Frappe idioms: `import frappe`, `from frappe import _`, `frappe.get_doc`/`frappe.db.get_value`, and `@frappe.whitelist()` for client-callable functions. DocType controllers are `class PatientAppointment(Document)` with lifecycle methods (`validate`, `before_save`, `on_submit`, …) that delegate to `validate_*` / `set_*` helpers.
-- Naming: modules and functions in snake_case, classes in PascalCase. Doctype folder and file names are the snake_case form of the DocType name.
-- Files begin with a copyright header comment (`# Copyright (c) <year>, ... and contributors` / `# For license information, please see license.txt`).
-- Many legacy files are listed in the global `exclude:` of `.pre-commit-config.yaml` and are not formatted. Don't bulk-reformat them in feature PRs. Mass reformat commits go in `.git-blame-ignore-revs`.
+**Python** (ruff, configured in `pyproject.toml`)
+- **Tabs** for indentation. Double quotes. Line length 110 (E501 is ignored, so long lines are tolerated).
+- Enabled lint sets: F, E, W, I, UP, B, RUF. Several are ignored on purpose: unused imports (F401), star imports, B904, and others.
+- **Import order** (isort sections): stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party → local. Put a blank line between groups.
+- Imports use absolute dotted paths such as `from healthcare.healthcare.doctype.fee_validity.fee_validity import (...)`. Multi-name imports use parenthesised blocks.
+- Files start with the Frappe header comment `# Copyright (c) <year>, <owner> and contributors` / `# For license information, please see license.txt`.
+- **Naming:** DocType folders and modules are `snake_case` (`patient_appointment/patient_appointment.py`). Controller classes are PascalCase and named after the DocType (`class PatientAppointment(Document)`). Custom exceptions are PascalCase `...Error(frappe.ValidationError)`.
+- Business logic goes in controller lifecycle methods (`validate`, `on_submit`, `on_cancel`, ...). Helper methods use snake_case.
+- Client-callable functions are module-level with `@frappe.whitelist()`.
+- Wrap every user-facing string in `_()` (`from frappe import _`), with `{0}` placeholders plus `.format(...)`.
+- Prefer `frappe.qb` or `frappe.db.get_value/get_all` for new queries. Older code still uses a lot of `frappe.db.sql`.
 
 **JavaScript (desk)**
-- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`. ESLint flat config extends `eslint:recommended` with Frappe globals (`frappe`, `__`, `cur_frm`, `flt`, …). `no-console` is a warning.
+- ESLint flat config (`eslint:recommended`) with the Frappe globals `frappe`, `erpnext`, `$`, `jQuery`, `__`, and so on.
+- Prettier: `useTabs: true`, `tabWidth: 4`, `printWidth: 88`, `arrowParens: "avoid"`.
+- Form scripts use `frappe.ui.form.on("<DocType>", { refresh(frm) {...}, <fieldname>(frm) {...} })`.
 - Wrap user-facing strings in `__()`.
 
 **Vue (patient_portal)**
-- `<script setup>` SFCs, PascalCase component files in `src/components/`, `@/` alias to `src`, frappe-ui components, Tailwind utility classes. The local prettier config uses `semi: false, singleQuote: true`, and prettier pre-commit excludes `patient_portal/`.
+- Its own `.prettierrc.json`. Prettier from pre-commit is **excluded** for `patient_portal/`.
+- Components are PascalCase `.vue` files under `src/components/`. Use frappe-ui components (Button, Dialog, Card, Badge) and `createResource` for API calls.
 
-**Commits:** Conventional Commits with lower-case type from `build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test`.
+**Legacy exclusion list:** `.pre-commit-config.yaml` has a long `exclude:` list of existing files that predate the linters, and `.semgrepignore` has one too. **New files are not excluded** and must pass every hook. Do not add new paths to the exclude lists.
+
+**Commits:** follow Conventional Commits, enforced by commitlint. Allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style and test, in lower case, with a non-empty subject. Scopes are used, e.g. `fix(healthcare): ...`.
