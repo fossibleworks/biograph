@@ -5,14 +5,10 @@ description: Observability
 alwaysApply: true
 ---
 
-There are no metrics or tracing libraries. Observability relies on Frappe's built-ins:
+The project has no dedicated metrics or tracing. Observability relies on Frappe's built-in facilities:
 
-- **`frappe.log_error(...)`** is the main mechanism, with about 24 call sites. It writes an **Error Log** doctype record visible in Desk.
-  - Preferred form: `frappe.log_error(message=<exception or traceback>, title="<short human title>")`. Older calls pass positionally (`frappe.log_error(frappe.get_traceback(), _("Appointment Confirmation Message Not Sent"))`).
-  - Use it in `except` blocks around side effects such as billing, notifications and calendar events.
-- **`frappe.logger()`** shows up occasionally for diagnostic lines (e.g. unparseable appointment times). It goes to bench log files.
-- **User-visible signals:** `frappe.msgprint(..., alert=True)` for success toasts (e.g. "Sales Invoice {0} created").
-- **Realtime:** the portal listens for socket.io `refetch_resource` events to refresh cached frappe-ui resources.
-- **CI and security signals:** Codecov coverage, CodeQL (python and javascript), Semgrep, pip-audit, detect-secrets.
-
-Give log titles short, specific names for the failed operation, and never include PHI beyond the document name.
+- **Error Log doctype** through `frappe.log_error` (about 15 call sites). This is the main way to surface failures in background or best-effort code. Use `frappe.log_error(title="<what failed>: <doc name>", message=frappe.get_traceback())`.
+- **`frappe.logger()`** (9 uses) for informational and progress logs in setup and patch code, for example `frappe.logger().info("Starting patient duplicate check rules setup")`.
+- **Realtime** `frappe.publish_realtime` is used sparingly for UI progress.
+- **JS:** `console.log` and `console.error` appear in Desk scripts (27 and 12). Do not add new `console.log` debug calls. ESLint's recommended set plus the pre-commit `debug-statements` hook (Python) guard against leftover debug code.
+- **Coverage** reporting goes to Codecov from scheduled CI runs.
