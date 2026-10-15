@@ -4,51 +4,39 @@
 applyTo: "**"
 ---
 
-## Setup (a bench is required)
+# Commands
 
+The app runs inside a **Frappe bench**. It is not standalone.
+
+## Setup
 ```sh
-# with ERPNext already installed in a frappe-bench
-bench get-app https://github.com/Tacten/biograph
+bench get-app <repo-url>
 bench --site <site> install-app healthcare
 ```
-CI builds the bench with `.github/helper/install.sh`.
 
-## Tests
-
+## Tests (server)
 ```sh
-# from ~/frappe-bench, against a test site with allow_tests
-bench --site test_site run-parallel-tests --app healthcare            # what CI runs
-bench --site test_site run-tests --app healthcare --module healthcare.healthcare.doctype.patient_appointment.test_patient_appointment
+bench --site test_site run-parallel-tests --app healthcare
+# single doctype
+bench --site <site> run-tests --app healthcare --doctype "Patient Appointment"
 ```
+The test site needs `allow_tests`; see `.github/helper/site_config.json`.
 
-## Lint and format (pre-commit)
-
+## Lint / format
 ```sh
-pip install pre-commit        # dev-requirements.txt pins pre-commit>=2.13,<3
-pre-commit install
-npm install                   # eslint deps for the eslint hook
-pre-commit run --all-files    # trailing-whitespace, check-yaml/json/toml/ast, prettier, eslint, pip-audit, ruff --fix, ruff-format, detect-secrets
-```
-
-## Semgrep (Frappe rules, as CI runs it)
-
-```sh
+pip install pre-commit && pre-commit install
+npm install   # installs eslint deps
+pre-commit run --all-files   # ruff, ruff-format, prettier, eslint, detect-secrets, pip-audit
 git clone --depth 1 https://github.com/frappe/semgrep-rules.git .frappe-semgrep-rules
-pip install semgrep
 semgrep ci --config ./.frappe-semgrep-rules/rules --config r/python.lang.correctness
 ```
 
-## Patient portal frontend
-
+## Frontend (patient portal)
 ```sh
-yarn install          # root postinstall runs `cd patient_portal && yarn install --check-files`
-yarn build            # root: cd patient_portal && yarn build
-cd patient_portal && yarn dev   # vite dev server (frappe-ui proxy to the bench)
+yarn install          # root postinstall installs patient_portal
+yarn build            # = cd patient_portal && vite build --base=/assets/healthcare/patient_portal/
+cd patient_portal && yarn dev
 ```
 
-## Migrations and translations
-
-```sh
-bench --site <site> migrate      # runs healthcare/patches.txt + after_migrate
-bash .github/helper/update_pot_file.sh   # regenerates healthcare/locale/main.pot (CI does this weekly)
-```
+## Migrations
+Run `bench --site <site> migrate`. It runs `patches.txt` and the `after_migrate` hook.
