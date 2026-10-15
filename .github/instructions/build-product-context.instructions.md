@@ -4,17 +4,22 @@
 applyTo: "**"
 ---
 
-**Biograph** (fossibleHIS, by Tacten) is an open-source **Hospital Information System (HIS)**. It started as a fork of Marley Health and adds its own features. It ships as a Frappe app named `healthcare` (app title "Biograph") that adds the health domain to **ERPNext**. Most of the data model follows **HL7 FHIR**. It has observations, diagnostic reports, service requests, code systems and value sets.
+**Biograph** (by Tacten / Fossibleworks, tracked in Build as *fossibleHIS*) is an open-source **Hospital Information System (HIS)**. It is a fork of, and adds to, Marley Health. It ships as a Frappe app named `healthcare` that adds the health domain to **ERPNext**. Most of its data model is based on **HL7 FHIR**.
 
-**Users:** clinics, hospitals and healthcare practitioners. Staff such as practitioners, nurses, lab and billing staff work in the Frappe Desk UI. Patients use a self-service **Patient Portal** (a Vue SPA served at `/patient-portal`) to book appointments, view diagnostics and pay.
+**Who uses it:** healthcare practitioners, clinics, hospitals and their administrative, billing and lab staff. Patients use a separate **Patient Portal**.
 
-**Main areas** (Desk workspaces in `healthcare/workspace_sidebar/`): Healthcare, Outpatient, Inpatient, Diagnostics (lab tests, sample collection, observations), Rehabilitation and physiotherapy (therapy plans and sessions), Insurance (payors, contracts, policies, coverage, claims) and Setup. Other features include:
-- multiple medical code standards
-- service units and medical departments
-- fee validity
-- packages
-- patient duplicate checking
-- block-based therapy appointment booking
-- India ABDM integration (`healthcare/regional/india/abdm`)
+**Core capabilities:**
+- Patient management, including configurable duplicate-patient checks
+- Outpatient care: Patient Appointment, Patient Encounter, fee validity, appointment types, block/therapy appointment booking
+- Inpatient care: Inpatient Record, medication orders and entries, service-unit occupancy billing
+- Clinical Procedures, Rehabilitation/Physiotherapy (Therapy Plan/Session, Exercise)
+- Laboratory and diagnostics: Lab Test, Observation, Diagnostic Report, sample collection
+- Medication and Medication Request, Service Requests (orders)
+- Insurance: payors, contracts, eligibility plans, coverage, claims
+- Medical code standards: Code System / Code Value / Code Value Set (FHIR terminology)
+- India regional features: ABDM integration (`healthcare/regional/india`, ABDM doctypes)
+- Facilities are modelled as **Healthcare Service Units** and specialities as **Medical Departments**
 
-Pharmacy, purchasing, HR, accounts and assets come from ERPNext. Billing goes through ERPNext Sales Invoice and Payment Entry.
+ERPNext supplies pharmacy/stock, purchasing, HR, accounts, assets and quality. Frappe supplies auth, role permissions, REST, website and payments.
+
+**Surfaces:** the Frappe Desk (`/desk/healthcare`, workspaces, reports, pages like `patient_history` and `patient_progress`) and the Vue-based Patient Portal served at `/patient_portal`.
