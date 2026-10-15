@@ -4,8 +4,12 @@
 applyTo: "**"
 ---
 
-- **User/product docs** are external: the README points to DeepWiki (`deepwiki.com/Tacten/biograph`). A Telegram group is used for the community.
-- **In-repo feature docs** live in `wiki/` as upper-kebab-case Markdown (e.g. `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `BLOCK-APPOINTMENT-BOOKING-USAGE.md`, `insurance-parity-report.md`). Design docs (`DESIGN-*`) and usage guides (`*-USAGE*`) are kept separate. Usage docs have a table of contents, numbered sections, and Desk navigation paths in bold (e.g. **Healthcare → Setup → Healthcare Settings**). Images sit next to the doc.
-- **PR docs gate:** the `Documentation Required` workflow fails `feat` PRs unless the body links a docs URL on `biograph.frappe.cloud`/`biograph.io` containing `/wiki`, or contains `no-docs` (or `backport`). That helper currently queries `earthians/biograph`.
-- The PR template asks you to "Update necessary Documentation" and to put `closes #XXXX` in the body.
-- Code comments are sparse. `hooks.py` keeps the Frappe scaffold comments.
+- **User and product docs live outside the repo.** The README links to DeepWiki (`deepwiki.com/Tacten/biograph`), and `context7.json` registers the repo with Context7.
+- **Feature design and usage docs** go in **`wiki/`** as UPPER-KEBAB markdown. Examples: `DESIGN-BLOCKBASED-THERAPY-APPOINTMENT-BOOKING.md`, `PATIENT-DUPLICATE-CHECKER-USAGE-DOC.md`, `insurance-parity-report.md`, and an FHIR terminology implementation plan. They are structured with numbered sections and a table of contents, and can include screenshots (`patient-duplicatecheck-thumbnail.png`).
+- **The PR docs gate:** the `Documentation Required` workflow (`.github/helper/documentation.py`) fails any PR whose title starts with `feat` unless one of these applies:
+  - the body links to a `/wiki` page on `biograph.frappe.cloud` or `biograph.io`
+  - the body contains `no-docs`
+  - it is a backport
+- The PR template asks contributors to "Update necessary Documentation" and to add screenshots or GIFs.
+- **Build-managed docs:** `CLAUDE.md`, `AGENTS.md` and `.build/` (vision, RULES, guides) are managed by Interactor Build. Edit the source files under `.build/`, not the generated "BEGIN BUILD GUIDES" blocks.
+- **In-code documentation** is light. Comments in `hooks.py` explain hook intent, and docstrings are sparse.
