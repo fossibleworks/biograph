@@ -1,5 +1,5 @@
 ---
-title: Coding Conventions
+title: Coding conventions
 category: coding-conventions
 layer: project
 applies_to: []
@@ -12,30 +12,29 @@ evidence:
   - patient_portal/.prettierrc.json
   - eslint.config.mjs
   - .pre-commit-config.yaml
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
-  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.js
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
   - .git-blame-ignore-revs
 ---
 
-## Python
-- **Ruff** sets the rules (`pyproject.toml`): line length 110 (E501 ignored), **tabs for indentation**, **double quotes**, target py310. Selected rule sets: F, E, W, I, UP, B, RUF.
-- **Import order** (isort sections): future, stdlib, third-party, `frappe`, `erpnext`, `healthcare`, first-party, local. Separate each group with a blank line.
-- Use absolute imports from the app root (`from healthcare.healthcare.doctype.x.x import ...`).
-- Doctype controllers are classes named in PascalCase after the doctype (`class PatientAppointment(Document)`). Their methods are small `validate_*` / `set_*` / `ensure_*` helpers called from `validate()`.
-- Module-level functions use snake_case. Client-callable ones are decorated with `@frappe.whitelist()`.
-- Wrap user-facing strings in `_()` from `frappe`, using `.format()` placeholders (`_("Sales Invoice {0} created").format(...)`).
-- Hook paths in `hooks.py` are fully qualified dotted strings.
-- Database access: prefer `frappe.qb`, `frappe.get_all` and `frappe.db.get_value`. Raw `frappe.db.sql` still exists widely in legacy code.
+**Python** (ruff, configured in `pyproject.toml`):
+- **Tabs** for indentation, double quotes, line length 110, target py310.
+- Lint rule sets are F, E, W, I, UP, B and RUF, with several ignores (E501, F401, B904 and others).
+- Imports are sorted into sections: stdlib → third-party → `frappe` → `erpnext` → `healthcare` → first-party.
+- Use `frappe.types.DF` for typing (controllers carry an auto-generated `# begin: auto-generated types` block).
+- Controller classes are `class PatientAppointment(Document)` named after the DocType. Modules and folders are snake_case DocType names.
+- Wrap user-facing strings in `_()` (`from frappe import _`) and format with `.format()` placeholders (`_("Row #{0}: ...").format(idx)`).
+- Expose client-callable functions with `@frappe.whitelist()`. Prefer `frappe.qb` or `frappe.get_all` for new queries. Many older `frappe.db.sql` queries remain.
 
-## JavaScript (desk)
-- Form scripts use `frappe.ui.form.on('<DocType>', { setup, onload, refresh, <field>: ... })`, with `frm.set_query` for link filters and `__()` for translatable strings.
-- Prettier (root `.prettierrc.yaml`): tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`.
-- ESLint flat config extends `eslint:recommended`, with Frappe globals (`frappe`, `erpnext`, `$`, `moment`, …).
-- Prettier skips `patient_portal/` and a few large legacy form scripts.
+**JavaScript (Desk):**
+- Prettier: tabs, tabWidth 4, printWidth 88, `arrowParens: avoid`.
+- ESLint uses `eslint:recommended` with the Frappe globals (`frappe`, `cur_frm`, `__`, `$`, `moment` …).
+- Form scripts use `frappe.ui.form.on("Doctype", {...})`. Wrap strings in `__()`.
 
-## Vue (patient_portal)
-- `.prettierrc.json`: no semicolons, single quotes.
-- SFCs use PascalCase filenames under `src/components/`, `@` aliases `src/`, and Tailwind utility classes with frappe-ui components.
+**Vue (patient_portal):**
+- `<script setup>` style with frappe-ui components and `createResource`.
+- Prettier there uses `semi: false, singleQuote: true`. The root prettier hook excludes `patient_portal/`.
+- Components are PascalCase `.vue` files in `src/components/`.
 
-## Legacy exclusions
-`.pre-commit-config.yaml` has a very large `exclude` list of legacy files that are not linted. When you touch one, keep the surrounding style instead of reformatting the whole file. Bulk reformat commits are listed in `.git-blame-ignore-revs`.
+**Legacy exclusion:** `.pre-commit-config.yaml` has a very large top-level `exclude:` list (about 600 legacy paths) that skips older files from all hooks. New files are not on it, so they must pass every hook. Do not add new paths to the exclude list.
+
+Copyright headers (`# Copyright (c) ..., ... and contributors` / `# See license.txt`) appear at the top of most Python modules.
