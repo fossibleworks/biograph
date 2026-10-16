@@ -1,0 +1,38 @@
+---
+title: Testing
+category: testing
+layer: project
+applies_to: []
+inclusion: always
+binding: required
+source: inferred
+evidence:
+  - healthcare/healthcare/doctype/patient_appointment/test_patient_appointment.py
+  - healthcare/tests/utils.py
+  - .github/labeler.yml
+  - codecov.yml
+  - .github/workflows/ci.yml
+  - healthcare/regional/india/abdm/test_abdm.py
+---
+
+# Testing
+
+## Framework
+- Server tests use Frappe's unittest-based runner. Test classes extend `FrappeTestCase` (`frappe.tests.utils`). Some shared fixtures use ERPNext's `ERPNextTestSuite`.
+- Run them with `bench --site <site> run-tests --app healthcare` (filter with `--doctype` or `--module`). CI runs `bench --site test_site run-parallel-tests --app healthcare` against MariaDB.
+- The repo has no JS or Vue unit tests and no Cypress tests (Cypress paths are only excluded in config).
+
+## Layout
+- Put a `test_<doctype>.py` next to each DocType controller (about 110 test files), e.g. `doctype/patient_appointment/test_patient_appointment.py`.
+- Shared master-data bootstrap lives in `healthcare/tests/utils.py` (`BootStrapTestData` creates the company, items, patients, practitioners, service units, templates and insurance payors), plus `healthcare/tests/test_utils.py`.
+- Regional tests sit alongside the code (`regional/india/abdm/test_abdm.py`).
+
+## Conventions
+- Test records are prefixed `_Test ...`. `setUp` often clears tables with `frappe.db.sql("delete from `tabX`")`.
+- Module-level factory helpers (`create_healthcare_docs`, `create_appointment`, `create_encounter`) are imported across tests. Reuse them instead of writing new factories.
+- Toggle settings with `frappe.db.set_single_value("Healthcare Settings", ...)`.
+
+## Expectations
+- The PR labeler adds `needs-tests` when a PR changes `healthcare/**/*.py` without touching any `test*.py`.
+- Codecov: **patch coverage target 85%** on PRs to `develop`, and project coverage may drop by at most 0.5%. Coverage is only collected on scheduled/non-PR CI runs.
+- PR template: all tests must pass locally.

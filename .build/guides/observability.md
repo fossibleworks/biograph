@@ -1,0 +1,27 @@
+---
+title: Observability
+category: observability
+layer: project
+applies_to: []
+inclusion: always
+binding: recommended
+source: inferred
+evidence:
+  - healthcare/healthcare/doctype/patient_appointment/patient_appointment.py
+  - healthcare/healthcare/setup/patient_duplicate_check.py
+  - healthcare/www/patient_portal.py
+  - patient_portal/src/socket.js
+  - .pre-commit-config.yaml
+---
+
+# Observability
+
+The app has no dedicated metrics or tracing stack. It uses Frappe's built-in facilities:
+
+- **Error Log doctype** via `frappe.log_error(message, title)`. This is the main way to record failures that must not interrupt the user (about 15 call sites). Give a human-readable title and include `frappe.get_traceback()` when catching exceptions.
+- **Frappe logger** via `frappe.logger().info/debug/error(...)`, for setup routines and patches (e.g. patient duplicate-check rule setup) and parse failures. Use f-strings with context (counts, rule names).
+- **Product telemetry** via `frappe.utils.telemetry.capture("active_site", "patient_portal")` in the portal page context.
+- **Realtime** via `frappe.publish_realtime` (rarely used) and the portal's socket.io `refetch_resource` listener, for UI refreshes rather than monitoring.
+- **Coverage reporting** to Codecov from scheduled CI runs.
+
+Do not use `print()` or the stdlib `logging` module directly. The pre-commit `debug-statements` hook blocks leftover debuggers.
