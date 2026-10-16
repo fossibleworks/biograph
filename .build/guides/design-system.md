@@ -1,0 +1,23 @@
+---
+title: Design system
+category: design-system
+layer: project
+applies_to: []
+inclusion: always
+binding: recommended
+source: inferred
+evidence:
+  - patient_portal/tailwind.config.js
+  - patient_portal/package.json
+  - patient_portal/vite.config.js
+  - patient_portal/src/components/BookAppointmentModel.vue
+  - healthcare/public/js/observation.html
+---
+
+- **Patient portal:** uses **frappe-ui** (`^0.1.176`) as its component library and Tailwind preset (`presets: [frappeUIPreset]` in `patient_portal/tailwind.config.js`). The only token extensions are legacy color aliases: lightBlue→sky, warmGray→stone, trueGray→neutral, coolGray→gray, blueGray→slate. Icons come from feather-icons and lucide (`lucideIcons: true` in the frappe-ui Vite plugin).
+  - Components live in `patient_portal/src/components/` (PascalCase `.vue`: `BookAppointmentModel.vue`, `Calendar.vue`, `PractitionerSelector.vue`, ...).
+  - Styling uses Tailwind utility classes such as `text-sm font-medium text-gray-600`.
+  - Global CSS is in `src/index.css`.
+  - Shared formatting helpers are in `src/utils/formatters.js`.
+- **Desk UI:** relies on Frappe Desk's own form, list and dialog components (`frappe.ui.Dialog`, `frappe.ui.form`). Small HTML templates sit in `healthcare/public/js/*.html` (`observation.html`, `healthcare_orders.html`).
+- Do not bring in another component library or define custom design tokens. Reuse frappe-ui and Frappe Desk primitives.
